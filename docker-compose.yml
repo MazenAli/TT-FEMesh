@@ -13,8 +13,8 @@ services:
       dockerfile: docker/Dockerfile
     depends_on:
       - base
-    image: tnfemesh
-    container_name: tnfemesh
+    image: tnfemesh-lib
+    container_name: tnfemesh-lib
     command: python
 
   dev:
