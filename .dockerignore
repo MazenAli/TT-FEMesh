@@ -1,0 +1,39 @@
+# General files
+*.pyc
+*.pyo
+*.pyd
+*.log
+__pycache__/
+*.egg-info/
+
+# Version control
+.git/
+.gitignore
+
+# Environment files
+.env
+*.pem
+
+# Docker-specific
+docker-compose.override.yml
+.dockerignore
+
+# Build and distribution
+build/
+dist/
+*.tar.gz
+*.whl
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Exclude data not needed in the image
+notebooks/
+tests/
