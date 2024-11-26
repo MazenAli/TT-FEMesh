@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include requirements.txt
+include requirements-git.txt
+recursive-include tnfemesh/ *
+recursive-exclude examples *
+recursive-exclude notebooks *
+prune tests

@@ -1,23 +1,18 @@
-FROM python:3.10-slim
+FROM tnfemesh-base:latest
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-COPY docker/requirements/requirements-pip.txt docker/requirements/requirements-git.txt ./
-
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements-pip.txt
-RUN pip install --no-cache-dir -r requirements-git.txt
-RUN rm requirements-pip.txt requirements-git.txt
-
-COPY src/ ./src
-COPY setup.py ./
+COPY requirements.txt requirements-git.txt ./
+COPY tnfemesh/ ./
 COPY README.md ./
+COPY pyproject.toml ./
+COPY setup.py ./
+
 RUN pip install --no-cache-dir .
+
+RUN rm pyproject.toml
 RUN rm setup.py
-RUN rm -rf src
+RUN rm -rf __pycache__
+RUN rm -rf tnfemesh*
 RUN rm -rf build
+RUN rm requirements.txt requirements-git.txt

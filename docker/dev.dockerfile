@@ -1,12 +1,12 @@
-FROM tnfemesh:latest
+FROM tnfemesh-base:latest
 
 WORKDIR /app
 
-COPY docker/requirements/requirements-dev.txt ./
-RUN pip install --no-cache-dir -r requirements-dev.txt
-RUN rm requirements-dev.txt
-
-COPY src/ ./src
+COPY requirements.txt requirements-git.txt requirements-dev.txt ./
+COPY tnfemesh ./
 COPY README.md ./
+COPY pyproject.toml ./
 COPY setup.py ./
+
+RUN pip install --no-cache-dir -r requirements-dev.txt
 RUN pip install --no-cache-dir -e .

@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 
-# ASCII logo
 ascii_logo = """
 ████████╗███╗   ██╗███████╗███████╗███╗   ███╗
 ╚══██╔══╝████╗  ██║██╔════╝██╔════╝████╗ ████║ 
@@ -12,7 +11,11 @@ ascii_logo = """
 
 print(ascii_logo)
 
-# Setup configuration
+requirements = [
+    requirement.strip() for requirement in open('requirements.txt').readlines()
+]
+requirements += ['torchtt']
+
 setup(
     name="tnfemesh",
     version="0.1.0",
@@ -22,10 +25,8 @@ setup(
     author="Mazen Ali",
     author_email="mazen.ali90@gmail.com",
     url="https://github.com/MazenAli/tnfemesh",
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
-    install_requires=[
-    ],
+    packages=find_packages(),
+    install_requires=requirements,
     python_requires=">=3.9, <3.11",
     license="MIT",
     classifiers=[
