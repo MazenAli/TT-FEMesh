@@ -89,7 +89,7 @@ class HalfCircle2D(Curve):
 class ParametricCurve2D(Curve):
     def __init__(self, x_func: callable, y_func: callable):
         """
-        Initialize a parametric curve defined by a function f(t).
+        Initialize a parametric curve defined by a functions x(t) and y(t).
         Uses a finite difference approximation to compute the tangent.
 
         Args:
