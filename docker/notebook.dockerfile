@@ -1,4 +1,4 @@
-FROM tnfemesh:latest
+FROM tnfemesh-dev:latest
 
 RUN pip install --no-cache-dir notebook
 

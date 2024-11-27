@@ -10,7 +10,7 @@ services:
   lib:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/lib.dockerfile
     depends_on:
       - base
     image: tnfemesh-lib
@@ -29,16 +29,16 @@ services:
       - base
     command: bash
 
-  notebooks:
+  notebook:
     build:
       context: .
       dockerfile: docker/notebook.dockerfile
     image: tnfemesh-notebook
     container_name: tnfemesh-notebook
     volumes:
-      - ./notebooks:/app/notebooks
+      - .:/app
     depends_on:
-      - lib
+      - dev
     ports:
       - "8888:8888"
     command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
