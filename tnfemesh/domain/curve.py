@@ -8,6 +8,14 @@ class Curve(ABC):
     Defines the interface for all curve implementations.
     """
 
+    def get_start(self) -> np.ndarray:
+        """Get the start point of the curve."""
+        return self.evaluate(0.0)[0]
+
+    def get_end(self) -> np.ndarray:
+        """Get the end point of the curve."""
+        return self.evaluate(1.0)[0]
+
     @abstractmethod
     def evaluate(self, t: np.ndarray) -> np.ndarray:
         """
@@ -46,10 +54,19 @@ class Curve(ABC):
         Returns:
             bool: True if the curves are approximately equal, False otherwise.
         """
+        reverse = False
+        start = self.get_start()
+        start_other = other.get_start()
+        if not np.allclose(start, start_other, atol=tol):
+            start_other = other.get_end()
+            if not np.allclose(start, start_other, atol=tol):
+                return False
+            reverse = True
 
         ts = np.linspace(0, 1, num_points)
         for t in ts:
-            if not np.allclose(self.evaluate(t), other.evaluate(t), atol=tol):
+            t_other = t if not reverse else 1 - t
+            if not np.allclose(self.evaluate(t), other.evaluate(t_other), atol=tol):
                 return False
         return True
 
@@ -119,7 +136,7 @@ class CircularArc2D(Curve):
 class ParametricCurve2D(Curve):
     def __init__(self, x_func: callable, y_func: callable):
         """
-        Initialize a parametric curve defined by a functions x(t) and y(t).
+        Initialize a parametric curve defined by functions x(t) and y(t).
         Uses a finite difference approximation to compute the tangent.
 
         Args:

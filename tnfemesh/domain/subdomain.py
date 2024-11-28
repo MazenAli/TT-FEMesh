@@ -47,6 +47,22 @@ class Subdomain2D(Subdomain):
         self.validate()
         self.subdomain_type = subdomain_type
 
+    def get_curve(self, index: int) -> Curve:
+        """
+        Get the curve at the specified index.
+
+        Args:
+            index (int): Index of the curve.
+
+        Returns:
+            Curve: The curve at the specified index.
+        """
+
+        if index < 0 or index >= 4:
+            raise ValueError("Curve index must be in the range [0, 3].")
+
+        return self.curves[index]
+
     def validate(self, tol: float = 1e-6):
         """
         Ensure that the curves connect properly.
