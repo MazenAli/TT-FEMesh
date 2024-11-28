@@ -24,7 +24,7 @@ class Curve(ABC):
     @abstractmethod
     def tangent(self, t: np.ndarray) -> np.ndarray:
         """
-        Compute the tangent vector to the curve at parameter values t.
+        Compute the tangent vector (not normalized) to the curve at parameter values t.
 
         Args:
             t (np.ndarray): Array of parameter values in [0, 1].
@@ -33,6 +33,25 @@ class Curve(ABC):
             np.ndarray: Array of shape (len(t), 2) with tangent vectors.
         """
         pass
+
+    def equals(self, other: "Curve", num_points: int = 100, tol: float = 1e-6) -> bool:
+        """
+        Check if two curves are approximately equal by sampling.
+
+        Args:
+            other (Curve): Another curve to compare.
+            num_points (int): Number of points to sample along the curve.
+            tol (float): Tolerance for point-wise comparison.
+
+        Returns:
+            bool: True if the curves are approximately equal, False otherwise.
+        """
+
+        ts = np.linspace(0, 1, num_points)
+        for t in ts:
+            if not np.allclose(self.evaluate(t), other.evaluate(t), atol=tol):
+                return False
+        return True
 
 
 class Line2D(Curve):
@@ -51,39 +70,50 @@ class Line2D(Curve):
         return np.outer(1 - t, self.start) + np.outer(t, self.end)
 
     def tangent(self, t: np.ndarray) -> np.ndarray:
-        return np.tile(self.end - self.start, (len(t), 1)) / np.linalg.norm(self.end - self.start)
+        return np.tile(self.end - self.start, (len(t), 1))
+
+    def __repr__(self):
+        return f"Line2D(start={tuple(self.start)}, end={tuple(self.end)})"
 
 
-class HalfCircle2D(Curve):
-    def __init__(self, center: tuple[float, float], radius: float, top: bool = True):
+class CircularArc2D(Curve):
+    def __init__(self,
+                 center: tuple[float, float],
+                 radius: float,
+                 start_angle: float = 0.,
+                 angle_sweep: float = np.pi):
         """
-        Initialize a half-circle curve.
+        Initialize a circular arc defined by a center, radius, and angle sweep.
 
         Args:
             center (tuple): Coordinates of the center (x, y).
             radius (float): Radius of the half-circle.
-            top (bool): True (default) for top half, False for bottom.
+            start_angle (float): Starting angle in radians. Default is 0.
+            angle_sweep (float): Angle sweep in radians. Default is π.
         """
         self.center = np.array(center)
         self.radius = radius
-        self.top = top
+        self.start_angle = start_angle
+        self.angle_sweep = angle_sweep
 
     def evaluate(self, t: np.ndarray) -> np.ndarray:
-        angle = t * np.pi
-        if not self.top:
-            angle = 2 * np.pi - angle
+        angle = self.start_angle + t * self.angle_sweep
         x = self.center[0] + self.radius * np.cos(angle)
         y = self.center[1] + self.radius * np.sin(angle)
         return np.stack((x, y), axis=-1)
 
     def tangent(self, t: np.ndarray) -> np.ndarray:
-        angle = t * np.pi
-        if not self.top:
-            angle = 2 * np.pi - angle
-        dx = -np.sin(angle)
-        dy = np.cos(angle)
+        angle = self.start_angle + t * self.angle_sweep
+        mul_factor = self.angle_sweep * self.radius
+        dx = -np.sin(angle)*mul_factor
+        dy = np.cos(angle)*mul_factor
         tangent = np.stack((dx, dy), axis=-1)
-        return tangent / np.linalg.norm(tangent, axis=-1, keepdims=True)
+        return tangent
+
+    def __repr__(self):
+        return (f"CircularArc2D(center={tuple(self.center)}, "
+                f"radius={self.radius}, start_angle={self.start_angle}, "
+                f"angle_sweep={self.angle_sweep})")
 
 
 class ParametricCurve2D(Curve):
@@ -109,5 +139,7 @@ class ParametricCurve2D(Curve):
         dx = (self.x_func(t + dt) - self.x_func(t)) / dt
         dy = (self.y_func(t + dt) - self.y_func(t)) / dt
         tangent = np.stack((dx, dy), axis=-1)
-        return tangent / np.linalg.norm(tangent, axis=-1, keepdims=True)
+        return tangent
 
+    def __repr__(self):
+        return f"ParametricCurve2D(x_func={self.x_func}, y_func={self.y_func})"

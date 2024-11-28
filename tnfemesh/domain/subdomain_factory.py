@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from tnfemesh.domain.subdomain import Subdomain2D
+from tnfemesh.domain.subdomain import Subdomain2D, SubdomainType
 from tnfemesh.domain.curve import Line2D
 from typing import Tuple
 
@@ -33,12 +33,13 @@ class RectangleFactory(SubdomainFactory):
         x0, y0 = bottom_left
         x1, y1 = top_right
         points = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
-        return Subdomain2D([Line2D(points[i], points[(i + 1) % 4]) for i in range(4)])
+        return Subdomain2D([Line2D(points[i], points[(i + 1) % 4]) for i in range(4)],
+                           subdomain_type=SubdomainType.QUADRILATERAL)
 
 
-class TrapezoidFactory(SubdomainFactory):
+class QuadFactory(SubdomainFactory):
     """
-    Factory class for creating trapezoid subdomains.
+    Factory class for creating quadrilateral subdomains.
     """
     @staticmethod
     def create(p1: Tuple[float, float],
@@ -59,4 +60,5 @@ class TrapezoidFactory(SubdomainFactory):
         """
 
         points = (p1, p2, p3, p4)
-        return Subdomain2D([Line2D(points[i], points[(i + 1) % 4]) for i in range(4)])
+        return Subdomain2D([Line2D(points[i], points[(i + 1) % 4]) for i in range(4)],
+                           subdomain_type=SubdomainType.QUADRILATERAL)
