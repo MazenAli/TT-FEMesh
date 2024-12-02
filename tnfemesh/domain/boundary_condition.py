@@ -48,3 +48,15 @@ class DirichletBoundary2D(BoundaryCondition):
             if curve_idx >= len(subdomains[subdomain_idx].curves):
                 raise ValueError(f"Curve index {curve_idx} out of range"
                                  f" for subdomain {subdomain_idx}.")
+
+    def num_bcs(self) -> int:
+        """
+        Get the number of curves with imposed boundary conditions.
+
+        Returns:
+            int: Number of curves with boundary conditions.
+        """
+        return len(self.boundary)
+
+    def __repr__(self):
+        return f"DirichletBoundary2D(num_bcs={self.num_bcs()})"
