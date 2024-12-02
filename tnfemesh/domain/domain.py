@@ -53,7 +53,7 @@ class Domain2D(Domain):
 
         for subdomain in self.subdomains:
             for curve in subdomain.curves:
-                t = np.linspace(0, 1, 100)
+                t = np.linspace(-1, 1, 100)
                 points = np.array(curve.evaluate(t))
                 plt.plot(points[:, 0], points[:, 1], label="Subdomain")
 
@@ -63,13 +63,13 @@ class Domain2D(Domain):
                 plt.plot(shared_vertex[0], shared_vertex[1], 'ro', label="Shared Vertex")
             elif isinstance(connection, CurveConnection):
                 curve = connection.get_shared_curve(self.subdomains)
-                curve_points = curve.evaluate(np.linspace(0, 1, num_points))
+                curve_points = curve.evaluate(np.linspace(-1, 1, num_points))
                 plt.plot(curve_points[:, 0], curve_points[:, 1], 'g--', label="Shared Curve")
 
         if self.boundary_condition:
             for subdomain_idx, curve_idx in self.boundary_condition.boundary:
                 curve = self.subdomains[subdomain_idx].curves[curve_idx]
-                curve_points = curve.evaluate(np.linspace(0, 1, num_points))
+                curve_points = curve.evaluate(np.linspace(-1, 1, num_points))
                 plt.plot(curve_points[:, 0], curve_points[:, 1], 'k--', label="Boundary Condition")
 
         plt.axis("equal")

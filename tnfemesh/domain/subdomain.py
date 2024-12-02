@@ -62,14 +62,14 @@ class Subdomain2D(Subdomain):
         """
 
         for i in range(4):
-            end = self.curves[i].evaluate(np.array([1]))[0]
-            next_start = self.curves[(i + 1) % 4].evaluate(np.array([0]))[0]
+            end = self.curves[i].get_end()
+            next_start = self.curves[(i + 1) % 4].get_start()
             if not np.allclose(end, next_start, atol=tol):
                 raise ValueError(f"Curves {i} and {(i + 1) % 4} do not connect properly.")
 
     def plot(self, num_points: int = 100):
         for curve in self.curves:
-            t_vals = np.linspace(0, 1, num_points)
+            t_vals = np.linspace(-1, 1, num_points)
             points = curve.evaluate(t_vals)
             plt.plot(points[:, 0], points[:, 1], label=f"{type(curve).__name__}")
 
