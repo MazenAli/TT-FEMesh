@@ -41,6 +41,7 @@ class VertexConnection2D(SubdomainConnection):
             subdomains (List[Subdomain]): List of subdomains in the domain.
             tol (float): Tolerance for point-wise comparison
         """
+        self._validate_idxs(subdomains)
 
         curve0 = subdomains[self.connection[0][0]].curves[self.connection[0][1]]
         point0 = curve0.get_start() if self.connection[0][2] == "start" else curve0.get_end()
@@ -64,8 +65,21 @@ class VertexConnection2D(SubdomainConnection):
         Returns:
             np.ndarray: Shared vertex coordinates.
         """
+        self._validate_idxs(subdomains)
+
         curve0 = subdomains[self.connection[0][0]].curves[self.connection[0][1]]
         return curve0.get_start() if self.connection[0][2] == "start" else curve0.get_end()
+
+    def _validate_idxs(self, subdomains: List[Subdomain]):
+        """ Validate that the subdomain and curve indices are within bounds."""
+        for subdomain_idx, curve_idx, position in self.connection:
+            if subdomain_idx >= len(subdomains):
+                raise ValueError(f"Subdomain index {subdomain_idx} is out of bounds.")
+            if curve_idx >= len(subdomains[subdomain_idx].curves):
+                raise ValueError(f"Curve index {curve_idx} is out of bounds.")
+
+    def __repr__(self):
+        return f"VertexConnection2D({self.connection})"
 
 
 class CurveConnection(SubdomainConnection):
@@ -96,6 +110,7 @@ class CurveConnection(SubdomainConnection):
             num_points (int): Number of points to sample along the curve.
             tol (float): Tolerance for point-wise comparison.
         """
+        self._validate_idxs(subdomains)
 
         sub1_idx, sub2_idx = self.subdomains_indices
         curve1_idx, curve2_idx = self.curve_indices
@@ -105,7 +120,8 @@ class CurveConnection(SubdomainConnection):
 
         if not curve1.equals(curve2, num_points=num_points, tol=tol):
             raise ValueError(
-                f"Curves {curve1_idx} of subdomain {sub1_idx} and {curve2_idx} of subdomain {sub2_idx} are not equal."
+                f"Curves {curve1_idx} of subdomain {sub1_idx}"
+                f" and {curve2_idx} of subdomain {sub2_idx} are not equal."
             )
 
     def get_shared_curve(self, subdomains: List[Subdomain]) -> Curve:
@@ -118,7 +134,26 @@ class CurveConnection(SubdomainConnection):
         Returns:
             Curve: Shared curve.
         """
+        self._validate_idxs(subdomains)
+
         sub1_idx, sub2_idx = self.subdomains_indices
         curve1_idx, curve2_idx = self.curve_indices
 
         return subdomains[sub1_idx].curves[curve1_idx]
+
+    def _validate_idxs(self, subdomains: List[Subdomain]):
+        """ Validate that the subdomain and curve indices are within bounds."""
+        sub1_idx, sub2_idx = self.subdomains_indices
+        curve1_idx, curve2_idx = self.curve_indices
+
+        if sub1_idx >= len(subdomains):
+            raise ValueError(f"Subdomain index {sub1_idx} is out of bounds.")
+        if sub2_idx >= len(subdomains):
+            raise ValueError(f"Subdomain index {sub2_idx} is out of bounds.")
+        if curve1_idx >= len(subdomains[sub1_idx].curves):
+            raise ValueError(f"Curve index {curve1_idx} is out of bounds.")
+        if curve2_idx >= len(subdomains[sub2_idx].curves):
+            raise ValueError(f"Curve index {curve2_idx} is out of bounds.")
+
+    def __repr__(self):
+        return f"CurveConnection({self.subdomains_indices}, {self.curve_indices})"
