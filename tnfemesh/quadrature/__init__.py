@@ -1,3 +1,4 @@
-from .quadrature import GaussLegendre
+from .quadrature import QuadratureRule, GaussLegendre
 
-__all__ = ["GaussLegendre"]
+__all__ = ["QuadratureRule",
+            "GaussLegendre"]

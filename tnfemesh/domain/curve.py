@@ -16,6 +16,9 @@ class Curve(ABC):
         """Get the end point of the curve."""
         return self.evaluate(1.0)[0]
 
+    def __call__(self, *args, **kwargs):
+        return self.evaluate(*args, **kwargs)
+
     @abstractmethod
     def evaluate(self, t: np.ndarray) -> np.ndarray:
         """

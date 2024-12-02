@@ -8,18 +8,8 @@ class QuadratureRule(ABC):
     """Abstract base class for a quadrature rule."""
 
     @abstractmethod
-    def compute(order: int, dimension: int = 1) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Compute the quadrature points and weights.
-
-        Args:
-            order (int): The order of the quadrature rule.
-            dimension (int): The number of dimensions (default is 1).
-
-        Returns:
-            Tuple[np.ndarray, np.ndarray]: Quadrature points (shape [n_points, dimension])
-                                           and weights (shape [n_points]).
-        """
+    def compute(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Compute the quadrature points and weights."""
         pass
 
 

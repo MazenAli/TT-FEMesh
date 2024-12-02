@@ -1,14 +1,8 @@
 from abc import ABC, abstractmethod
-from enum import Enum
 from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
-from tnfemesh.domain.curve import Curve
-
-
-class SubdomainType(Enum):
-    GENERAL = "general"
-    QUADRILATERAL = "quadrilateral"
+from tnfemesh.domain.curve import Curve, Line2D
 
 
 class Subdomain(ABC):
@@ -29,8 +23,7 @@ class Subdomain(ABC):
 
 
 class Subdomain2D(Subdomain):
-    def __init__(self, curves: List[Curve],
-                 subdomain_type: SubdomainType = SubdomainType.GENERAL):
+    def __init__(self, curves: List[Curve]):
         """
         Initialize a 2D subdomain defined by 4 boundary curves.
         The curves must connect properly to form a closed subdomain.
@@ -38,14 +31,11 @@ class Subdomain2D(Subdomain):
 
         Args:
             curves (List[Curve]): List of 4 boundary curves.
-            subdomain_type (SubdomainType): Type of the subdomain.
-                Default is SubdomainType.GENERAL.
         """
         if len(curves) != 4:
             raise ValueError("A 2D subdomain must be defined by exactly 4 curves.")
         self.curves = curves
         self.validate()
-        self.subdomain_type = subdomain_type
 
     def get_curve(self, index: int) -> Curve:
         """
@@ -88,4 +78,15 @@ class Subdomain2D(Subdomain):
         plt.show()
 
     def __repr__(self):
-        return f"Subdomain2D(type={self.subdomain_type.value}, num_curves={len(self.curves)})"
+        points = [curve.get_start() for curve in self.curves]
+        return f"Subdomain2D(points={points})"
+
+
+class Quad(Subdomain2D):
+    """Quadrilateral subdomain defined by 4 boundary lines."""
+    def __init__(self, curves: List[Line2D]):
+        super().__init__(curves)
+
+    def __repr__(self):
+        points = [curve.get_start() for curve in self.curves]
+        return f"Quad(points={points})"
