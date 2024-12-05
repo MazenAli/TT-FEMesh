@@ -19,6 +19,11 @@ class Curve(ABC):
     def __call__(self, *args, **kwargs):
         return self.evaluate(*args, **kwargs)
 
+    def _validate(self, t: np.ndarray):
+        """Ensure that parameter values are in the interval [-1, 1]."""
+        if not np.all(-1 <= t) or not np.all(t <= 1):
+            raise ValueError("Parameter values must be in the interval [-1, 1].")
+
     @abstractmethod
     def evaluate(self, t: np.ndarray) -> np.ndarray:
         """
@@ -88,9 +93,13 @@ class Line2D(Curve):
         self.end = np.array(end)
 
     def evaluate(self, t: np.ndarray) -> np.ndarray:
+        self._validate(t)
+
         return np.outer((1-t)*0.5, self.start) + np.outer((1+t)*0.5, self.end)
 
     def tangent(self, t: np.ndarray) -> np.ndarray:
+        self._validate(t)
+
         return np.tile(0.5*(self.end - self.start), (len(t), 1))
 
     def __repr__(self):
@@ -118,6 +127,8 @@ class CircularArc2D(Curve):
         self.angle_sweep = angle_sweep
 
     def evaluate(self, t: np.ndarray) -> np.ndarray:
+        self._validate(t)
+
         angle = self.start_angle + 0.5 * (t+1) * self.angle_sweep
         x = self.center[0] + self.radius * np.cos(angle)
         y = self.center[1] + self.radius * np.sin(angle)
@@ -151,11 +162,15 @@ class ParametricCurve2D(Curve):
         self.y_func = y_func
 
     def evaluate(self, t: np.ndarray) -> np.ndarray:
+        self._validate(t)
+
         x = self.x_func(t)
         y = self.y_func(t)
         return np.stack((x, y), axis=-1)
 
     def tangent(self, t: np.ndarray) -> np.ndarray:
+        self._validate(t)
+
         dt = 1e-5
         dx = (self.x_func(t + dt) - self.x_func(t)) / dt
         dy = (self.y_func(t + dt) - self.y_func(t)) / dt

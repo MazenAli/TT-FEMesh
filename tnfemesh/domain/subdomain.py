@@ -12,7 +12,7 @@ class Subdomain(ABC):
     """
 
     @abstractmethod
-    def validate(self):
+    def _validate(self):
         """Ensure that the subdomain is valid."""
         pass
 
@@ -35,7 +35,7 @@ class Subdomain2D(Subdomain):
         if len(curves) != 4:
             raise ValueError("A 2D subdomain must be defined by exactly 4 curves.")
         self.curves = curves
-        self.validate()
+        self._validate()
 
     def get_curve(self, index: int) -> Curve:
         """
@@ -53,7 +53,7 @@ class Subdomain2D(Subdomain):
 
         return self.curves[index]
 
-    def validate(self, tol: float = 1e-6):
+    def _check_connect(self, tol: float = 1e-6):
         """
         Ensure that the curves connect properly.
 
@@ -66,6 +66,23 @@ class Subdomain2D(Subdomain):
             next_start = self.curves[(i + 1) % 4].get_start()
             if not np.allclose(end, next_start, atol=tol):
                 raise ValueError(f"Curves {i} and {(i + 1) % 4} do not connect properly.")
+
+    def _check_orientation(self):
+        """Check if the curves defining the domain are ordered counter-clockwise."""
+
+        points = [curve.get_start() for curve in self.curves]
+        signed_area = 0.0
+        for i in range(len(points) - 1):
+            x1, y1 = points[i]
+            x2, y2 = points[i + 1]
+            signed_area += x1 * y2 - x2 * y1  # Determinant contribution
+
+        if signed_area < 0:
+            raise ValueError("The start points of curves are not ordered counter-clockwise.")
+
+    def _validate(self):
+        self._check_connect()
+        self._check_orientation()
 
     def plot(self, num_points: int = 100):
         for curve in self.curves:

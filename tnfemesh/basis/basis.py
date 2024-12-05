@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Iterable, Any
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 

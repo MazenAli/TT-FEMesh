@@ -8,7 +8,13 @@ class QuadratureRule(ABC):
     """Abstract base class for a quadrature rule."""
 
     @abstractmethod
-    def compute(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_points_weights(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Retrieve the quadrature points and weights."""
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def compute_points_weights(self) -> Tuple[np.ndarray, np.ndarray]:
         """Compute the quadrature points and weights."""
         pass
 
@@ -16,8 +22,32 @@ class QuadratureRule(ABC):
 class GaussLegendre(QuadratureRule):
     """Implements Gauss-Legendre quadrature on [-1, 1]^(dimension)."""
 
+    def __init__(self, order: int, dimension: int = 1):
+        """
+        Initialize the Gauss-Legendre quadrature rule.
+
+        Args:
+            order (int): The order of the quadrature rule. Must be greater than 0.
+            dimension (int): The number of dimensions (default is 1).
+        """
+        self.order = order
+        self.dimension = dimension
+        self.points = None
+        self.weights = None
+
+    def get_points_weights(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Get the quadrature points and weights.
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray]: Quadrature points and weights.
+        """
+        if self.points is None or self.weights is None:
+            self.points, self.weights = self.compute_points_weights(self.order, self.dimension)
+        return self.points, self.weights
+
     @staticmethod
-    def compute(order: int, dimension: int = 1) -> Tuple[np.ndarray, np.ndarray]:
+    def compute_points_weights(order: int, dimension: int = 1) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute the Gauss-Legendre quadrature points and weights.
 
