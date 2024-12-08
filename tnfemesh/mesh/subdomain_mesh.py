@@ -28,12 +28,17 @@ class SubdomainMesh(ABC):
 
 
     @abstractmethod
-    def ref2element_map(self):
-        """Return the reference to element map."""
+    def ref2domain_map(self):
+        """Return the reference to domain map."""
         pass
 
     @abstractmethod
-    def ref2element_jacobian(self) -> Any:
+    def ref2element_map(self):
+        """Return the element transformation function."""
+        pass
+
+    @abstractmethod
+    def ref2element_jacobian(self):
         """Return the Jacobian function for the element transformation."""
         pass
 
@@ -62,7 +67,7 @@ class SubdomainMesh2D(SubdomainMesh):
         super().__init__(subdomain, quadrature_rule, mesh_size_exponent)
 
         self._num_points1d = 2**mesh_size_exponent
-        self._grid_step1d = 1.0 / (self._num_points1d - 1)
+        self._grid_step1d = 2.0 / (self._num_points1d - 1)
 
     @property
     def num_points1d(self):
@@ -84,12 +89,9 @@ class SubdomainMesh2D(SubdomainMesh):
         """Total number of elements."""
         return (self.num_points1d - 1)**2
 
-    def ref2element_map(self,
-                        index: Tuple[int, int],
-                        xi_eta: np.ndarray) -> np.ndarray:
+    def ref2domain_map(self,
+                       xi_eta: np.ndarray) -> np.ndarray:
 
-        index_x, index_y = index
-        self._validate_idxs(index_x, index_y)
         self._validate_ref_coords(xi_eta)
         xi, eta = xi_eta[:, 0], xi_eta[:, 1]
 
@@ -98,33 +100,25 @@ class SubdomainMesh2D(SubdomainMesh):
         side2 = self.subdomain.curves[2]
         side3 = self.subdomain.curves[3]
 
-        offset_xi = -1. + index_x * self._grid_step1d
-        offset_eta = -1. + index_y * self._grid_step1d
-        next_xi = -1. + (index_x+1) * self._grid_step1d
-        next_eta = -1. + (index_y+1) * self._grid_step1d
-
-        xi_rescaled = offset_xi + 0.5*self._grid_step1d*(xi+1)
-        eta_rescaled = offset_eta + 0.5*self._grid_step1d*(eta+1)
-
-        side0_vals = side0(xi_rescaled)
-        side1_vals = side1(eta_rescaled)
-        side2_vals = side2(xi_rescaled)
-        side3_vals = side3(eta_rescaled)
+        side0_vals = side0(xi)
+        side1_vals = side1(eta)
+        side2_vals = side2(-xi)
+        side3_vals = side3(-eta)
 
         side0_x, side0_y = side0_vals[:, 0], side0_vals[:, 1]
         side1_x, side1_y = side1_vals[:, 0], side1_vals[:, 1]
         side2_x, side2_y = side2_vals[:, 0], side2_vals[:, 1]
         side3_x, side3_y = side3_vals[:, 0], side3_vals[:, 1]
 
-        side0_vals_next = side0(next_xi)
-        side1_vals_next = side1(next_eta)
-        side2_vals_next = side2(next_xi)
-        side3_vals_next = side3(next_eta)
+        side0_vals_next = side0.get_start()
+        side1_vals_next = side1.get_start()
+        side2_vals_next = side2.get_start()
+        side3_vals_next = side3.get_start()
 
-        side0_x_next, side0_y_next = side0_vals_next[:, 0], side0_vals_next[:, 1]
-        side1_x_next, side1_y_next = side1_vals_next[:, 0], side1_vals_next[:, 1]
-        side2_x_next, side2_y_next = side2_vals_next[:, 0], side2_vals_next[:, 1]
-        side3_x_next, side3_y_next = side3_vals_next[:, 0], side3_vals_next[:, 1]
+        side0_x_next, side0_y_next = side0_vals_next[0], side0_vals_next[1]
+        side1_x_next, side1_y_next = side1_vals_next[0], side1_vals_next[1]
+        side2_x_next, side2_y_next = side2_vals_next[0], side2_vals_next[1]
+        side3_x_next, side3_y_next = side3_vals_next[0], side3_vals_next[1]
 
         N_xi_eta_x = (0.5 * (1. - eta) * side0_x +
                       0.5 * (1. + xi) * side1_x +
@@ -147,6 +141,32 @@ class SubdomainMesh2D(SubdomainMesh):
         N_xi_eta = np.stack([N_xi_eta_x, N_xi_eta_y], axis=-1)
 
         return N_xi_eta
+
+    def ref2element_map(self,
+                        index: Tuple[int, int],
+                        xi_eta: np.ndarray) -> np.ndarray:
+        self._validate_idxs(*index)
+        self._validate_ref_coords(xi_eta)
+
+        index_x, index_y = index
+        xi, eta = xi_eta[:, 0], xi_eta[:, 1]
+        offset_xi = -1. + index_x * self._grid_step1d
+        offset_eta = -1. + index_y * self._grid_step1d
+        xi_rescaled = offset_xi + 0.5 * (1. + xi) * self._grid_step1d
+        eta_rescaled = offset_eta + 0.5 * (1. + eta) * self._grid_step1d
+
+        return self.ref2domain_map(np.column_stack((xi_rescaled, eta_rescaled)))
+
+    def ref2element_jacobian(self,
+                             index_x: int,
+                             index_y: int,
+                             xi: float,
+                             eta: float) -> np.ndarray:
+
+        side0 = self.subdomain.curves[0]
+        side1 = self.subdomain.curves[1]
+        side2 = self.subdomain.curves[2]
+        side3 = self.subdomain.curves[3]
 
     def plot_element(self, index: Tuple[int, int], num_points: int = 100):
         """
@@ -179,40 +199,30 @@ class SubdomainMesh2D(SubdomainMesh):
         plt.ylabel("Y")
         plt.show()
 
-    def ref2element_jacobian(self,
-                         index_x: int,
-                         index_y: int,
-                         xi: float,
-                         eta: float) -> np.ndarray:
-
-        side0 = self.subdomain.curves[0]
-        side1 = self.subdomain.curves[1]
-        side2 = self.subdomain.curves[2]
-        side3 = self.subdomain.curves[3]
-
     def plot(self, num_points: int = 100):
         """
         Plot the boundaries of all elements in the mesh with interpolated curves.
 
         Args:
             num_points (int): Number of points to sample along each curve.
+
+        Warning:
+            This method is not efficient for large meshes,
+            call it with a small number of points for visualization purposes only.
         """
         xi_eta_edges = [
             np.column_stack((np.linspace(-1, 1, num_points), -1 * np.ones(num_points))),
-            # Bottom edge
-            np.column_stack((np.ones(num_points), np.linspace(-1, 1, num_points))),  # Right edge
-            np.column_stack((np.linspace(1, -1, num_points), np.ones(num_points))),  # Top edge
-            np.column_stack((-1 * np.ones(num_points), np.linspace(1, -1, num_points)))  # Left edge
+            np.column_stack((np.ones(num_points), np.linspace(-1, 1, num_points))),
+            np.column_stack((np.linspace(1, -1, num_points), np.ones(num_points))),
+            np.column_stack((-1 * np.ones(num_points), np.linspace(1, -1, num_points)))
         ]
 
-        for index_x in range(self.num_elements_x):
-            for index_y in range(self.num_elements_y):
+        for index_x in range(self.num_elements1d):
+            for index_y in range(self.num_elements1d):
                 for edge in xi_eta_edges:
-                    # Map the reference edge to the element's physical space
                     physical_edge = np.array(
                         [self.ref2element_map((index_x, index_y), xi_eta[np.newaxis, :])[0]
                          for xi_eta in edge])
-                    # Plot the edge
                     plt.plot(physical_edge[:, 0], physical_edge[:, 1], 'b-',
                              label="Element Boundary" if (index_x, index_y) == (0, 0) else "")
 

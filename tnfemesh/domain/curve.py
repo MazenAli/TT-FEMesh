@@ -16,7 +16,7 @@ class Curve(ABC):
         """Get the end point of the curve."""
         return self.evaluate(1.)[0]
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> np.ndarray:
         return self.evaluate(*args, **kwargs)
 
     def _validate(self, t: np.ndarray):

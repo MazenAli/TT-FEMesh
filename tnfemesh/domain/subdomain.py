@@ -85,13 +85,14 @@ class Subdomain2D(Subdomain):
         self._check_orientation()
 
     def plot(self, num_points: int = 100):
-        for curve in self.curves:
+        for i, curve in enumerate(self.curves):
             t_vals = np.linspace(-1, 1, num_points)
             points = curve.evaluate(t_vals)
-            plt.plot(points[:, 0], points[:, 1], label=f"{type(curve).__name__}")
+            plt.plot(points[:, 0], points[:, 1], label=f"curve {i}")
 
         plt.title("Subdomain")
         plt.axis("equal")
+        plt.legend()
         plt.show()
 
     def __repr__(self):
