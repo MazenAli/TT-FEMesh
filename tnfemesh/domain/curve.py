@@ -19,10 +19,20 @@ class Curve(ABC):
     def __call__(self, *args, **kwargs) -> np.ndarray:
         return self.evaluate(*args, **kwargs)
 
-    def _validate(self, t: np.ndarray):
-        """Ensure that parameter values are in the interval [-1, 1]."""
-        if not np.all(-1 <= t) or not np.all(t <= 1):
-            raise ValueError("Parameter values must be in the interval [-1, 1].")
+    def _validate(self, t: np.ndarray, tol: float = 1e-6):
+        """
+        Ensure that parameter values are in the interval [-1, 1] within a specified tolerance.
+
+        Args:
+            t (np.ndarray): Array of parameter values to validate.
+            tol (float): Tolerance for boundary checks.
+
+        Raises:
+            ValueError: If any parameter values are outside the interval [-1, 1] (with tolerance).
+        """
+        if not np.all(-1 - tol <= t) or not np.all(t <= 1 + tol):
+            raise ValueError(
+                f"Parameter values must be in the interval [-1, 1] within tolerance {tol}.")
 
     @abstractmethod
     def evaluate(self, t: np.ndarray) -> np.ndarray:

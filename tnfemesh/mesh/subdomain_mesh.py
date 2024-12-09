@@ -38,8 +38,8 @@ class SubdomainMesh(ABC):
         pass
 
     @abstractmethod
-    def ref2element_jacobian(self):
-        """Return the Jacobian function for the element transformation."""
+    def ref2domain_jacobian(self):
+        """Return the Jacobian function for the domain transformation."""
         pass
 
     @abstractmethod
@@ -89,9 +89,7 @@ class SubdomainMesh2D(SubdomainMesh):
         """Total number of elements."""
         return (self.num_points1d - 1)**2
 
-    def ref2domain_map(self,
-                       xi_eta: np.ndarray) -> np.ndarray:
-
+    def ref2domain_map(self, xi_eta: np.ndarray) -> np.ndarray:
         self._validate_ref_coords(xi_eta)
         xi, eta = xi_eta[:, 0], xi_eta[:, 1]
 
@@ -110,41 +108,39 @@ class SubdomainMesh2D(SubdomainMesh):
         side2_x, side2_y = side2_vals[:, 0], side2_vals[:, 1]
         side3_x, side3_y = side3_vals[:, 0], side3_vals[:, 1]
 
-        side0_vals_next = side0.get_start()
-        side1_vals_next = side1.get_start()
-        side2_vals_next = side2.get_start()
-        side3_vals_next = side3.get_start()
+        side0_start = side0.get_start()
+        side1_start = side1.get_start()
+        side2_start = side2.get_start()
+        side3_start = side3.get_start()
 
-        side0_x_next, side0_y_next = side0_vals_next[0], side0_vals_next[1]
-        side1_x_next, side1_y_next = side1_vals_next[0], side1_vals_next[1]
-        side2_x_next, side2_y_next = side2_vals_next[0], side2_vals_next[1]
-        side3_x_next, side3_y_next = side3_vals_next[0], side3_vals_next[1]
+        side0_x_start, side0_y_start = side0_start[0], side0_start[1]
+        side1_x_start, side1_y_start = side1_start[0], side1_start[1]
+        side2_x_start, side2_y_start = side2_start[0], side2_start[1]
+        side3_x_start, side3_y_start = side3_start[0], side3_start[1]
 
         N_xi_eta_x = (0.5 * (1. - eta) * side0_x +
                       0.5 * (1. + xi) * side1_x +
                       0.5 * (1. + eta) * side2_x +
                       0.5 * (1. - xi) * side3_x -
-                      0.25 * (1. - xi) * (1. - eta) * side0_x_next -
-                      0.25 * (1. + xi) * (1. - eta) * side1_x_next -
-                      0.25 * (1. + xi) * (1. + eta) * side2_x_next -
-                      0.25 * (1. - xi) * (1. + eta) * side3_x_next)
+                      0.25 * (1. - xi) * (1. - eta) * side0_x_start -
+                      0.25 * (1. + xi) * (1. - eta) * side1_x_start -
+                      0.25 * (1. + xi) * (1. + eta) * side2_x_start -
+                      0.25 * (1. - xi) * (1. + eta) * side3_x_start)
 
         N_xi_eta_y = (0.5 * (1. - eta) * side0_y +
                       0.5 * (1. + xi) * side1_y +
                       0.5 * (1. + eta) * side2_y +
                       0.5 * (1. - xi) * side3_y -
-                      0.25 * (1. - xi) * (1. - eta) * side0_y_next -
-                      0.25 * (1. + xi) * (1. - eta) * side1_y_next -
-                      0.25 * (1. + xi) * (1. + eta) * side2_y_next -
-                      0.25 * (1. - xi) * (1. + eta) * side3_y_next)
+                      0.25 * (1. - xi) * (1. - eta) * side0_y_start -
+                      0.25 * (1. + xi) * (1. - eta) * side1_y_start -
+                      0.25 * (1. + xi) * (1. + eta) * side2_y_start -
+                      0.25 * (1. - xi) * (1. + eta) * side3_y_start)
 
         N_xi_eta = np.stack([N_xi_eta_x, N_xi_eta_y], axis=-1)
 
         return N_xi_eta
 
-    def ref2element_map(self,
-                        index: Tuple[int, int],
-                        xi_eta: np.ndarray) -> np.ndarray:
+    def ref2element_map(self, index: Tuple[int, int], xi_eta: np.ndarray) -> np.ndarray:
         self._validate_idxs(*index)
         self._validate_ref_coords(xi_eta)
 
@@ -157,16 +153,53 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return self.ref2domain_map(np.column_stack((xi_rescaled, eta_rescaled)))
 
-    def ref2element_jacobian(self,
-                             index_x: int,
-                             index_y: int,
-                             xi: float,
-                             eta: float) -> np.ndarray:
+    def ref2domain_jacobian(self, xi_eta: np.ndarray) -> np.ndarray:
+        self._validate_ref_coords(xi_eta)
+
+        xi, eta = xi_eta[:, 0], xi_eta[:, 1]
 
         side0 = self.subdomain.curves[0]
         side1 = self.subdomain.curves[1]
         side2 = self.subdomain.curves[2]
         side3 = self.subdomain.curves[3]
+
+        side0_vals = side0(xi)
+        side1_vals = side1(eta)
+        side2_vals = side2(-xi)
+        side3_vals = side3(-eta)
+
+        side0_tangent = side0.tangent(xi)
+        side1_tangent = side1.tangent(eta)
+        side2_tangent = -side2.tangent(-xi)
+        side3_tangent = -side3.tangent(-eta)
+
+        dxi_N = (
+                0.5 * (1. - eta)[:, None] * side0_tangent
+                + 0.5 * side1_vals
+                + 0.5 * (1. + eta)[:, None] * side2_tangent
+                - 0.5 * side3_vals
+                + 0.25 * (1. - eta)[:, None] * side0.get_start()
+                - 0.25 * (1. - eta)[:, None] * side1.get_start()
+                - 0.25 * (1. + eta)[:, None] * side2.get_start()
+                + 0.25 * (1. + eta)[:, None] * side3.get_start()
+        )
+
+        deta_N = (
+                -0.5 * side0_vals
+                + 0.5 * (1. + xi)[:, None] * side1_tangent
+                + 0.5 * side2_vals
+                + 0.5 * (1. - xi)[:, None] * side3_tangent
+                + 0.25 * (1. - xi)[:, None] * side0.get_start()
+                + 0.25 * (1. + xi)[:, None] * side1.get_start()
+                - 0.25 * (1. + xi)[:, None] * side2.get_start()
+                - 0.25 * (1. - xi)[:, None] * side3.get_start()
+        )
+
+        jacobian = np.stack([dxi_N[:, 0], deta_N[:, 0], dxi_N[:, 1], deta_N[:, 1]], axis=-1)
+        jacobian = jacobian.reshape(-1, 2, 2)
+
+        return jacobian
+
 
     def plot_element(self, index: Tuple[int, int], num_points: int = 100):
         """
