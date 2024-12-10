@@ -349,6 +349,33 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian_tensor_networks
 
+    def get_jacobian_tensors(self) -> np.ndarray:
+        """
+        Compute the Jacobians evaluated on all elements and all quadrature points.
+
+        Returns:
+            np.ndarray: Jacobians.
+                Of shape (num_elements_x+1, num_elements_y+1, num_quadrature_points, 2, 2).
+
+        Note:
+            This method is not efficient for large meshes.
+            Intended only for small meshes for testing.
+        """
+
+        quadrature_points, _ = self.quadrature_rule.get_points_weights()
+        num_elements_x = self.num_elements1d
+        num_elements_y = self.num_elements1d
+        num_quadrature_points = quadrature_points.shape[0]
+        jacobians = np.empty((num_elements_x + 1, num_elements_y + 1, num_quadrature_points, 2, 2))
+
+        for index_x in range(num_elements_x + 1):
+            for index_y in range(num_elements_y + 1):
+                index = (index_x, index_y)
+                jacobian = self.ref2element_jacobian(index, quadrature_points)
+                jacobians[index_x, index_y] = jacobian
+
+        return jacobians
+
     def _tca(self, oracle: Callable[[np.ndarray], np.ndarray]) -> List[np.ndarray]:
         """
         Perform tensor train cross approximation for a given oracle function.
