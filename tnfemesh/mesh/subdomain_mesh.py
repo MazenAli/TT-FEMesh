@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import Any, Tuple
+from typing import Tuple, TypeAlias
 import matplotlib.pyplot as plt
+import numpy as np
+import torchtt as tn
 from tnfemesh.domain import Subdomain, Subdomain2D
 from tnfemesh.quadrature import QuadratureRule
-import numpy as np
+from tnfemesh.mesh.mesh_utils import bindex2dtuple as index_map2d
+
+TensorNetwork: TypeAlias = tn.TT
+
 
 
 class SubdomainMesh(ABC):
@@ -25,6 +30,7 @@ class SubdomainMesh(ABC):
         self.subdomain = subdomain
         self.quadrature_rule = quadrature_rule
         self.mesh_size_exponent = mesh_size_exponent
+        self._index_map = None
 
 
     @abstractmethod
@@ -40,6 +46,16 @@ class SubdomainMesh(ABC):
     @abstractmethod
     def ref2domain_jacobian(self):
         """Return the Jacobian function for the domain transformation."""
+        pass
+
+    @abstractmethod
+    def get_jacobian_tensor_networks(self):
+        """
+        Compute the tensor network approximating the Jacobian evaluated on all elements.
+        The tensor index corresponds to the element index.
+        This is done for each Jacobian component and each quadrature point within the element.
+        The output is thus a total of 4*(num_quadrature_points_per_element) tensor networks.
+        """
         pass
 
     @abstractmethod
@@ -68,6 +84,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
         self._num_points1d = 2**mesh_size_exponent
         self._grid_step1d = 2.0 / (self._num_points1d - 1)
+        self._index_map = index_map2d
 
     @property
     def num_points1d(self):
@@ -89,7 +106,24 @@ class SubdomainMesh2D(SubdomainMesh):
         """Total number of elements."""
         return (self.num_points1d - 1)**2
 
+    @property
+    def index_map(self):
+        """Index map for binary index to 2D tuple."""
+        return self._index_map
+
     def ref2domain_map(self, xi_eta: np.ndarray) -> np.ndarray:
+        """
+        Map from reference quadrilateral [-1, 1]^2 to domain.
+
+        Args:
+            xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
+                Of shape (num_points, 2).
+
+        Returns:
+            np.ndarray: The physical coordinates in the domain.
+                Of shape (num_points, 2).
+        """
+
         self._validate_ref_coords(xi_eta)
         xi, eta = xi_eta[:, 0], xi_eta[:, 1]
 
@@ -141,6 +175,19 @@ class SubdomainMesh2D(SubdomainMesh):
         return N_xi_eta
 
     def ref2element_map(self, index: Tuple[int, int], xi_eta: np.ndarray) -> np.ndarray:
+        """
+        Map from reference quadrilateral [-1, 1]^2 to element indexed by (index_x, index_y).
+
+        Args:
+            index (Tuple[int, int]): The 2D index of the element.
+            xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
+                Of shape (num_points, 2).
+
+        Returns:
+            np.ndarray: The physical coordinates in the element.
+                Of shape (num_points, 2).
+        """
+
         self._validate_idxs(*index)
         self._validate_ref_coords(xi_eta)
 
@@ -154,6 +201,18 @@ class SubdomainMesh2D(SubdomainMesh):
         return self.ref2domain_map(np.column_stack((xi_rescaled, eta_rescaled)))
 
     def ref2domain_jacobian(self, xi_eta: np.ndarray) -> np.ndarray:
+        """
+        Compute the Jacobian of the reference to domain map.
+
+        Args:
+            xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
+                Of shape (num_points, 2).
+
+        Returns:
+            np.ndarray: The Jacobian of the reference to domain map.
+                Of shape (num_points, 2, 2).
+        """
+
         self._validate_ref_coords(xi_eta)
 
         xi, eta = xi_eta[:, 0], xi_eta[:, 1]
@@ -200,8 +259,99 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian
 
+    def ref2element_jacobian(self, index: Tuple[int, int], xi_eta: np.ndarray) -> np.ndarray:
+        """
+        Compute the Jacobian of the reference to element map.
 
-    def plot_element(self, index: Tuple[int, int], num_points: int = 100):
+        Args:
+            index (Tuple[int, int]): The 2D index of the element.
+            xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
+                Of shape (num_points, 2).
+
+        Returns:
+            np.ndarray: The Jacobian of the reference to element map.
+                Of shape (num_points, 2, 2).
+        """
+
+        self._validate_idxs(*index)
+        self._validate_ref_coords(xi_eta)
+
+        index_x, index_y = index
+        xi, eta = xi_eta[:, 0], xi_eta[:, 1]
+        offset_xi = -1. + index_x * self._grid_step1d
+        offset_eta = -1. + index_y * self._grid_step1d
+        xi_rescaled = offset_xi + 0.5 * (1. + xi) * self._grid_step1d
+        eta_rescaled = offset_eta + 0.5 * (1. + eta) * self._grid_step1d
+
+        jacobian_domain = self.ref2domain_jacobian(np.column_stack((xi_rescaled, eta_rescaled)))
+        scaling = 0.5 * self._grid_step1d
+        jacobian_rescaled = jacobian_domain*scaling
+
+        return jacobian_rescaled
+
+    def get_jacobian_tensor_networks(self):
+        """
+        Compute the tensor network approximating the Jacobian evaluated on all elements.
+        The tensor index corresponds to the element index.
+        This is done for each Jacobian component and each quadrature point within the element.
+        The output is thus a total of 4*(num_quadrature_points_per_element) tensor networks.
+
+        Returns:
+            List[List[List[TensorNetwork]]]: List of tensor networks for the Jacobian components.
+                Indexing: [quadrature_point_index][component_index_i][component_index_j].
+        """
+        quadrature_points, _ = self.quadrature_rule.get_points_weights()
+
+        jacobian_tensor_networks = []
+        for quad_point in quadrature_points:
+
+            jacobian_row = []
+            for i in range(2):
+
+                jacobian_col = []
+                for j in range(2):
+                    eval_point = np.array([quad_point])
+                    cross_func = lambda idx: self._cross_func(idx, eval_point)[i, j]
+                    tensor_shape = [2]*(2*self.mesh_size_exponent)
+                    jac_ij = tn.interpolate.dmrg_cross(cross_func, tensor_shape)
+
+                    jacobian_col.append(jac_ij)
+
+                jacobian_row.append(jacobian_col)
+
+            jacobian_tensor_networks.append(jacobian_row)
+
+        return jacobian_tensor_networks
+
+    def _cross_func(self,
+                    bindex: np.ndarray,
+                    xi_eta: np.ndarray) -> np.ndarray:
+        """
+        Compute the Jacobian for a given element index given in binary
+        and reference coordinates.
+
+        Args:
+            bindex (np.ndarray): The binary index of the element.
+            xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
+                Of shape (1, 2).
+
+        Returns:
+            np.ndarray: The Jacobian. Of shape (2, 2).
+        """
+
+        if self.index_map is None:
+            raise ValueError("Index map is not defined.")
+        self._validate_ref_coords(xi_eta)
+        if xi_eta.shape[0] > 1:
+            raise ValueError("Only one evaluation point is supported for TCA.")
+
+        index = self.index_map(bindex)
+        jacobian = self.ref2element_jacobian(index, xi_eta)[0]
+
+        return jacobian
+
+
+    def plot_element(self, index: Tuple[int, int], num_points: int = 100) -> None:
         """
         Plot the 2D points generated by the ref2element_map for a given index.
 
@@ -232,7 +382,7 @@ class SubdomainMesh2D(SubdomainMesh):
         plt.ylabel("Y")
         plt.show()
 
-    def plot(self, num_points: int = 100):
+    def plot(self, num_points: int = 100) -> None:
         """
         Plot the boundaries of all elements in the mesh with interpolated curves.
 
@@ -265,8 +415,48 @@ class SubdomainMesh2D(SubdomainMesh):
         plt.ylabel("y")
         plt.show()
 
-    def _validate_idxs(self, index_x: int, index_y: int):
-        pass
+    def __repr__(self):
+        return (f"SubdomainMesh2D(subdomain={self.subdomain},"
+                f" quadrature_rule={self.quadrature_rule},"
+                f" mesh_size_exponent={self.mesh_size_exponent},"
+                f" num_points={self.num_points},"
+                f" num_elements={self.num_elements})")
 
-    def _validate_ref_coords(self, xi_eta: np.ndarray):
-        pass
+    def _validate_idxs(self, index_x: int, index_y: int):
+        """
+        Validate the element indices.
+
+        Args:
+            index_x (int): The x-index of the element.
+            index_y (int): The y-index of the element.
+
+        Raises:
+            ValueError: If the indices are out of bounds.
+
+        Note:
+            The indices are assumed to be zero-based.
+            Indices are valid if 0 <= index_x, index_y <= num_elements1d.
+            We include the upper bound to allow for the last "padded" element
+            such that the total number of elements is a power of 2: (num_elements1d)**2.
+        """
+        if index_x < 0 or index_x > self.num_elements1d:
+            raise ValueError(f"Index x={index_x} is out of bounds [0, {self.num_elements1d}].")
+        if index_y < 0 or index_y > self.num_elements1d:
+            raise ValueError(f"Index y={index_y} is out of bounds [0, {self.num_elements1d}].")
+
+    def _validate_ref_coords(self, xi_eta: np.ndarray, tol: float = 1e-6):
+        """
+        Validate the reference coordinates.
+
+        Args:
+            xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
+                Of shape (num_points, 2).
+            tol (float): The tolerance for the range check.
+
+        Raises:
+            ValueError: If the reference coordinates are out of bounds.
+        """
+        if not xi_eta.shape[1] == 2:
+            raise ValueError("Reference coordinates must have shape (num_points, 2).")
+        if not np.all(-1 - tol <= xi_eta) or not np.all(xi_eta <= 1 + tol):
+            raise ValueError("Reference coordinates must be in the range [-1, 1].")

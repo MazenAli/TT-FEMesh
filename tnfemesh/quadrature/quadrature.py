@@ -69,3 +69,7 @@ class GaussLegendre(QuadratureRule):
 
         weights = np.prod(np.meshgrid(*[weights_1d] * dimension, indexing="ij"), axis=0)
         return points, weights.flatten()
+
+    def __repr__(self) -> str:
+        """String representation of the Gauss-Legendre quadrature rule."""
+        return f"Gauss-Legendre Quadrature Rule (order={self.order}, dimension={self.dimension})"

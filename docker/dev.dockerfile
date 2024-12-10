@@ -2,7 +2,7 @@ FROM tnfemesh-base:latest
 
 WORKDIR /app
 
-COPY requirements.txt requirements-git.txt requirements-dev.txt ./
+COPY requirements.txt requirements-dev.txt ./
 COPY ./tnfemesh ./tnfemesh
 COPY README.md ./
 COPY pyproject.toml ./

@@ -2,7 +2,7 @@ FROM tnfemesh-base:latest
 
 WORKDIR /app
 
-COPY requirements.txt requirements-git.txt ./
+COPY requirements.txt ./
 COPY ./tnfemesh ./tnfemesh
 COPY README.md ./
 COPY pyproject.toml ./
@@ -14,4 +14,4 @@ RUN rm pyproject.toml
 RUN rm setup.py
 RUN rm -rf tnfemesh*
 RUN rm -rf build
-RUN rm requirements.txt requirements-git.txt
+RUN rm requirements.txt

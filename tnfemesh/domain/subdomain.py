@@ -92,7 +92,6 @@ class Subdomain2D(Subdomain):
 
         plt.title("Subdomain")
         plt.axis("equal")
-        plt.legend()
         plt.show()
 
     def __repr__(self):

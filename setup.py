@@ -27,7 +27,7 @@ setup(
     url="https://github.com/MazenAli/tnfemesh",
     packages=find_packages(),
     install_requires=requirements,
-    python_requires=">=3.9, <3.11",
+    python_requires=">=3.9, <3.13",
     license="MIT",
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -38,6 +38,8 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Topic :: Software Development :: Libraries",
     ],
