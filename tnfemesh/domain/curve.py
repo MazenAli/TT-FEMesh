@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import warnings
 import numpy as np
 
 
@@ -31,8 +32,9 @@ class Curve(ABC):
             ValueError: If any parameter values are outside the interval [-1, 1] (with tolerance).
         """
         if not np.all(-1 - tol <= t) or not np.all(t <= 1 + tol):
-            raise ValueError(
-                f"Parameter values must be in the interval [-1, 1] within tolerance {tol}.")
+            warnings.warn(f"Parameter values are not in the interval [-1, 1]"
+                          f" within tolerance {tol}."
+                          f" May lead to unexpected behavior.")
 
     @abstractmethod
     def evaluate(self, t: np.ndarray) -> np.ndarray:

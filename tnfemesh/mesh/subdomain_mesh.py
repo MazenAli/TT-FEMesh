@@ -1,14 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, TypeAlias
+from typing import Tuple, List, Callable
+import warnings
 import matplotlib.pyplot as plt
 import numpy as np
-import torchtt as tn
 from tnfemesh.domain import Subdomain, Subdomain2D
 from tnfemesh.quadrature import QuadratureRule
 from tnfemesh.mesh.mesh_utils import bindex2dtuple as index_map2d
-
-TensorNetwork: TypeAlias = tn.TT
-
+from tnfemesh.tn_tools.tensor_cross import (gen_teneva_indices,
+                                            anova_init_tensor_train,
+                                            tensor_train_cross_approximation,
+                                            TTCrossConfig)
 
 
 class SubdomainMesh(ABC):
@@ -75,16 +76,31 @@ class SubdomainMesh(ABC):
 
 
 class SubdomainMesh2D(SubdomainMesh):
+    """
+    Subdomain mesh for a 2D finite element problem.
+
+    Args:
+        subdomain (Subdomain2D): The 2D subdomain to mesh.
+        quadrature_rule (QuadratureRule): The quadrature rule to use.
+        mesh_size_exponent (int): The exponent of the discretization size.
+            The discretization size is 2**(mesh_size_exponent) per dimension.
+        tt_cross_config (TTCrossConfig, optional):
+            Configuration for the tensor train cross approximation.
+            Defaults to default configs.
+    """
 
     def __init__(self,
                  subdomain: Subdomain2D,
                  quadrature_rule: QuadratureRule,
-                 mesh_size_exponent: int):
+                 mesh_size_exponent: int,
+                 tt_cross_config: TTCrossConfig = TTCrossConfig()):
         super().__init__(subdomain, quadrature_rule, mesh_size_exponent)
 
         self._num_points1d = 2**mesh_size_exponent
         self._grid_step1d = 2.0 / (self._num_points1d - 1)
         self._index_map = index_map2d
+
+        self._tt_cross_config = tt_cross_config
 
     @property
     def num_points1d(self):
@@ -110,6 +126,16 @@ class SubdomainMesh2D(SubdomainMesh):
     def index_map(self):
         """Index map for binary index to 2D tuple."""
         return self._index_map
+
+    @property
+    def tt_cross_config(self):
+        """Configuration for the tensor train cross approximation."""
+        return self._tt_cross_config
+
+    @tt_cross_config.setter
+    def tt_cross_config(self, config: TTCrossConfig):
+        """Set the configuration for the tensor train cross approximation."""
+        self._tt_cross_config = config
 
     def ref2domain_map(self, xi_eta: np.ndarray) -> np.ndarray:
         """
@@ -289,7 +315,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian_rescaled
 
-    def get_jacobian_tensor_networks(self):
+    def get_jacobian_tensor_networks(self) -> List[List[List[List[np.ndarray]]]]:
         """
         Compute the tensor network approximating the Jacobian evaluated on all elements.
         The tensor index corresponds to the element index.
@@ -297,9 +323,11 @@ class SubdomainMesh2D(SubdomainMesh):
         The output is thus a total of 4*(num_quadrature_points_per_element) tensor networks.
 
         Returns:
-            List[List[List[TensorNetwork]]]: List of tensor networks for the Jacobian components.
-                Indexing: [quadrature_point_index][component_index_i][component_index_j].
+            List[List[List[List[np.ndarray]]]]: List of tensor train cores
+            for the Jacobian components.
+            Indexing: [quadrature_point_index][component_index_i][component_index_j][tt_core_index].
         """
+
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
 
         jacobian_tensor_networks = []
@@ -312,9 +340,7 @@ class SubdomainMesh2D(SubdomainMesh):
                 for j in range(2):
                     eval_point = np.array([quad_point])
                     cross_func = lambda idx: self._cross_func(idx, eval_point)[i, j]
-                    tensor_shape = [2]*(2*self.mesh_size_exponent)
-                    jac_ij = tn.interpolate.dmrg_cross(cross_func, tensor_shape)
-
+                    jac_ij = self._tca(cross_func)
                     jacobian_col.append(jac_ij)
 
                 jacobian_row.append(jacobian_col)
@@ -322,6 +348,28 @@ class SubdomainMesh2D(SubdomainMesh):
             jacobian_tensor_networks.append(jacobian_row)
 
         return jacobian_tensor_networks
+
+    def _tca(self, oracle: Callable[[np.ndarray], np.ndarray]) -> List[np.ndarray]:
+        """
+        Perform tensor train cross approximation for a given oracle function.
+
+        Args:
+            oracle (Callable[[np.ndarray], np.ndarray]): The oracle function to approximate.
+
+        Returns:
+            List[np.ndarray]: The tensor train cross approximation of the oracle.
+        """
+
+        kwargs = self.tt_cross_config.to_dict()
+        num_indices = kwargs.pop("num_anova_init")
+        order = kwargs.pop("anova_order")
+        tensor_shape = [2]*(2*self.mesh_size_exponent)
+        train_indices = gen_teneva_indices(num_indices, tensor_shape)
+        tt_init = anova_init_tensor_train(oracle, train_indices, order)
+
+        tt_cross = tensor_train_cross_approximation(oracle, tt_init, **kwargs)
+
+        return tt_cross
 
     def _cross_func(self,
                     bindex: np.ndarray,
@@ -332,6 +380,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
         Args:
             bindex (np.ndarray): The binary index of the element.
+                Of shape (num_indices, 2).
             xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
                 Of shape (1, 2).
 
@@ -345,11 +394,15 @@ class SubdomainMesh2D(SubdomainMesh):
         if xi_eta.shape[0] > 1:
             raise ValueError("Only one evaluation point is supported for TCA.")
 
-        index = self.index_map(bindex)
-        jacobian = self.ref2element_jacobian(index, xi_eta)[0]
+        jacobians = []
+        for idx in range(bindex.shape[0]):
+            single_bindex = np.array(bindex[idx, :])
+            index = self.index_map(single_bindex)
+            jacobian = self.ref2element_jacobian(index, xi_eta)[0]
+            jacobians.append(jacobian)
 
-        return jacobian
-
+        jac = np.stack(jacobians, axis=-1)
+        return jac
 
     def plot_element(self, index: Tuple[int, int], num_points: int = 100) -> None:
         """
@@ -439,10 +492,12 @@ class SubdomainMesh2D(SubdomainMesh):
             We include the upper bound to allow for the last "padded" element
             such that the total number of elements is a power of 2: (num_elements1d)**2.
         """
-        if index_x < 0 or index_x > self.num_elements1d:
-            raise ValueError(f"Index x={index_x} is out of bounds [0, {self.num_elements1d}].")
-        if index_y < 0 or index_y > self.num_elements1d:
-            raise ValueError(f"Index y={index_y} is out of bounds [0, {self.num_elements1d}].")
+        if index_x < 0 or index_x >= self.num_elements1d:
+            warnings.warn(f"Index x={index_x} is out of bounds [0, {self.num_elements1d})."
+                          f" The last element is a padded element.")
+        if index_y < 0 or index_y >= self.num_elements1d:
+            warnings.warn(f"Index y={index_y} is out of bounds [0, {self.num_elements1d})."
+                          f" The last element is a padded element.")
 
     def _validate_ref_coords(self, xi_eta: np.ndarray, tol: float = 1e-6):
         """
@@ -458,5 +513,8 @@ class SubdomainMesh2D(SubdomainMesh):
         """
         if not xi_eta.shape[1] == 2:
             raise ValueError("Reference coordinates must have shape (num_points, 2).")
+
         if not np.all(-1 - tol <= xi_eta) or not np.all(xi_eta <= 1 + tol):
-            raise ValueError("Reference coordinates must be in the range [-1, 1].")
+            warnings.warn(f"Reference coordinates are not in the range [-1, 1]"
+                          f" within tolerance {tol}."
+                          " This behavior may be intentional when using tensorized Jacobians.")
