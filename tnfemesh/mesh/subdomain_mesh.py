@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, List, Callable
+from typing import Tuple, List, Callable, Optional
 import warnings
 import matplotlib.pyplot as plt
 import numpy as np
@@ -93,7 +93,7 @@ class SubdomainMesh2D(SubdomainMesh):
                  subdomain: Subdomain2D,
                  quadrature_rule: QuadratureRule,
                  mesh_size_exponent: int,
-                 tt_cross_config: TTCrossConfig = TTCrossConfig()):
+                 tt_cross_config: Optional[TTCrossConfig] = None):
         super().__init__(subdomain, quadrature_rule, mesh_size_exponent)
 
         self._num_points1d = 2**mesh_size_exponent
@@ -101,6 +101,8 @@ class SubdomainMesh2D(SubdomainMesh):
         self._index_map = index_map2d
 
         self._tt_cross_config = tt_cross_config
+        if self._tt_cross_config is None:
+            self._tt_cross_config = TTCrossConfig(info={})
 
     @property
     def num_points1d(self):
@@ -339,7 +341,7 @@ class SubdomainMesh2D(SubdomainMesh):
                 jacobian_col = []
                 for j in range(2):
                     eval_point = np.array([quad_point])
-                    cross_func = lambda idx: self._cross_func(idx, eval_point)[i, j]
+                    cross_func = lambda idx: self._cross_func(idx, eval_point)[:, i, j]
                     jac_ij = self._tca(cross_func)
                     jacobian_col.append(jac_ij)
 
@@ -392,8 +394,8 @@ class SubdomainMesh2D(SubdomainMesh):
         order = kwargs.pop("anova_order")
         tensor_shape = [2]*(2*self.mesh_size_exponent)
         train_indices = gen_teneva_indices(num_indices, tensor_shape)
-        tt_init = anova_init_tensor_train(oracle, train_indices, order)
 
+        tt_init = anova_init_tensor_train(oracle, train_indices, order)
         tt_cross = tensor_train_cross_approximation(oracle, tt_init, **kwargs)
 
         return tt_cross
@@ -428,7 +430,7 @@ class SubdomainMesh2D(SubdomainMesh):
             jacobian = self.ref2element_jacobian(index, xi_eta)[0]
             jacobians.append(jacobian)
 
-        jac = np.stack(jacobians, axis=-1)
+        jac = np.stack(jacobians)
         return jac
 
     def plot_element(self, index: Tuple[int, int], num_points: int = 100) -> None:

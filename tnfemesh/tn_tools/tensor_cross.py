@@ -22,12 +22,12 @@ class TTCrossConfig:
     """
 
     def __init__(self,
-                 cache: dict = {},
-                 info: dict = {},
+                 cache: Optional[dict] = None,
+                 info: Optional[dict] = None,
                  num_sweeps: int = 10,
                  rel_stagnation_tol: float = 1e-4,
                  max_func_calls: Optional[int] = None,
-                 cache_calls_factor: int = 20,
+                 cache_calls_factor: int = 5,
                  num_anova_init: int = 1000,
                  anova_order: int = 2,
                  verbose: bool = False):
@@ -55,6 +55,7 @@ class TTCrossConfig:
                   "nswp": self.num_sweeps,
                   "e": self.rel_stagnation_tol,
                   "log": self.verbose,
+                  "m": self.max_func_calls,
                   "m_cache_scale": self.cache_calls_factor,
                   "num_anova_init": self.num_anova_init,
                   "anova_order": self.anova_order}
