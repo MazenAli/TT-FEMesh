@@ -111,3 +111,40 @@ def tensor_train_cross_approximation(oracle: Callable[[np.ndarray], np.ndarray],
     """
 
     return teneva.cross(oracle, tt_init, **kwargs)
+
+def test_accuracy(oracle: Callable[[np.ndarray], np.ndarray],
+                  approx_tt: List[np.ndarray],
+                  test_indices: np.ndarray) -> float:
+    """
+    Test the accuracy of the approximated tensor train.
+
+    Args:
+        oracle (Callable[[np.ndarray], np.ndarray]): Oracle function.
+        approx_tt (List[np.ndarray]): Approximated tensor train cores.
+        test_indices (np.ndarray): Test indices.
+
+    Returns:
+        float: Relative error of the approximated tensor train.
+    """
+    ytest = oracle(test_indices)
+    error = teneva.accuracy_on_data(approx_tt, test_indices, ytest)
+    return error
+
+def test_accuracy_random(oracle: Callable[[np.ndarray], np.ndarray],
+                         approx_tt: List[np.ndarray],
+                         num_test_indices: int,
+                         tensor_shape: List[int]) -> float:
+    """
+    Test the accuracy of the approximated tensor train with random test indices.
+
+    Args:
+        oracle (Callable[[np.ndarray], np.ndarray]): Oracle function.
+        approx_tt (List[np.ndarray]): Approximated tensor train cores.
+        num_test_indices (int): Number of test indices.
+        tensor_shape (List[int]): Shape of the tensor.
+
+    Returns:
+        float: Relative error of the approximated tensor train.
+    """
+    test_indices = gen_teneva_indices(num_test_indices, tensor_shape)
+    return test_accuracy(oracle, approx_tt, test_indices)
