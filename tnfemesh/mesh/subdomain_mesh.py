@@ -10,6 +10,7 @@ from tnfemesh.tn_tools.tensor_cross import (gen_teneva_indices,
                                             anova_init_tensor_train,
                                             tensor_train_cross_approximation,
                                             TTCrossConfig)
+from tnfemesh.utils.array import ensure_2d
 
 
 class SubdomainMesh(ABC):
@@ -86,7 +87,7 @@ class SubdomainMesh2D(SubdomainMesh):
             The discretization size is 2**(mesh_size_exponent) per dimension.
         tt_cross_config (TTCrossConfig, optional):
             Configuration for the tensor train cross approximation.
-            Defaults to default configs.
+            Defaults to using an info dict and rest are default settings.
     """
 
     def __init__(self,
@@ -145,15 +146,16 @@ class SubdomainMesh2D(SubdomainMesh):
 
         Args:
             xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
-                Of shape (num_points, 2).
+                Of shape (num_points, 2) or (2,).
 
         Returns:
             np.ndarray: The physical coordinates in the domain.
                 Of shape (num_points, 2).
         """
 
-        self._validate_ref_coords(xi_eta)
-        xi, eta = xi_eta[:, 0], xi_eta[:, 1]
+        xi_eta_ = ensure_2d(xi_eta)
+        self._validate_ref_coords(xi_eta_)
+        xi, eta = xi_eta_[:, 0], xi_eta_[:, 1]
 
         side0 = self.subdomain.curves[0]
         side1 = self.subdomain.curves[1]
@@ -209,18 +211,19 @@ class SubdomainMesh2D(SubdomainMesh):
         Args:
             index (Tuple[int, int]): The 2D index of the element.
             xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
-                Of shape (num_points, 2).
+                Of shape (num_points, 2) or (2,).
 
         Returns:
             np.ndarray: The physical coordinates in the element.
                 Of shape (num_points, 2).
         """
 
+        xi_eta_ = ensure_2d(xi_eta)
         self._validate_idxs(*index)
-        self._validate_ref_coords(xi_eta)
+        self._validate_ref_coords(xi_eta_)
 
         index_x, index_y = index
-        xi, eta = xi_eta[:, 0], xi_eta[:, 1]
+        xi, eta = xi_eta_[:, 0], xi_eta_[:, 1]
         offset_xi = -1. + index_x * self._grid_step1d
         offset_eta = -1. + index_y * self._grid_step1d
         xi_rescaled = offset_xi + 0.5 * (1. + xi) * self._grid_step1d
@@ -234,16 +237,17 @@ class SubdomainMesh2D(SubdomainMesh):
 
         Args:
             xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
-                Of shape (num_points, 2).
+                Of shape (num_points, 2) or (2,).
 
         Returns:
             np.ndarray: The Jacobian of the reference to domain map.
                 Of shape (num_points, 2, 2).
         """
 
-        self._validate_ref_coords(xi_eta)
+        xi_eta_ = ensure_2d(xi_eta)
+        self._validate_ref_coords(xi_eta_)
 
-        xi, eta = xi_eta[:, 0], xi_eta[:, 1]
+        xi, eta = xi_eta_[:, 0], xi_eta_[:, 1]
 
         side0 = self.subdomain.curves[0]
         side1 = self.subdomain.curves[1]
@@ -294,18 +298,19 @@ class SubdomainMesh2D(SubdomainMesh):
         Args:
             index (Tuple[int, int]): The 2D index of the element.
             xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
-                Of shape (num_points, 2).
+                Of shape (num_points, 2) or (2,).
 
         Returns:
             np.ndarray: The Jacobian of the reference to element map.
                 Of shape (num_points, 2, 2).
         """
 
+        xi_eta_ = ensure_2d(xi_eta)
         self._validate_idxs(*index)
-        self._validate_ref_coords(xi_eta)
+        self._validate_ref_coords(xi_eta_)
 
         index_x, index_y = index
-        xi, eta = xi_eta[:, 0], xi_eta[:, 1]
+        xi, eta = xi_eta_[:, 0], xi_eta_[:, 1]
         offset_xi = -1. + index_x * self._grid_step1d
         offset_eta = -1. + index_y * self._grid_step1d
         xi_rescaled = offset_xi + 0.5 * (1. + xi) * self._grid_step1d
@@ -342,7 +347,12 @@ class SubdomainMesh2D(SubdomainMesh):
                 for j in range(2):
                     eval_point = np.array([quad_point])
                     cross_func = lambda idx: self._cross_func(idx, eval_point)[:, i, j]
-                    jac_ij = self._tca(cross_func)
+
+                    # out of bounds intentional
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", UserWarning)
+                        jac_ij = self._tca(cross_func)
+
                     jacobian_col.append(jac_ij)
 
                 jacobian_row.append(jacobian_col)
@@ -373,7 +383,12 @@ class SubdomainMesh2D(SubdomainMesh):
         for index_x in range(num_elements_x + 1):
             for index_y in range(num_elements_y + 1):
                 index = (index_x, index_y)
-                jacobian = self.ref2element_jacobian(index, quadrature_points)
+
+                # out of bounds intentional
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    jacobian = self.ref2element_jacobian(index, quadrature_points)
+
                 jacobians[index_x, index_y] = jacobian
 
         return jacobians
@@ -409,9 +424,9 @@ class SubdomainMesh2D(SubdomainMesh):
 
         Args:
             bindex (np.ndarray): The binary index of the element.
-                Of shape (num_indices, 2).
+                Of shape (num_indices, 2) or (2,).
             xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
-                Of shape (1, 2).
+                Of shape (1, 2) or (2,).
 
         Returns:
             np.ndarray: The Jacobian. Of shape (2, 2).
@@ -419,15 +434,19 @@ class SubdomainMesh2D(SubdomainMesh):
 
         if self.index_map is None:
             raise ValueError("Index map is not defined.")
-        self._validate_ref_coords(xi_eta)
-        if xi_eta.shape[0] > 1:
+
+        xi_eta_ = ensure_2d(xi_eta)
+        bindex_ = ensure_2d(bindex)
+        self._validate_ref_coords(xi_eta_)
+
+        if xi_eta_.shape[0] > 1:
             raise ValueError("Only one evaluation point is supported for TCA.")
 
         jacobians = []
-        for idx in range(bindex.shape[0]):
-            single_bindex = np.array(bindex[idx, :])
+        for idx in range(bindex_.shape[0]):
+            single_bindex = np.array(bindex_[idx, :])
             index = self.index_map(single_bindex)
-            jacobian = self.ref2element_jacobian(index, xi_eta)[0]
+            jacobian = self.ref2element_jacobian(index, xi_eta_)[0]
             jacobians.append(jacobian)
 
         jac = np.stack(jacobians)

@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import Union
 import warnings
 import numpy as np
+from tnfemesh.utils.array import ensure_1d
 
 
 class Curve(ABC):
@@ -20,7 +22,7 @@ class Curve(ABC):
     def __call__(self, *args, **kwargs) -> np.ndarray:
         return self.evaluate(*args, **kwargs)
 
-    def _validate(self, t: np.ndarray, tol: float = 1e-6):
+    def _validate(self, t: Union[np.ndarray, float], tol: float = 1e-6):
         """
         Ensure that parameter values are in the interval [-1, 1] within a specified tolerance.
 
@@ -31,18 +33,21 @@ class Curve(ABC):
         Raises:
             ValueError: If any parameter values are outside the interval [-1, 1] (with tolerance).
         """
-        if not np.all(-1 - tol <= t) or not np.all(t <= 1 + tol):
+
+        t_ = ensure_1d(t)
+
+        if not np.all(-1 - tol <= t_) or not np.all(t_ <= 1 + tol):
             warnings.warn(f"Parameter values are not in the interval [-1, 1]"
                           f" within tolerance {tol}."
                           f" May lead to unexpected behavior.")
 
     @abstractmethod
-    def evaluate(self, t: np.ndarray) -> np.ndarray:
+    def evaluate(self, t: Union[np.ndarray, float]) -> np.ndarray:
         """
         Evaluate the curve at parameter values t.
 
         Args:
-            t (np.ndarray): Array of parameter values in [-1, 1].
+            t (Union[np.ndarray, float]): Array of or scalar parameter values in [-1, 1].
 
         Returns:
             np.ndarray: Array of shape (len(t), 2) with (x, y) coordinates.
@@ -50,12 +55,12 @@ class Curve(ABC):
         pass
 
     @abstractmethod
-    def tangent(self, t: np.ndarray) -> np.ndarray:
+    def tangent(self, t: Union[np.ndarray, float]) -> np.ndarray:
         """
         Compute the tangent vector (not normalized) to the curve at parameter values t.
 
         Args:
-            t (np.ndarray): Array of parameter values in [-1, 1].
+            t (Union[np.ndarray, float]): Array of or scalar parameter values in [-1, 1].
 
         Returns:
             np.ndarray: Array of shape (len(t), 2) with tangent vectors.
@@ -104,15 +109,17 @@ class Line2D(Curve):
         self.start = np.array(start)
         self.end = np.array(end)
 
-    def evaluate(self, t: np.ndarray) -> np.ndarray:
-        self._validate(t)
+    def evaluate(self, t: Union[np.ndarray, float]) -> np.ndarray:
+        t_ = ensure_1d(t)
+        self._validate(t_)
 
-        return np.outer((1-t)*0.5, self.start) + np.outer((1+t)*0.5, self.end)
+        return np.outer((1-t_)*0.5, self.start) + np.outer((1+t_)*0.5, self.end)
 
-    def tangent(self, t: np.ndarray) -> np.ndarray:
-        self._validate(t)
+    def tangent(self, t: Union[np.ndarray, float]) -> np.ndarray:
+        t_ = ensure_1d(t)
+        self._validate(t_)
 
-        return np.tile(0.5*(self.end - self.start), (len(t), 1))
+        return np.tile(0.5*(self.end - self.start), (len(t_), 1))
 
     def __repr__(self):
         return f"Line2D(start={tuple(self.start)}, end={tuple(self.end)})"
@@ -138,16 +145,20 @@ class CircularArc2D(Curve):
         self.start_angle = start_angle
         self.angle_sweep = angle_sweep
 
-    def evaluate(self, t: np.ndarray) -> np.ndarray:
-        self._validate(t)
+    def evaluate(self, t: Union[np.ndarray, float]) -> np.ndarray:
+        t_ = ensure_1d(t)
+        self._validate(t_)
 
-        angle = self.start_angle + 0.5 * (t+1) * self.angle_sweep
+        angle = self.start_angle + 0.5 * (t_+1) * self.angle_sweep
         x = self.center[0] + self.radius * np.cos(angle)
         y = self.center[1] + self.radius * np.sin(angle)
         return np.stack((x, y), axis=-1)
 
-    def tangent(self, t: np.ndarray) -> np.ndarray:
-        angle = self.start_angle + 0.5 * (t+1) * self.angle_sweep
+    def tangent(self, t: Union[np.ndarray, float]) -> np.ndarray:
+        t_ = ensure_1d(t)
+        self._validate(t_)
+
+        angle = self.start_angle + 0.5 * (t_+1) * self.angle_sweep
         mul_factor = 0.5 * self.angle_sweep * self.radius
         dx = -np.sin(angle)*mul_factor
         dy = np.cos(angle)*mul_factor
@@ -173,19 +184,30 @@ class ParametricCurve2D(Curve):
         self.x_func = x_func
         self.y_func = y_func
 
-    def evaluate(self, t: np.ndarray) -> np.ndarray:
-        self._validate(t)
+    def evaluate(self, t: Union[np.ndarray, float]) -> np.ndarray:
+        t_ = ensure_1d(t)
+        self._validate(t_)
 
-        x = self.x_func(t)
-        y = self.y_func(t)
+        x = self.x_func(t_)
+        y = self.y_func(t_)
         return np.stack((x, y), axis=-1)
 
-    def tangent(self, t: np.ndarray) -> np.ndarray:
-        self._validate(t)
+    def tangent(self, t: Union[np.ndarray, float]) -> np.ndarray:
+        """
+        Compute the tangent vector using a finite difference approximation.
+
+        Args:
+            t (Union[np.ndarray, float]): Array of or scalar parameter values in [-1, 1].
+
+        Returns:
+            np.ndarray: Array of shape (len(t), 2) with tangent.
+        """
+        t_ = ensure_1d(t)
+        self._validate(t_)
 
         dt = 1e-5
-        dx = (self.x_func(t + dt) - self.x_func(t)) / dt
-        dy = (self.y_func(t + dt) - self.y_func(t)) / dt
+        dx = (self.x_func(t_ + dt) - self.x_func(t_)) / dt
+        dy = (self.y_func(t_ + dt) - self.y_func(t_)) / dt
         tangent = np.stack((dx, dy), axis=-1)
         return tangent
 
