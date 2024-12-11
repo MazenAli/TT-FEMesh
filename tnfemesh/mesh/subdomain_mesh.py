@@ -3,7 +3,7 @@ from typing import Tuple, List, Callable, Optional
 import warnings
 import matplotlib.pyplot as plt
 import numpy as np
-from tnfemesh.domain import Subdomain, Subdomain2D
+from tnfemesh.domain import Subdomain, Subdomain2D, Quad
 from tnfemesh.quadrature import QuadratureRule
 from tnfemesh.mesh.mesh_utils import bindex2dtuple as index_map2d
 from tnfemesh.tn_tools.tensor_cross import (gen_teneva_indices,
@@ -361,6 +361,10 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian_tensor_networks
 
+    def get_jacobian_det_tensor_networks(self) -> List[List[np.ndarray]]:
+
+    def get_jacobian_invdet_tensor_networks(self) -> List[List[np.ndarray]]:
+
     def get_jacobian_tensors(self) -> np.ndarray:
         """
         Compute the Jacobians evaluated on all elements and all quadrature points.
@@ -392,6 +396,8 @@ class SubdomainMesh2D(SubdomainMesh):
                 jacobians[index_x, index_y] = jacobian
 
         return jacobians
+
+    def get_jacobian_dets(self) -> np.ndarray:
 
     def _tca(self, oracle: Callable[[np.ndarray], np.ndarray]) -> List[np.ndarray]:
         """
@@ -566,3 +572,27 @@ class SubdomainMesh2D(SubdomainMesh):
             warnings.warn(f"Reference coordinates are not in the range [-1, 1]"
                           f" within tolerance {tol}."
                           " This behavior may be intentional when using tensorized Jacobians.")
+
+
+class QuadMesh(SubdomainMesh2D):
+    """
+    Mesh for a quadrilateral subdomain.
+    The Jacobians of quadrilateral meshes depend linearly on the element index.
+    Hence, instead of using the tensor train cross approximation for a generic subdomain,
+    we can represent the Jacobians for all elements and all quadrature points exactly with a
+    low-rank Tensor Train.
+
+    Args:
+        quad (Quad): The quadrilateral subdomain to mesh.
+        quadrature_rule (QuadratureRule): The quadrature rule to use.
+        mesh_size_exponent (int): The exponent of the discretization size.
+            The discretization size is 2**(mesh_size_exponent) per dimension.
+    """
+
+    def __init__(self,
+                 quad: Quad,
+                 quadrature_rule: QuadratureRule,
+                 mesh_size_exponent: int):
+        super().__init__(quad, quadrature_rule, mesh_size_exponent)
+
+    def _tca(self):
