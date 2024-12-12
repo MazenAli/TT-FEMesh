@@ -105,6 +105,8 @@ class SubdomainMesh2D(SubdomainMesh):
         if self._tt_cross_config is None:
             self._tt_cross_config = TTCrossConfig(info={})
 
+        self.__tca_strategy = self.__tca_default
+
     @property
     def num_points1d(self):
         """Number of points per dimension."""
@@ -351,7 +353,7 @@ class SubdomainMesh2D(SubdomainMesh):
                     # out of bounds intentional
                     with warnings.catch_warnings():
                         warnings.simplefilter("ignore", UserWarning)
-                        jac_ij = self._tca(cross_func)
+                        jac_ij = self.__tca_strategy(cross_func)
 
                     jacobian_col.append(jac_ij)
 
@@ -362,8 +364,55 @@ class SubdomainMesh2D(SubdomainMesh):
         return jacobian_tensor_networks
 
     def get_jacobian_det_tensor_networks(self) -> List[List[np.ndarray]]:
+        """
+        Compute the tensor network approximating
+        the Jacobian determinants evaluated on all elements.
+
+        Returns:
+            List[List[np.ndarray]]: List of tensor train cores for the Jacobian determinants.
+            Indexing: [quadrature_point_index][tt_core_index].
+        """
+        quadrature_points, _ = self.quadrature_rule.get_points_weights()
+
+        det_tensor_networks = []
+        for quad_point in quadrature_points:
+            eval_point = np.array([quad_point])
+            cross_func = lambda idx: np.linalg.det(self._cross_func(idx, eval_point))
+
+            # out of bounds intentional
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", UserWarning)
+                jac_det = self.__tca_strategy(cross_func)
+
+            det_tensor_networks.append(jac_det)
+
+        return det_tensor_networks
 
     def get_jacobian_invdet_tensor_networks(self) -> List[List[np.ndarray]]:
+        """
+        Compute the tensor network approximating
+        the inverse of Jacobian determinants evaluated on all elements.
+
+        Returns:
+            List[List[np.ndarray]]: List of tensor train cores for
+                the inverse Jacobian determinants.
+            Indexing: [quadrature_point_index][tt_core_index].
+        """
+        quadrature_points, _ = self.quadrature_rule.get_points_weights()
+
+        invdet_tensor_networks = []
+        for quad_point in quadrature_points:
+            eval_point = np.array([quad_point])
+            cross_func = lambda idx: 1. / np.linalg.det(self._cross_func(idx, eval_point))
+
+            # out of bounds intentional
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", UserWarning)
+                jac_invdet = self.__tca_strategy(cross_func)
+
+            invdet_tensor_networks.append(jac_invdet)
+
+        return invdet_tensor_networks
 
     def get_jacobian_tensors(self) -> np.ndarray:
         """
@@ -398,8 +447,36 @@ class SubdomainMesh2D(SubdomainMesh):
         return jacobians
 
     def get_jacobian_dets(self) -> np.ndarray:
+        """
+        Compute the determinants of the Jacobians evaluated on
+        all elements and all quadrature points.
 
-    def _tca(self, oracle: Callable[[np.ndarray], np.ndarray]) -> List[np.ndarray]:
+        Returns:
+            np.ndarray: Jacobian determinants.
+                Of shape (num_elements_x+1, num_elements_y+1, num_quadrature_points).
+        """
+
+        jacobians = self.get_jacobian_tensors()
+        jacobian_dets = np.linalg.det(jacobians)
+
+        return jacobian_dets
+
+    def get_jacobian_invdets(self) -> np.ndarray:
+        """
+        Compute the inverse of the determinants of the Jacobians
+        evaluated on all elements and all quadrature points.
+
+        Returns:
+            np.ndarray: Inverse Jacobian determinants.
+                Of shape (num_elements_x+1, num_elements_y+1, num_quadrature_points).
+        """
+
+        jacobian_dets = self.get_jacobian_dets()
+        jacobian_invdets = 1. / jacobian_dets
+
+        return jacobian_invdets
+
+    def __tca_default(self, oracle: Callable[[np.ndarray], np.ndarray]) -> List[np.ndarray]:
         """
         Perform tensor train cross approximation for a given oracle function.
 
@@ -435,7 +512,7 @@ class SubdomainMesh2D(SubdomainMesh):
                 Of shape (1, 2) or (2,).
 
         Returns:
-            np.ndarray: The Jacobian. Of shape (2, 2).
+            np.ndarray: The Jacobian. Of shape (num_indices, 2, 2).
         """
 
         if self.index_map is None:
@@ -587,12 +664,13 @@ class QuadMesh(SubdomainMesh2D):
         quadrature_rule (QuadratureRule): The quadrature rule to use.
         mesh_size_exponent (int): The exponent of the discretization size.
             The discretization size is 2**(mesh_size_exponent) per dimension.
+        tt_cross_config (TTCrossConfig, optional): Configuration for
+            the tensor train cross approximation. Defaults to None (all default).
     """
 
     def __init__(self,
                  quad: Quad,
                  quadrature_rule: QuadratureRule,
-                 mesh_size_exponent: int):
-        super().__init__(quad, quadrature_rule, mesh_size_exponent)
-
-    def _tca(self):
+                 mesh_size_exponent: int,
+                 tt_cross_config: Optional[TTCrossConfig] = None):
+        super().__init__(quad, quadrature_rule, mesh_size_exponent, tt_cross_config)
