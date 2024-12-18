@@ -11,6 +11,7 @@ from tnfemesh.tn_tools.tensor_cross import (gen_teneva_indices,
                                             tensor_train_cross_approximation,
                                             TTCrossConfig)
 from tnfemesh.utils.array import ensure_2d
+from tnfemesh.tn_tools import interpolate_linear2d
 
 
 class SubdomainMesh(ABC):
@@ -105,7 +106,7 @@ class SubdomainMesh2D(SubdomainMesh):
         if self._tt_cross_config is None:
             self._tt_cross_config = TTCrossConfig(info={})
 
-        self.__tca_strategy = self.__tca_default
+        self._tca_strategy = self.__tca_default
 
     @property
     def num_points1d(self):
@@ -353,7 +354,7 @@ class SubdomainMesh2D(SubdomainMesh):
                     # out of bounds intentional
                     with warnings.catch_warnings():
                         warnings.simplefilter("ignore", UserWarning)
-                        jac_ij = self.__tca_strategy(cross_func)
+                        jac_ij = self._tca_strategy(cross_func)
 
                     jacobian_col.append(jac_ij)
 
@@ -382,7 +383,7 @@ class SubdomainMesh2D(SubdomainMesh):
             # out of bounds intentional
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", UserWarning)
-                jac_det = self.__tca_strategy(cross_func)
+                jac_det = self._tca_strategy(cross_func)
 
             det_tensor_networks.append(jac_det)
 
@@ -408,7 +409,7 @@ class SubdomainMesh2D(SubdomainMesh):
             # out of bounds intentional
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", UserWarning)
-                jac_invdet = self.__tca_strategy(cross_func)
+                jac_invdet = self._tca_strategy(cross_func)
 
             invdet_tensor_networks.append(jac_invdet)
 
@@ -678,3 +679,34 @@ class QuadMesh(SubdomainMesh2D):
                  mesh_size_exponent: int,
                  tt_cross_config: Optional[TTCrossConfig] = None):
         super().__init__(quad, quadrature_rule, mesh_size_exponent, tt_cross_config)
+        self._tca_strategy = self.__linear_interpolation
+
+    def __linear_interpolation(self,
+        oracle: Callable[[np.ndarray], np.ndarray]) -> List[np.ndarray]:
+        """
+        Perform linear interpolation for a given oracle function.
+
+        Args:
+            oracle (Callable[[np.ndarray], np.ndarray]): The oracle function to approximate.
+
+        Returns:
+            List[np.ndarray]: The tensor train cores of the linear interpolation.
+        """
+
+        print("Linear interpolation called")
+
+        # Define the function to interpolate
+        def func(i, j):
+            index = np.array([i, j])
+            return oracle(index)[0]
+
+        tt_interpolant = interpolate_linear2d(func, self.mesh_size_exponent)
+
+        return tt_interpolant.cores
+
+    def __repr__(self):
+        return (f"QuadMesh(subdomain={self.subdomain},"
+                f" quadrature_rule={self.quadrature_rule},"
+                f" mesh_size_exponent={self.mesh_size_exponent},"
+                f" num_points={self.num_points},"
+                f" num_elements={self.num_elements})")

@@ -1,6 +1,7 @@
-from .subdomain_mesh import SubdomainMesh2D
+from .subdomain_mesh import SubdomainMesh2D, QuadMesh
 from .mesh_utils import bindex2dtuple, qindex2dtuple
 
 __all__ = ['SubdomainMesh2D',
+           'QuadMesh',
            'bindex2dtuple',
            'qindex2dtuple']
