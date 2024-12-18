@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tnfemesh.domain import Subdomain, Subdomain2D, Quad
 from tnfemesh.quadrature import QuadratureRule
-from tnfemesh.mesh.mesh_utils import bindex2dtuple as index_map2d
+from tnfemesh.mesh.mesh_utils import qindex2dtuple as index_map2d
 from tnfemesh.tn_tools.tensor_cross import (gen_teneva_indices,
                                             anova_init_tensor_train,
                                             tensor_train_cross_approximation,
@@ -490,7 +490,7 @@ class SubdomainMesh2D(SubdomainMesh):
         kwargs = self.tt_cross_config.to_dict()
         num_indices = kwargs.pop("num_anova_init")
         order = kwargs.pop("anova_order")
-        tensor_shape = [2]*(2*self.mesh_size_exponent)
+        tensor_shape = [4]*self.mesh_size_exponent
         train_indices = gen_teneva_indices(num_indices, tensor_shape)
 
         tt_init = anova_init_tensor_train(oracle, train_indices, order)
@@ -499,35 +499,39 @@ class SubdomainMesh2D(SubdomainMesh):
         return tt_cross
 
     def _cross_func(self,
-                    bindex: np.ndarray,
+                    qindex: np.ndarray,
                     xi_eta: np.ndarray) -> np.ndarray:
         """
         Compute the Jacobian for a given element index given in binary
         and reference coordinates.
 
         Args:
-            bindex (np.ndarray): The binary index of the element.
-                Of shape (num_indices, 2) or (2,).
+            qindex (np.ndarray): The quaternary index of the element.
+                Of shape (num_indices, index_length) or (index_length,).
             xi_eta (np.ndarray): The reference coordinates in the quadrilateral.
                 Of shape (1, 2) or (2,).
 
         Returns:
             np.ndarray: The Jacobian. Of shape (num_indices, 2, 2).
+
+        Raises:
+            ValueError: If the index map is not defined, if the reference coordinates are invalid
+                or if the number of evaluation points is more than 1.
         """
 
         if self.index_map is None:
             raise ValueError("Index map is not defined.")
 
         xi_eta_ = ensure_2d(xi_eta)
-        bindex_ = ensure_2d(bindex)
+        qindex_ = ensure_2d(qindex)
         self._validate_ref_coords(xi_eta_)
 
         if xi_eta_.shape[0] > 1:
             raise ValueError("Only one evaluation point is supported for TCA.")
 
         jacobians = []
-        for idx in range(bindex_.shape[0]):
-            single_bindex = np.array(bindex_[idx, :])
+        for idx in range(qindex_.shape[0]):
+            single_bindex = np.array(qindex_[idx, :])
             index = self.index_map(single_bindex)
             jacobian = self.ref2element_jacobian(index, xi_eta_)[0]
             jacobians.append(jacobian)

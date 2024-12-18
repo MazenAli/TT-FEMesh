@@ -2,7 +2,7 @@ from typing import Union
 import numpy as np
 
 
-def ensure_1d(array_or_scalar: Union[np.ndarray, float]) -> np.ndarray:
+def ensure_1d(array_or_scalar: Union[np.ndarray, any]) -> np.ndarray:
     """
     Ensure the input is a 1D array.
 
@@ -13,10 +13,13 @@ def ensure_1d(array_or_scalar: Union[np.ndarray, float]) -> np.ndarray:
     Returns:
         np.ndarray: A 1D array. If input is a scalar, it is converted to a 1D array
         with a single element.
+
+    Raises:
+        ValueError: If input is not a scalar or a 1D array.
     """
 
     if np.isscalar(array_or_scalar):
-        return np.array([array_or_scalar], dtype=float)
+        return np.array([array_or_scalar])
     array_or_scalar = np.asarray(array_or_scalar)
     if array_or_scalar.ndim == 1:
         return array_or_scalar
@@ -32,6 +35,9 @@ def ensure_2d(array: np.ndarray) -> np.ndarray:
 
     Returns:
         np.ndarray: A 2D array of shape (num_pts, dim).
+
+    Raises:
+        ValueError: If input is not a 1D or 2D array.
     """
 
     array = np.asarray(array)
