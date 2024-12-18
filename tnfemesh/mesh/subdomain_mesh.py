@@ -3,6 +3,7 @@ from typing import Tuple, List, Callable, Optional
 import warnings
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 from tnfemesh.domain import Subdomain, Subdomain2D, Quad
 from tnfemesh.quadrature import QuadratureRule
 from tnfemesh.mesh.mesh_utils import qindex2dtuple as index_map2d
@@ -12,6 +13,7 @@ from tnfemesh.tn_tools.tensor_cross import (gen_teneva_indices,
                                             TTCrossConfig)
 from tnfemesh.utils.array import ensure_2d
 from tnfemesh.tn_tools import interpolate_linear2d
+from tnfemesh.types import TensorTrain
 
 
 class SubdomainMesh(ABC):
@@ -325,7 +327,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian_rescaled
 
-    def get_jacobian_tensor_networks(self) -> List[List[List[List[np.ndarray]]]]:
+    def get_jacobian_tensor_networks(self) -> List[List[List[TensorTrain]]]:
         """
         Compute the tensor network approximating the Jacobian evaluated on all elements.
         The tensor index corresponds to the element index.
@@ -333,9 +335,9 @@ class SubdomainMesh2D(SubdomainMesh):
         The output is thus a total of 4*(num_quadrature_points_per_element) tensor networks.
 
         Returns:
-            List[List[List[List[np.ndarray]]]]: List of tensor train cores
+            List[List[List[TensorTrain]]]: List of tensor trains
             for the Jacobian components.
-            Indexing: [quadrature_point_index][component_index_i][component_index_j][tt_core_index].
+            Indexing: [quadrature_point_index][component_index_i][component_index_j].
         """
 
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
@@ -364,14 +366,14 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian_tensor_networks
 
-    def get_jacobian_det_tensor_networks(self) -> List[List[np.ndarray]]:
+    def get_jacobian_det_tensor_networks(self) -> List[TensorTrain]:
         """
         Compute the tensor network approximating
         the Jacobian determinants evaluated on all elements.
 
         Returns:
-            List[List[np.ndarray]]: List of tensor train cores for the Jacobian determinants.
-            Indexing: [quadrature_point_index][tt_core_index].
+            List[TensorTrain]: List of tensor trains for the Jacobian determinants.
+            Indexing: [quadrature_point_index].
         """
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
 
@@ -389,15 +391,15 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return det_tensor_networks
 
-    def get_jacobian_invdet_tensor_networks(self) -> List[List[np.ndarray]]:
+    def get_jacobian_invdet_tensor_networks(self) -> List[TensorTrain]:
         """
         Compute the tensor network approximating
         the inverse of Jacobian determinants evaluated on all elements.
 
         Returns:
-            List[List[np.ndarray]]: List of tensor train cores for
+            List[TensorTrain]: List of tensor trains for
                 the inverse Jacobian determinants.
-            Indexing: [quadrature_point_index][tt_core_index].
+            Indexing: [quadrature_point_index].
         """
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
 
@@ -409,7 +411,7 @@ class SubdomainMesh2D(SubdomainMesh):
             # out of bounds intentional
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", UserWarning)
-                jac_invdet = self._tca_strategy(cross_func)
+                jac_invdet = self.__tca_default(cross_func) # linear interpolation never works here
 
             invdet_tensor_networks.append(jac_invdet)
 
@@ -495,9 +497,9 @@ class SubdomainMesh2D(SubdomainMesh):
         train_indices = gen_teneva_indices(num_indices, tensor_shape)
 
         tt_init = anova_init_tensor_train(oracle, train_indices, order)
-        tt_cross = tensor_train_cross_approximation(oracle, tt_init, **kwargs)
+        tt_cross_cores = tensor_train_cross_approximation(oracle, tt_init, **kwargs)
 
-        return tt_cross
+        return TensorTrain([torch.tensor(core) for core in tt_cross_cores])
 
     def _cross_func(self,
                     qindex: np.ndarray,
@@ -682,7 +684,7 @@ class QuadMesh(SubdomainMesh2D):
         self._tca_strategy = self.__linear_interpolation
 
     def __linear_interpolation(self,
-        oracle: Callable[[np.ndarray], np.ndarray]) -> List[np.ndarray]:
+        oracle: Callable[[np.ndarray], np.ndarray]) -> TensorTrain:
         """
         Perform linear interpolation for a given oracle function.
 
@@ -692,17 +694,10 @@ class QuadMesh(SubdomainMesh2D):
         Returns:
             List[np.ndarray]: The tensor train cores of the linear interpolation.
         """
-
-        print("Linear interpolation called")
-
-        # Define the function to interpolate
-        def func(i, j):
-            index = np.array([i, j])
-            return oracle(index)[0]
-
+        func = lambda idx: oracle(idx)[0]
         tt_interpolant = interpolate_linear2d(func, self.mesh_size_exponent)
 
-        return tt_interpolant.cores
+        return tt_interpolant
 
     def __repr__(self):
         return (f"QuadMesh(subdomain={self.subdomain},"
