@@ -28,7 +28,7 @@ def zorder_kron(left: TensorTrain, right: TensorTrain) -> TensorTrain:
         raise ValueError(f"TT-length of left ({len(cores_left)})"
                          f" and right ({len(cores_right)}) tensors must be equal.")
 
-    cores = [torch.kron(b, a) for a, b in zip(cores_left, cores_right)]
+    cores = [torch.kron(a, b) for a, b in zip(cores_left, cores_right)]
 
     return TensorTrain(cores)
 

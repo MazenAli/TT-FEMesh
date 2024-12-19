@@ -327,7 +327,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian_rescaled
 
-    def get_jacobian_tensor_networks(self) -> List[List[List[TensorTrain]]]:
+    def get_jacobian_tensor_networks(self) -> np.ndarray:
         """
         Compute the tensor network approximating the Jacobian evaluated on all elements.
         The tensor index corresponds to the element index.
@@ -335,20 +335,15 @@ class SubdomainMesh2D(SubdomainMesh):
         The output is thus a total of 4*(num_quadrature_points_per_element) tensor networks.
 
         Returns:
-            List[List[List[TensorTrain]]]: List of tensor trains
-            for the Jacobian components.
-            Indexing: [quadrature_point_index][component_index_i][component_index_j].
+            np.ndarray: 3D array of tensor networks for the Jacobian components.
+               Indexing: [quadrature_point_index, component_index_i, component_index_j].
         """
 
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
 
-        jacobian_tensor_networks = []
-        for quad_point in quadrature_points:
-
-            jacobian_row = []
+        jacobian_tensor_networks = np.ndarray((len(quadrature_points), 2, 2), dtype=object)
+        for q, quad_point in enumerate(quadrature_points):
             for i in range(2):
-
-                jacobian_col = []
                 for j in range(2):
                     eval_point = np.array([quad_point])
                     cross_func = lambda idx: self._cross_func(idx, eval_point)[:, i, j]
@@ -358,27 +353,21 @@ class SubdomainMesh2D(SubdomainMesh):
                         warnings.simplefilter("ignore", UserWarning)
                         jac_ij = self._tca_strategy(cross_func)
 
-                    jacobian_col.append(jac_ij)
-
-                jacobian_row.append(jacobian_col)
-
-            jacobian_tensor_networks.append(jacobian_row)
-
+                    jacobian_tensor_networks[q, i, j] = jac_ij
         return jacobian_tensor_networks
 
-    def get_jacobian_det_tensor_networks(self) -> List[TensorTrain]:
+    def get_jacobian_det_tensor_networks(self) -> np.ndarray:
         """
         Compute the tensor network approximating
         the Jacobian determinants evaluated on all elements.
 
         Returns:
-            List[TensorTrain]: List of tensor trains for the Jacobian determinants.
-            Indexing: [quadrature_point_index].
+            np.ndarray: 1D array of tensor trains for the Jacobian determinants.
+                Indexing: [quadrature_point_index].
         """
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
-
-        det_tensor_networks = []
-        for quad_point in quadrature_points:
+        det_tensor_networks = np.ndarray((len(quadrature_points)), dtype=object)
+        for q, quad_point in enumerate(quadrature_points):
             eval_point = np.array([quad_point])
             cross_func = lambda idx: np.linalg.det(self._cross_func(idx, eval_point))
 
@@ -387,19 +376,18 @@ class SubdomainMesh2D(SubdomainMesh):
                 warnings.simplefilter("ignore", UserWarning)
                 jac_det = self._tca_strategy(cross_func)
 
-            det_tensor_networks.append(jac_det)
+            det_tensor_networks[q] = jac_det
 
         return det_tensor_networks
 
-    def get_jacobian_invdet_tensor_networks(self) -> List[TensorTrain]:
+    def get_jacobian_invdet_tensor_networks(self) -> np.ndarray:
         """
         Compute the tensor network approximating
         the inverse of Jacobian determinants evaluated on all elements.
 
         Returns:
-            List[TensorTrain]: List of tensor trains for
-                the inverse Jacobian determinants.
-            Indexing: [quadrature_point_index].
+            np.ndarray: 1D array of tensor trains for the inverse Jacobian determinants.
+                Indexing: [quadrature_point_index].
         """
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
 
@@ -479,7 +467,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian_invdets
 
-    def __tca_default(self, oracle: Callable[[np.ndarray], np.ndarray]) -> List[np.ndarray]:
+    def __tca_default(self, oracle: Callable[[np.ndarray], np.ndarray]) -> TensorTrain:
         """
         Perform tensor train cross approximation for a given oracle function.
 
@@ -487,7 +475,7 @@ class SubdomainMesh2D(SubdomainMesh):
             oracle (Callable[[np.ndarray], np.ndarray]): The oracle function to approximate.
 
         Returns:
-            List[np.ndarray]: The tensor train cross approximation of the oracle.
+            TensorTrain: The tensor train cross approximation of the oracle.
         """
 
         kwargs = self.tt_cross_config.to_dict()
