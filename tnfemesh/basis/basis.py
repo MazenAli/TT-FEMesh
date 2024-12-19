@@ -1,19 +1,22 @@
 from abc import ABC, abstractmethod
-from typing import List, Iterable, Any
+from typing import List, Iterable, Optional, Any
 import matplotlib.pyplot as plt
 import numpy as np
+from tnfemesh.types import TensorTrain
+from tnfemesh.basis.basis_utils import left_corner2index_ttmap, right_corner2index_ttmap
 
 
 class Basis(ABC):
     """Abstract base class for basis functions."""
     @abstractmethod
-    def evaluate(self, idx: Any, x: Any) -> Any:
-        """Evaluate the basis function indexed with idx at a given point."""
+    @property
+    def index_range(self):
+        """Range of valid indices for the basis functions."""
         pass
 
     @abstractmethod
-    def derivative(self, idx: Any, x: Any) -> Any:
-        """Evaluate the derivative of the basis function at a given point."""
+    def evaluate(self, idx: Any, x: Any) -> Any:
+        """Evaluate the basis function indexed with idx at a given point."""
         pass
 
     @abstractmethod
@@ -48,6 +51,10 @@ class Basis1D(Basis):
 class LinearBasis1D(Basis1D):
     """Linear basis functions on the reference element [-1, 1]."""
 
+    @property
+    def index_range(self):
+        return range(2)
+
     def evaluate(self, idx: int, x: float) -> float:
         """
         Evaluate the basis function at a given point.
@@ -66,13 +73,14 @@ class LinearBasis1D(Basis1D):
         elif idx == 1:
             return 0.5 * (1 + x)
 
-    def derivative(self, idx: int, x: float) -> float:
+    def derivative(self, idx: int, _: Optional[float] = None) -> float:
         """
         Evaluate the derivative of the basis function at a given point.
+        Derivative is constant, so the point x is not used.
 
         Args:
             idx (int): Index of the basis function.
-            x (float): Point in [-1, 1] to evaluate the derivative.
+            _ (Optional[float]): Ignored.
 
         Returns:
             float: Derivative of the basis function at x.
@@ -80,9 +88,29 @@ class LinearBasis1D(Basis1D):
         self._validate(idx)
         return -0.5 if self.idx == 0 else 0.5
 
+    @staticmethod
+    def get_index_ttmaps(d: int) -> TensorTrain:
+        """
+        Get the TT-representation of the left and
+        right corner element index to global basis index maps.
+
+        Args:
+            d (int): Exponent of the 1D mesh size (length of TT).
+
+        Returns:
+        """
+        left = left_corner2index_ttmap(d)
+        right = right_corner2index_ttmap(d)
+
+        return left, right
+
     def _validate(self, idx: int):
-        if idx not in [0, 1]:
-            raise ValueError(f"Invalid basis function index: {idx}. Expected 0 or 1.")
+        if idx not in self.index_range:
+            raise ValueError(f"Invalid basis function index: {idx}."
+                             f" Expected one of {list(self.index_range)}.")
+
+    def __repr__(self):
+        return "LinearBasis1D"
 
 
 class TensorProductBasis(Basis):
@@ -100,6 +128,10 @@ class TensorProductBasis(Basis):
         """
         self.basis_functions = basis_functions
         self.dim = len(basis_functions)
+
+    @property
+    def index_range(self):
+        return [bf.index_range for bf in self.basis_functions]
 
     def evaluate(self, idx: Iterable[int], x: Iterable[float]) -> float:
         """
