@@ -1,15 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import List, Iterable, Optional, Any
+from typing import List, Iterable, Optional, Tuple, Any
 import matplotlib.pyplot as plt
 import numpy as np
 from tnfemesh.types import TensorTrain
 from tnfemesh.basis.basis_utils import left_corner2index_ttmap, right_corner2index_ttmap
+from tnfemesh.tn_tools.operations import zorder_kron
 
 
 class Basis(ABC):
     """Abstract base class for basis functions."""
-    @abstractmethod
     @property
+    @abstractmethod
     def index_range(self):
         """Range of valid indices for the basis functions."""
         pass
@@ -51,10 +52,6 @@ class Basis1D(Basis):
 class LinearBasis1D(Basis1D):
     """Linear basis functions on the reference element [-1, 1]."""
 
-    @property
-    def index_range(self):
-        return range(2)
-
     def evaluate(self, idx: int, x: float) -> float:
         """
         Evaluate the basis function at a given point.
@@ -88,21 +85,48 @@ class LinearBasis1D(Basis1D):
         self._validate(idx)
         return -0.5 if self.idx == 0 else 0.5
 
-    @staticmethod
-    def get_index_ttmaps(d: int) -> TensorTrain:
+
+    @property
+    def index_range(self):
         """
-        Get the TT-representation of the left and
-        right corner element index to global basis index maps.
+        Range of valid indices for the basis functions.
+        0 for the left basis function, 1 for the right basis function.
+        """
+        return range(2)
+
+    def get_index_ttmap(self, index: int, d: int) -> TensorTrain:
+        """
+        Get the TT-representation of a corner element index
+        to global basis index map.
+
+        Args:
+            index (int): Index of the corner element (e.g., 0 for left, 1 for right).
+            d (int): Exponent of the 1D mesh size (length of TT).
+
+        Returns:
+            TensorTrain: TT-representation of the corner to global index map.
+
+        Raises:
+            ValueError: If the index is invalid.
+        """
+        self._validate(index)
+
+        if index == 0:
+            return left_corner2index_ttmap(d)
+        elif index == 1:
+            return right_corner2index_ttmap(d)
+
+    def get_all_index_ttmaps(self, d: int) -> Tuple[TensorTrain, ...]:
+        """
+        Get TT-representations for all indices in `index_range`.
 
         Args:
             d (int): Exponent of the 1D mesh size (length of TT).
 
         Returns:
+            Tuple[TensorTrain, ...]: TT-representations of all corner-to-global index maps.
         """
-        left = left_corner2index_ttmap(d)
-        right = right_corner2index_ttmap(d)
-
-        return left, right
+        return tuple(self.get_index_ttmap(index, d) for index in self.index_range)
 
     def _validate(self, idx: int):
         if idx not in self.index_range:
@@ -257,3 +281,57 @@ class TensorProductBasis(Basis):
         ax.set_zlabel("z")
 
         plt.show()
+
+
+class LinearBasis2D(TensorProductBasis):
+    """Linear basis functions on the reference element [-1, 1]^2."""
+
+    def __init__(self):
+        super().__init__([LinearBasis1D(), LinearBasis1D()])
+
+    def get_index_ttmap(self, index: Tuple[int, int], d: int) -> TensorTrain:
+        """
+        Get the TT-representation of a corner element index to global basis index map.
+
+        Args:
+            index (Tuple[int, int]): Indices of the corner element
+                (e.g., (0, 0) for lower left, (1, 1) for upper right).
+            d (int): Exponent of the 1D mesh size (length of TT).
+
+        Returns:
+            TensorTrain: TT-representation of the corner to global index map.
+
+        Raises:
+            ValueError: If the index is invalid.
+        """
+
+        self._validate(index)
+        return zorder_kron(
+            self.basis_functions[0].get_index_ttmap(index[0], d),
+            self.basis_functions[1].get_index_ttmap(index[1], d)
+        )
+
+    def get_all_index_ttmaps(self, d: int) -> np.ndarray:
+        """
+        Get TT-representations for all indices in `index_range`.
+
+        Args:
+            d (int): Exponent of the 1D mesh size (length of TT).
+
+        Returns:
+            np.ndarray: A 2D matrix of TT-representations, indexed by (i, j)
+                where i and j are the indices of the basis functions in each dimension.
+        """
+        return np.array([
+            [
+                zorder_kron(
+                    self.basis_functions[0].get_index_ttmap(i, d),
+                    self.basis_functions[1].get_index_ttmap(j, d)
+                )
+                for j in self.index_range[1]
+            ]
+            for i in self.index_range[0]
+        ])
+
+    def __repr__(self):
+        return "LinearBasis2D"

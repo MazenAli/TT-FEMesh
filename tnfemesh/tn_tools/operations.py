@@ -1,12 +1,12 @@
 import torch
-import torchtt as tntt
 import copy
 from tnfemesh.types import TensorTrain
 
 
 def zorder_kron(left: TensorTrain, right: TensorTrain) -> TensorTrain:
     """
-    Compute the Kronecker product of two TT-tensors using the Z-ordering.
+    Compute the Kronecker product of two TT-tensors using the Z-ordering
+    (a.k.a. *transposed* or *level-wise* ordering).
     The ordering is column-major, i.e., for every index z in the resulting tensor,
     the relationship to index (i, j) in the left and right tensors is: z = i + j * 2.
 
@@ -34,7 +34,8 @@ def zorder_kron(left: TensorTrain, right: TensorTrain) -> TensorTrain:
 
 def zorder_linfunc2d(c: float, cx: float, X: TensorTrain, cy: float, Y: TensorTrain) -> TensorTrain:
     """
-    Compute the linear combination of two TT-tensors using the Z-ordering:
+    Compute the linear combination of two TT-tensors using the Z-ordering
+    (a.k.a. *transposed* or *level-wise* ordering):
     c + cx * X + cy * Y.
 
     Args:
