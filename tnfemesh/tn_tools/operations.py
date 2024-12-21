@@ -9,6 +9,8 @@ def zorder_kron(left: TensorTrain, right: TensorTrain) -> TensorTrain:
     (a.k.a. *transposed* or *level-wise* ordering).
     The ordering is column-major, i.e., for every index z in the resulting tensor,
     the relationship to index (i, j) in the left and right tensors is: z = i + j * 2.
+    This is consistent with the little-endian ordering of the binary index
+    commonly used in QTT literature.
 
     Args:
         left (TensorTrain): Left TT-tensor.
@@ -28,7 +30,7 @@ def zorder_kron(left: TensorTrain, right: TensorTrain) -> TensorTrain:
         raise ValueError(f"TT-length of left ({len(cores_left)})"
                          f" and right ({len(cores_right)}) tensors must be equal.")
 
-    cores = [torch.kron(a, b) for a, b in zip(cores_left, cores_right)]
+    cores = [torch.kron(b, a) for a, b in zip(cores_left, cores_right)]
 
     return TensorTrain(cores)
 

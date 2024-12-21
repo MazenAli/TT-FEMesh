@@ -17,8 +17,8 @@ def zmeshgrid2d(X: TensorTrain, Y: TensorTrain) -> TensorTrain:
 
     ones_x = tntt.ones(X.N)
     ones_y = tntt.ones(Y.N)
-    XX = zorder_kron(ones_x, X)
-    YY = zorder_kron(Y, ones_y)
+    XX = zorder_kron(X, ones_y)
+    YY = zorder_kron(ones_x, Y)
 
     return XX, YY
 

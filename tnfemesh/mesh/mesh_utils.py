@@ -4,6 +4,9 @@ import numpy as np
 def bindex2dtuple(bindex: np.ndarray) -> Tuple[int, int]:
     """
     Convert a binary index to a 2D tuple.
+    Implements the mapping (i0, j0, i1, j1, ...) -> (i, j), where i = i0 + 2*i1 + 4*i2 + ...
+    and j = j0 + 2*j1 + 4*j2 + ...
+    This is the common little-endian convention in QTT literature.
 
     Args:
         bindex (np.ndarray): A binary index of shape (2 * num_bits1d,).
@@ -40,6 +43,8 @@ def qindex2dtuple(index: np.ndarray) -> Tuple[int, int]:
     The ordering of the quaternary index is assumed to be
     (0, 1, 2, 3) -> ((0, 0), (1, 0), (0, 1), (1, 1)), i.e., column-major with
     index = i + 2*j.
+    This is consistent with the little-endian ordering of the binary index
+    commonly used in QTT literature.
 
     Args:
         index (np.ndarray): An index of shape (num_quats,) with values in {0, 1, 2, 3}.
@@ -58,8 +63,8 @@ def qindex2dtuple(index: np.ndarray) -> Tuple[int, int]:
     if not np.all((0 <= index) & (index <= 3)):
         raise ValueError("Index must contain only values in {0, 1, 2, 3}.")
 
-    i = index % 2
-    j = index // 2
+    j = index % 2
+    i = index // 2
 
     binary_index = np.empty(2 * len(index), dtype=int)
     binary_index[::2] = i
