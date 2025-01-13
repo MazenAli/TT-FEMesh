@@ -7,6 +7,7 @@ from .tensor_cross import (anova_init_tensor_train,
                            test_accuracy_random)
 from .meshgrid import zmeshgrid2d, range_meshgrid2d
 from .interpolate import interpolate_linear2d
+from .numeric import unit_vector_tt
 
 __all__ = ["anova_init_tensor_train",
            "gen_teneva_indices",
@@ -19,4 +20,5 @@ __all__ = ["anova_init_tensor_train",
            "levelwise_kron",
            "zmeshgrid2d",
            "range_meshgrid2d",
-           "interpolate_linear2d"]
+           "interpolate_linear2d",
+           "unit_vector_tt"]
