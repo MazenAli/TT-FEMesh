@@ -416,19 +416,19 @@ class LinearBasis2D(TensorProductBasis):
             raise ValueError(f"Invalid side(s): {invalid}. Must be one or more of {valid_sides}.")
 
         xmask = tntt.ones([2]*mesh_size_exponent)
-        if "left" in sides and "right" in sides:
+        if 'left' in sides and 'right' in sides:
             xmask = self.basis_functions[0].get_dirichlet_mask_left_right(mesh_size_exponent)
-        elif "left" in sides:
+        elif 'left' in sides:
             xmask = self.basis_functions[0].get_dirichlet_mask_left(mesh_size_exponent)
-        elif "right" in sides:
+        elif 'right' in sides:
             xmask = self.basis_functions[0].get_dirichlet_mask_right(mesh_size_exponent)
 
         ymask = tntt.ones([2]*mesh_size_exponent)
-        if "top" in sides and "bottom" in sides:
+        if 'bottom' in sides and 'top' in sides:
             ymask = self.basis_functions[1].get_dirichlet_mask_left_right(mesh_size_exponent)
-        elif "bottom" in sides:
+        elif 'bottom' in sides:
             ymask = self.basis_functions[1].get_dirichlet_mask_left(mesh_size_exponent)
-        elif "top" in sides:
+        elif 'top' in sides:
             ymask = self.basis_functions[1].get_dirichlet_mask_right(mesh_size_exponent)
 
         return zorder_kron(xmask, ymask)
