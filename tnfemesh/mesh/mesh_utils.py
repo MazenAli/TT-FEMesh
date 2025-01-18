@@ -1,6 +1,7 @@
 from typing import Tuple
 import numpy as np
 
+
 def bindex2dtuple(bindex: np.ndarray) -> Tuple[int, int]:
     """
     Convert a binary index to a 2D tuple.

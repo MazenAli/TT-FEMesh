@@ -4,7 +4,8 @@ import numpy as np
 from tnfemesh.domain.subdomain import Subdomain
 from tnfemesh.domain.curve import Curve
 
-CurvePosition = Literal["start", "end"]
+CurvePosition = Literal['start', 'end']
+
 
 class SubdomainConnection(ABC):
     @abstractmethod

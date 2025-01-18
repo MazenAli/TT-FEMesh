@@ -25,9 +25,9 @@ def integer_to_little_endian(length: int, num: int, ) -> List[int]:
     return [(num >> i) & 1 for i in range(length)]
 
 
-def unit_vector_tt(length: int, index: int) -> TensorTrain:
+def unit_vector_binary_tt(length: int, index: int) -> TensorTrain:
     """
-    Generate a unit vector with a 1 at the specified index.
+    Generate a unit vector with a 1 at the specified index for a binary quantized tensor train.
 
     Args:
         length (int): Length of the tensor train.

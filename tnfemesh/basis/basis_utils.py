@@ -3,12 +3,12 @@ import numpy as np
 import torch
 from tnfemesh.types import TensorTrain
 
+
 def left_corner2index_ttmap(d: int) -> TensorTrain:
     """
     Returns the TT-representation of the left corner element index to global basis index map (W_0).
     See arXiv:1802.02839, Section 5.4 for more details.
-    We switch the order of the cores for consistency with the little-endian
-    convention in the QTT literature.
+    Note the size of the TT alone already implies we are working with a linear 2D basis.
 
     Args:
         d (int): Exponent of the 1D mesh size (length of TT).
@@ -26,7 +26,7 @@ def right_corner2index_ttmap(d: int) -> TensorTrain:
     """
     Returns the TT-representation of the right corner element index to global basis index map (W_1).
     See arXiv:1802.02839, Section 5.4 for more details.
-
+    Note the size of the TT alone already implies we are working with a linear 2D basis.
 
     Args:
         d (int): Exponent of the 1D mesh size (length of TT).
@@ -44,8 +44,9 @@ def left_corner2index_map_ttcores() -> Tuple[np.ndarray, np.ndarray, np.ndarray]
     """
     Returns the TT-cores for the left corner element index to global basis index map (W_0).
     See arXiv:1802.02839, Section 5.4 for more details.
-    The order of the cores is reversed for consistency with the little-endian
-    convention in the QTT literature.
+    We reverse the order of the cores for consistency with the little-endian
+    convention in the QTT literature, i.e.,
+    column-major or Fortran-style ordering.
 
     Returns:
         Tuple[np.ndarray, np.ndarray, np.ndarray]: TT-cores of the left corner to global index map.
@@ -72,8 +73,9 @@ def right_corner2index_map_ttcores() -> Tuple[np.ndarray, np.ndarray, np.ndarray
     """
     Returns the TT-cores for the right corner element index to global basis index map (W_1).
     See arXiv:1802.02839, Section 5.4 for more details.
-    The order of the cores is reversed for consistency with the little-endian
-    convention in the QTT literature.
+    We reverse the order of the cores for consistency with the little-endian
+    convention in the QTT literature, i.e.,
+    column-major or Fortran-style ordering.
 
     Returns:
         Tuple[np.ndarray, np.ndarray, np.ndarray]: TT-cores of the right corner to global index map.

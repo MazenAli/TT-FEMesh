@@ -4,6 +4,7 @@ from tnfemesh.types import TensorTrain
 from tnfemesh.tn_tools.meshgrid import range_meshgrid2d
 from tnfemesh.tn_tools.operations import zorder_linfunc2d
 
+
 def interpolate_linear2d(func: Callable[[np.ndarray], float], d) -> TensorTrain:
     """
     Interpolate a function on a 2D grid using linear interpolation.
