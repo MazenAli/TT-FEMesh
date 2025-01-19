@@ -1,9 +1,9 @@
-FROM tnfemesh-base:latest
+FROM ttfemesh-base:latest
 
 WORKDIR /app
 
 COPY requirements.txt requirements-dev.txt ./
-COPY ./tnfemesh ./tnfemesh
+COPY ./ttfemesh ./ttfemesh
 COPY README.md ./
 COPY pyproject.toml ./
 COPY setup.py ./

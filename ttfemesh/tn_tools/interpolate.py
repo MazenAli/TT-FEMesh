@@ -1,8 +1,8 @@
 from typing import Callable
 import numpy as np
-from tnfemesh.types import TensorTrain
-from tnfemesh.tn_tools.meshgrid import range_meshgrid2d
-from tnfemesh.tn_tools.operations import zorder_linfunc2d
+from ttfemesh.types import TensorTrain
+from ttfemesh.tn_tools.meshgrid import range_meshgrid2d
+from ttfemesh.tn_tools.operations import zorder_linfunc2d
 
 
 def interpolate_linear2d(func: Callable[[np.ndarray], float], d) -> TensorTrain:

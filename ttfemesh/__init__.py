@@ -1,6 +1,6 @@
 from importlib.metadata import PackageNotFoundError, version
 
 try:
-    __version__ = version("tnfemesh")
+    __version__ = version("ttfemesh")
 except PackageNotFoundError:
     __version__ = "unknown"

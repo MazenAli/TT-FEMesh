@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
-from tnfemesh.domain.curve import Curve, Line2D
+from ttfemesh.domain.curve import Curve, Line2D
 
 
 class Subdomain(ABC):

@@ -1,7 +1,7 @@
 from typing import Tuple
 import numpy as np
 import torch
-from tnfemesh.types import TensorTrain
+from ttfemesh.types import TensorTrain
 
 
 def left_corner2index_ttmap(d: int) -> TensorTrain:

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from tnfemesh.domain.subdomain import Subdomain2D, Quad
-from tnfemesh.domain.curve import Line2D
+from ttfemesh.domain.subdomain import Subdomain2D, Quad
+from ttfemesh.domain.curve import Line2D
 from typing import Tuple
 
 

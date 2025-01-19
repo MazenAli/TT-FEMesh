@@ -1,6 +1,6 @@
 import torch
 import copy
-from tnfemesh.types import TensorTrain
+from ttfemesh.types import TensorTrain
 
 
 def zorder_kron(left: TensorTrain, right: TensorTrain) -> TensorTrain:

@@ -1,5 +1,5 @@
 from typing import List
-from tnfemesh.types import TensorTrain
+from ttfemesh.types import TensorTrain
 import torch
 
 def integer_to_little_endian(length: int, num: int, ) -> List[int]:

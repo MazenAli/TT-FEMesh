@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: docker/base.dockerfile
-    image: tnfemesh-base
-    container_name: tnfemesh-base
+    image: ttfemesh-base
+    container_name: ttfemesh-base
     command: bash
 
   lib:
@@ -13,16 +13,16 @@ services:
       dockerfile: docker/lib.dockerfile
     depends_on:
       - base
-    image: tnfemesh-lib
-    container_name: tnfemesh-lib
+    image: ttfemesh-lib
+    container_name: ttfemesh-lib
     command: python
 
   dev:
     build:
       context: .
       dockerfile: docker/dev.dockerfile
-    image: tnfemesh-dev
-    container_name: tnfemesh-dev
+    image: ttfemesh-dev
+    container_name: ttfemesh-dev
     volumes:
       - .:/app
     depends_on:
@@ -34,7 +34,7 @@ services:
       context: .
       dockerfile: docker/notebook.dockerfile
     image: tnfemesh-notebook
-    container_name: tnfemesh-notebook
+    container_name: ttfemesh-notebook
     volumes:
       - .:/app
     depends_on:

@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
 ascii_logo = """
-████████╗███╗   ██╗███████╗███████╗███╗   ███╗
-╚══██╔══╝████╗  ██║██╔════╝██╔════╝████╗ ████║ 
-   ██║   ██╔██╗ ██║█████╗  █████╗  ██╔████╔██║ 
-   ██║   ██║╚██╗██║██╔══╝  ██╔══╝  ██║╚██╔╝██║ 
-   ██║   ██║ ╚████║██║     ███████╗██║ ╚═╝ ██║ 
-   ╚═╝   ╚═╝  ╚═══╝╚═╝     ╚══════╝╚═╝     ╚═╝ 
+████████╗████████╗███████╗███████╗███╗   ███╗
+╚══██╔══╝╚══██╔══╝██╔════╝██╔════╝████╗ ████║ 
+   ██║      ██║   █████╗  █████╗  ██╔████╔██║ 
+   ██║      ██║   ██╔══╝  ██╔══╝  ██║╚██╔╝██║ 
+   ██║      ██║   ██║     ███████╗██║ ╚═╝ ██║ 
+   ╚═╝      ╚═╝   ╚═╝     ╚══════╝╚═╝     ╚═╝ 
 """
 
 print(ascii_logo)
@@ -17,9 +17,9 @@ requirements = [
 requirements += ['torchtt']
 
 setup(
-    name="tnfemesh",
+    name="ttfemesh",
     version="0.1.0",
-    description="A Python library for tensor network-based finite element meshing.",
+    description="A Python library for tensor train-based finite element meshing.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author="Mazen Ali",
@@ -44,8 +44,8 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     project_urls={
-        "Source": "https://github.com/MazenAli/tnfemesh",
-        "Documentation": "https://github.com/MazenAli/tnfemesh",
+        "Source": "https://github.com/MazenAli/ttfemesh",
+        "Documentation": "https://github.com/MazenAli/ttfemesh",
     },
-    keywords="tensor networks finite elements meshing simulation",
+    keywords="tensor train finite elements meshing simulation",
 )

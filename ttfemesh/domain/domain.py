@@ -1,14 +1,16 @@
 from typing import List, Optional
 import matplotlib.pyplot as plt
 import numpy as np
-from tnfemesh.domain.subdomain import Subdomain
-from tnfemesh.domain.subdomain_connection import (SubdomainConnection,
+from ttfemesh.domain.subdomain import Subdomain
+from ttfemesh.domain.subdomain_connection import (SubdomainConnection,
                                                   VertexConnection2D,
                                                   CurveConnection)
-from tnfemesh.domain.boundary_condition import BoundaryCondition
+from ttfemesh.domain.boundary_condition import BoundaryCondition
 
 
 class Domain:
+    """Domain class that contains subdomains and their connections."""
+
     def __init__(self,
                  subdomains: List[Subdomain],
                  connections: List[SubdomainConnection],
@@ -25,6 +27,11 @@ class Domain:
         self.connections = connections
         self.boundary_condition = boundary_condition
         self.validate()
+
+    @property
+    def num_subdomains(self):
+        """Number of subdomains in the domain."""
+        return len(self.subdomains)
 
     def validate(self):
         """Validates that the connections are consistent with the subdomains."""

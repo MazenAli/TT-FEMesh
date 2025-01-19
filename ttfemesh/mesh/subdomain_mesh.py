@@ -4,16 +4,16 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from tnfemesh.domain import Subdomain, Subdomain2D, Quad
-from tnfemesh.quadrature import QuadratureRule
-from tnfemesh.mesh.mesh_utils import qindex2dtuple as index_map2d
-from tnfemesh.tn_tools.tensor_cross import (gen_teneva_indices,
+from ttfemesh.domain import Subdomain, Subdomain2D, Quad
+from ttfemesh.quadrature import QuadratureRule
+from ttfemesh.mesh.mesh_utils import qindex2dtuple as index_map2d
+from ttfemesh.tn_tools.tensor_cross import (gen_teneva_indices,
                                             anova_init_tensor_train,
                                             tensor_train_cross_approximation,
                                             TTCrossConfig)
-from tnfemesh.utils.array import ensure_2d
-from tnfemesh.tn_tools import interpolate_linear2d
-from tnfemesh.types import TensorTrain
+from ttfemesh.utils.array import ensure_2d
+from ttfemesh.tn_tools import interpolate_linear2d
+from ttfemesh.types import TensorTrain
 
 
 class SubdomainMesh(ABC):

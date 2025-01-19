@@ -1,6 +1,6 @@
 import torchtt as tntt
-from tnfemesh.types import TensorTrain
-from tnfemesh.tn_tools.operations import zorder_kron
+from ttfemesh.types import TensorTrain
+from ttfemesh.tn_tools.operations import zorder_kron
 
 
 def zmeshgrid2d(X: TensorTrain, Y: TensorTrain) -> TensorTrain:
@@ -22,16 +22,16 @@ def zmeshgrid2d(X: TensorTrain, Y: TensorTrain) -> TensorTrain:
 
     return XX, YY
 
-def range_meshgrid2d(d: int) -> TensorTrain:
+def range_meshgrid2d(mesh_size_exponent: int) -> TensorTrain:
     """
     Compute the meshgrid corresponding to X and Y tensors counting from 0 to 2**d.
 
     Args:
-        d (int): Exponent of 1D grid size.
+        mesh_size_exponent (int): Exponent of 1D grid size.
 
     Returns:
         TensorTrain resulting from the meshgrid of two index tensors.
     """
 
-    range = tntt._extras.xfun([2]*d)
+    range = tntt._extras.xfun([2] * mesh_size_exponent)
     return zmeshgrid2d(range, range)

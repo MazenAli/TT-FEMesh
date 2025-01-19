@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple
-from tnfemesh.domain.subdomain import Subdomain
+from ttfemesh.domain.subdomain import Subdomain
 
 
 class BoundaryCondition(ABC):

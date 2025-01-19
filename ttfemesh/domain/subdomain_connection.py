@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Literal
 import numpy as np
-from tnfemesh.domain.subdomain import Subdomain
-from tnfemesh.domain.curve import Curve
+from ttfemesh.domain.subdomain import Subdomain
+from ttfemesh.domain.curve import Curve
 
 CurvePosition = Literal['start', 'end']
 

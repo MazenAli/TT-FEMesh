@@ -3,10 +3,10 @@ from typing import List, Iterable, Optional, Tuple, Any, Literal
 import matplotlib.pyplot as plt
 import numpy as np
 import torchtt as tntt
-from tnfemesh.types import TensorTrain
-from tnfemesh.basis.basis_utils import left_corner2index_ttmap, right_corner2index_ttmap
-from tnfemesh.tn_tools.operations import zorder_kron
-from tnfemesh.tn_tools.numeric import unit_vector_binary_tt
+from ttfemesh.types import TensorTrain
+from ttfemesh.basis.basis_utils import left_corner2index_ttmap, right_corner2index_ttmap
+from ttfemesh.tn_tools.operations import zorder_kron
+from ttfemesh.tn_tools.numeric import unit_vector_binary_tt
 
 BoundarySide = Literal['left', 'right', 'top', 'bottom']
 
@@ -128,6 +128,7 @@ class LinearBasis1D(Basis1D):
 
         Returns:
             Tuple[TensorTrain, ...]: TT-representations of all corner-to-global index maps.
+                First element is the map for index 0, second element is the map for index 1.
         """
         return tuple(self.get_element2global_ttmap(index, mesh_size_exponent)
                      for index in self.index_range)
@@ -205,6 +206,52 @@ class TensorProductBasis(Basis):
         """
         self.basis_functions = basis_functions
         self.dim = len(basis_functions)
+
+    @abstractmethod
+    def get_element2global_ttmap(self, index: Tuple[int, ...], mesh_size_exponent: int) -> TensorTrain:
+        """
+        Get the TT-representation of a corner element index to global basis index map.
+
+        Args:
+            index (Tuple[int, ...]): Indices of the corner element.
+            mesh_size_exponent (int): Exponent of the 1D mesh size.
+
+        Returns:
+            TensorTrain: TT-representation of the corner to global index map.
+
+        Raises:
+            ValueError: If the index is invalid.
+        """
+        pass
+
+    @abstractmethod
+    def get_all_element2global_ttmaps(self, mesh_size_exponent: int) -> np.ndarray:
+        """
+        Get the TT-representation for all corner elements in `index_range`
+        to global basis index maps.
+
+        Args:
+            mesh_size_exponent (int): Exponent of the 1D mesh size.
+
+        Returns:
+            np.ndarray: A 2D matrix of TT-representations, indexed by (i, j)
+                where i and j are the indices of the basis functions in each dimension.
+        """
+        pass
+
+    @abstractmethod
+    def get_dirichlet_mask(self, mesh_size_exponent: int, *sides: BoundarySide) -> TensorTrain:
+        """
+        Get the mask for the Dirichlet boundary condition on the specified sides.
+
+        Args:
+            mesh_size_exponent (int): Exponent of the 1D mesh size.
+            *sides (BoundarySide): Boundary sides to apply the Dirichlet condition.
+
+        Returns:
+            TensorTrain: TT-representation of the Dirichlet mask.
+        """
+        pass
 
     @property
     def index_range(self):

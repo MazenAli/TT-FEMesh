@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Union
 import warnings
 import numpy as np
-from tnfemesh.utils.array import ensure_1d
+from ttfemesh.utils.array import ensure_1d
 
 
 class Curve(ABC):
