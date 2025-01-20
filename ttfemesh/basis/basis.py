@@ -9,6 +9,7 @@ from ttfemesh.tn_tools.operations import zorder_kron
 from ttfemesh.tn_tools.numeric import unit_vector_binary_tt
 
 BoundarySide = Literal['left', 'right', 'top', 'bottom']
+Num2Side = {0: 'bottom', 1: 'right', 2: 'top', 3: 'left'}
 
 
 class Basis(ABC):
@@ -27,6 +28,12 @@ class Basis(ABC):
     @abstractmethod
     def _validate(self, idx: Any):
         """Validate the basis function index."""
+        pass
+
+    @property
+    @abstractmethod
+    def dimension(self) -> int:
+        """The number of dimensions of the basis functions."""
         pass
 
 
@@ -51,8 +58,11 @@ class Basis1D(Basis):
         plt.ylabel("Basis Function Value")
         plt.show()
 
+    def dimension(self) -> int:
+        return 1
 
-class LinearBasis1D(Basis1D):
+
+class LinearBasis(Basis1D):
     """Linear basis functions on the reference element [-1, 1]."""
 
     def evaluate(self, idx: int, x: float) -> float:
@@ -188,7 +198,7 @@ class LinearBasis1D(Basis1D):
                              f" Expected one of {list(self.index_range)}.")
 
     def __repr__(self):
-        return "LinearBasis1D"
+        return "LinearBasis"
 
 
 class TensorProductBasis(Basis):
@@ -205,7 +215,11 @@ class TensorProductBasis(Basis):
             basis_functions (List[BasisFunction1D]): List of 1D basis functions for each dimension.
         """
         self.basis_functions = basis_functions
-        self.dim = len(basis_functions)
+        self._dimension = len(basis_functions)
+
+    @property
+    def dimension(self) -> int:
+        return self._dimension
 
     @abstractmethod
     def get_element2global_ttmap(self, index: Tuple[int, ...], mesh_size_exponent: int) -> TensorTrain:
@@ -284,8 +298,8 @@ class TensorProductBasis(Basis):
             float: Value of the derivative at x.
         """
         self._validate(idx)
-        if dim < 0 or dim >= self.dim:
-            raise ValueError(f"Invalid dimension index: {dim}, expected 0 <= dim < {self.dim}")
+        if dim < 0 or dim >= self.dimension:
+            raise ValueError(f"Invalid dimension index: {dim}, expected 0 <= dim < {self.dimension}")
 
         result = 1.0
         for i, (bf, xi) in enumerate(zip(self.basis_functions, x)):
@@ -297,13 +311,13 @@ class TensorProductBasis(Basis):
 
     def _validate(self, idx: Iterable[int]):
         """Validate the basis function indices."""
-        if len(idx) != self.dim:
-            raise ValueError(f"Invalid number of indices: expected {self.dim}, got {len(idx)}")
+        if len(idx) != self.dimension:
+            raise ValueError(f"Invalid number of indices: expected {self.dimension}, got {len(idx)}")
         for i, idx_i in enumerate(idx):
             self.basis_functions[i]._validate(idx_i)
 
     def __repr__(self):
-        return f"TensorProductBasis(dim={self.dim})"
+        return f"TensorProductBasis(dim={self.dimension})"
 
     def plot(self, idx: Iterable[int], num_points: int = 100):
         """
@@ -315,9 +329,9 @@ class TensorProductBasis(Basis):
         """
         self._validate(idx)
 
-        if self.dim == 2:
+        if self.dimension == 2:
             self._plot2d(idx, num_points)
-        elif self.dim == 3:
+        elif self.dimension == 3:
             self._plot3d(idx, num_points)
         else:
             raise NotImplementedError("Plotting is only supported for 2D and 3D basis functions.")
@@ -383,11 +397,15 @@ class TensorProductBasis(Basis):
         plt.show()
 
 
-class LinearBasis2D(TensorProductBasis):
+class BilinearBasis(TensorProductBasis):
     """Linear basis functions on the reference element [-1, 1]^2."""
 
     def __init__(self):
-        super().__init__([LinearBasis1D(), LinearBasis1D()])
+        super().__init__([LinearBasis(), LinearBasis()])
+
+    @property
+    def dimension(self) -> int:
+        return 2
 
     def get_element2global_ttmap(self, index: Tuple[int, int], mesh_size_exponent: int) -> TensorTrain:
         """
@@ -481,4 +499,4 @@ class LinearBasis2D(TensorProductBasis):
         return zorder_kron(xmask, ymask)
 
     def __repr__(self):
-        return "LinearBasis2D"
+        return "BilinearBasis"

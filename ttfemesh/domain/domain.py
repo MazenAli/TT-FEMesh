@@ -1,14 +1,16 @@
+from abc import ABC, abstractmethod
 from typing import List, Optional
 import matplotlib.pyplot as plt
 import numpy as np
-from ttfemesh.domain.subdomain import Subdomain
+from ttfemesh.domain.subdomain import Subdomain, Subdomain2D
 from ttfemesh.domain.subdomain_connection import (SubdomainConnection,
+                                                  SubdomainConnection2D,
                                                   VertexConnection2D,
                                                   CurveConnection)
-from ttfemesh.domain.boundary_condition import BoundaryCondition
+from ttfemesh.domain.boundary_condition import BoundaryCondition, DirichletBoundary2D
 
 
-class Domain:
+class Domain(ABC):
     """Domain class that contains subdomains and their connections."""
 
     def __init__(self,
@@ -29,9 +31,28 @@ class Domain:
         self.validate()
 
     @property
-    def num_subdomains(self):
+    def num_subdomains(self) -> int:
         """Number of subdomains in the domain."""
         return len(self.subdomains)
+
+    def get_subdomain(self, idx):
+        """
+        Get a subdomain by index.
+
+        Args:
+            idx (int): Index of the subdomain to get.
+
+        Returns:
+            Subdomain: The subdomain at the given index.
+
+        Raises:
+            ValueError: If the index is out of bounds.
+        """
+        if idx < 0 or idx >= len(self.subdomains):
+            raise ValueError(f"Invalid subdomain index: {idx}. "
+                             f"Must be in [0, {len(self.subdomains)}).")
+
+        return self.subdomains[idx]
 
     def validate(self):
         """Validates that the connections are consistent with the subdomains."""
@@ -48,8 +69,35 @@ class Domain:
         for subdomain in self.subdomains:
             subdomain.plot()
 
+    @property
+    @abstractmethod
+    def dimension(self):
+        """The dimension of the domain."""
+        pass
+
 
 class Domain2D(Domain):
+    """A 2D domain with subdomains and their connections."""
+
+    def __init__(self,
+                 subdomains: List[Subdomain2D],
+                 connections: List[SubdomainConnection2D],
+                 boundary_condition: Optional[DirichletBoundary2D] = None):
+        """
+        Initialize a 2D domain with subdomains and their connections.
+
+        Args:
+            subdomains (List[Subdomain2D]): List of 2D subdomains in the domain.
+            connections (List[SubdomainConnection2D]): List of connections between subdomains.
+            boundary_condition (Optional[DirichletBoundary2D]): Optional 2D boundary condition.
+        """
+        super().__init__(subdomains, connections, boundary_condition)
+
+    @property
+    def dimension(self) -> int:
+        """The dimension of the domain."""
+        return 2
+
     def plot(self, num_points=100):
         """
         Plot the domain and its subdomains with connections.
@@ -82,3 +130,6 @@ class Domain2D(Domain):
         plt.axis("equal")
         plt.title("Domain Plot")
         plt.show()
+
+    def __repr__(self):
+        return f"Domain2D({len(self.subdomains)} subdomains, {len(self.connections)} connections)"

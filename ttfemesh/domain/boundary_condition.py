@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from collections import defaultdict
+from typing import List, Tuple, Dict
 from ttfemesh.domain.subdomain import Subdomain
 
 
@@ -15,6 +16,18 @@ class BoundaryCondition(ABC):
 
         Args:
             subdomains (List[Subdomain]): List of subdomains in the domain.
+        """
+        pass
+
+    @abstractmethod
+    def group_by_subdomain(self) -> Dict[int, List[int]]:
+        """
+        Group the boundary conditions by subdomain.
+
+        Returns:
+            Dict[int, List[int]]: A dictionary where the keys are subdomain indices,
+                                  and the values are lists of curve or face indices
+                                  with the boundary condition.
         """
         pass
 
@@ -57,6 +70,20 @@ class DirichletBoundary2D(BoundaryCondition):
             int: Number of curves with boundary conditions.
         """
         return len(self.boundary)
+
+    def group_by_subdomain(self) -> Dict[int, List[int]]:
+        """
+        Group the boundary conditions by subdomain.
+
+        Returns:
+            Dict[int, List[int]]: A dictionary where the keys are subdomain indices,
+                                  and the values are lists of curve indices with the boundary condition.
+        """
+        grouped = defaultdict(list)
+        for subdomain, curve in self.boundary:
+            grouped[subdomain].append(curve)
+
+        return dict(grouped)
 
     def __repr__(self):
         return f"DirichletBoundary2D(num_bcs={self.num_bcs()})"

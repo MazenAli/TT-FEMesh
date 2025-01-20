@@ -1,3 +1,3 @@
-from .basis import LinearBasis1D, TensorProductBasis, LinearBasis2D
+from .basis import LinearBasis, TensorProductBasis, BilinearBasis
 
-__all__ = ["LinearBasis1D", "TensorProductBasis", "LinearBasis2D"]
+__all__ = ["LinearBasis", "TensorProductBasis", "BilinearBasis"]

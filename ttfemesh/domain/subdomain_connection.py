@@ -8,6 +8,7 @@ CurvePosition = Literal['start', 'end']
 
 
 class SubdomainConnection(ABC):
+    """Generic subdomain connection class."""
     @abstractmethod
     def validate(self, subdomains: List[Subdomain]):
         """
@@ -18,8 +19,22 @@ class SubdomainConnection(ABC):
         """
         pass
 
+    @property
+    @abstractmethod
+    def dimension(self) -> int:
+        """Dimension of the subdomain connection."""
+        pass
 
-class VertexConnection2D(SubdomainConnection):
+
+class SubdomainConnection2D(SubdomainConnection):
+    """Generic 2D subdomain connection class."""
+    @property
+    def dimension(self) -> int:
+        """Dimension of the subdomain connection."""
+        return 2
+
+
+class VertexConnection2D(SubdomainConnection2D):
     def __init__(self, connection: List[Tuple[int, int, CurvePosition]]):
         """
         Initialize a 2D vertex connection.
@@ -83,7 +98,7 @@ class VertexConnection2D(SubdomainConnection):
         return f"VertexConnection2D({self.connection})"
 
 
-class CurveConnection(SubdomainConnection):
+class CurveConnection(SubdomainConnection2D):
     def __init__(self, subdomains_indices: Tuple[int, int], curve_indices: Tuple[int, int]):
         """
         Initialize a curve connection between two subdomains.

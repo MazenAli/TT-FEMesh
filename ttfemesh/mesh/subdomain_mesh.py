@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from ttfemesh.domain import Subdomain, Subdomain2D, Quad
-from ttfemesh.quadrature import QuadratureRule
+from ttfemesh.quadrature.quadrature import QuadratureRule, QuadratureRule2D
 from ttfemesh.mesh.mesh_utils import qindex2dtuple as index_map2d
 from ttfemesh.tn_tools.tensor_cross import (gen_teneva_indices,
                                             anova_init_tensor_train,
@@ -22,7 +22,8 @@ class SubdomainMesh(ABC):
     def __init__(self,
                  subdomain: Subdomain,
                  quadrature_rule: QuadratureRule,
-                 mesh_size_exponent: int):
+                 mesh_size_exponent: int,
+                 tt_cross_config: Optional[TTCrossConfig] = None):
         """
         Initialize a subdomain mesh.
 
@@ -31,12 +32,18 @@ class SubdomainMesh(ABC):
             quadrature_rule (QuadratureRule): The quadrature rule to use.
             mesh_size_exponent (int): The exponent of the discretization size.
                 The discretization size is 2**(mesh_size_exponent) per dimension.
+            tt_cross_config (Optional[TTCrossConfig]):
+                Configuration for the tensor train cross approximation.
+                If None, default configuration is used.
         """
         self.subdomain = subdomain
         self.quadrature_rule = quadrature_rule
         self.mesh_size_exponent = mesh_size_exponent
         self._index_map = None
 
+        self._tt_cross_config = tt_cross_config
+        if self._tt_cross_config is None:
+            self._tt_cross_config = TTCrossConfig(info={})
 
     @abstractmethod
     def ref2domain_map(self):
@@ -78,37 +85,45 @@ class SubdomainMesh(ABC):
         """Validate reference element coordinates."""
         pass
 
+    @property
+    @abstractmethod
+    def dimension(self):
+        """Return the dimension of the mesh."""
+        pass
+
 
 class SubdomainMesh2D(SubdomainMesh):
-    """
-    Subdomain mesh for a 2D finite element problem.
-
-    Args:
-        subdomain (Subdomain2D): The 2D subdomain to mesh.
-        quadrature_rule (QuadratureRule): The quadrature rule to use.
-        mesh_size_exponent (int): The exponent of the discretization size.
-            The discretization size is 2**(mesh_size_exponent) per dimension.
-        tt_cross_config (TTCrossConfig, optional):
-            Configuration for the tensor train cross approximation.
-            Defaults to using an info dict and rest are default settings.
-    """
+    """Subdomain mesh for a 2D finite element problem."""
 
     def __init__(self,
                  subdomain: Subdomain2D,
-                 quadrature_rule: QuadratureRule,
+                 quadrature_rule: QuadratureRule2D,
                  mesh_size_exponent: int,
                  tt_cross_config: Optional[TTCrossConfig] = None):
-        super().__init__(subdomain, quadrature_rule, mesh_size_exponent)
+        """
+        Initialize a 2D subdomain mesh.
+
+        Args:
+            subdomain (Subdomain2D): The 2D subdomain to mesh.
+            quadrature_rule (QuadratureRule2D): The quadrature rule to use.
+            mesh_size_exponent (int): The exponent of the discretization size.
+                The discretization size is 2**(mesh_size_exponent) per dimension.
+            tt_cross_config (Optional[TTCrossConfig]):
+                Configuration for the tensor train cross approximation.
+                If None, default configuration is used.
+
+        """
+        super().__init__(subdomain, quadrature_rule, mesh_size_exponent, tt_cross_config)
 
         self._num_points1d = 2**mesh_size_exponent
         self._grid_step1d = 2.0 / (self._num_points1d - 1)
         self._index_map = index_map2d
-
-        self._tt_cross_config = tt_cross_config
-        if self._tt_cross_config is None:
-            self._tt_cross_config = TTCrossConfig(info={})
-
         self._tca_strategy = self.__tca_default
+
+    @property
+    def dimension(self):
+        """Return the dimension of the mesh."""
+        return 2
 
     @property
     def num_points1d(self):
@@ -653,21 +668,25 @@ class QuadMesh(SubdomainMesh2D):
     Hence, instead of using the tensor train cross approximation for a generic subdomain,
     we can represent the Jacobians for all elements and all quadrature points exactly with a
     low-rank Tensor Train.
-
-    Args:
-        quad (Quad): The quadrilateral subdomain to mesh.
-        quadrature_rule (QuadratureRule): The quadrature rule to use.
-        mesh_size_exponent (int): The exponent of the discretization size.
-            The discretization size is 2**(mesh_size_exponent) per dimension.
-        tt_cross_config (TTCrossConfig, optional): Configuration for
-            the tensor train cross approximation. Defaults to None (all default).
     """
 
     def __init__(self,
                  quad: Quad,
-                 quadrature_rule: QuadratureRule,
+                 quadrature_rule: QuadratureRule2D,
                  mesh_size_exponent: int,
                  tt_cross_config: Optional[TTCrossConfig] = None):
+        """
+        Initialize a quadrilateral mesh.
+
+        Args:
+            quad (Quad): The quadrilateral subdomain to mesh.
+            quadrature_rule (QuadratureRule2D): The quadrature rule to use.
+            mesh_size_exponent (int): The exponent of the discretization size.
+                The discretization size is 2**(mesh_size_exponent) per dimension.
+            tt_cross_config (Optional[TTCrossConfig]):
+                Configuration for the tensor train cross approximation.
+                If None, default configuration is used.
+        """
         super().__init__(quad, quadrature_rule, mesh_size_exponent, tt_cross_config)
         self._tca_strategy = self.__linear_interpolation
 

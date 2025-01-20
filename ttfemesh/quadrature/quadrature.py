@@ -18,6 +18,21 @@ class QuadratureRule(ABC):
         """Compute the quadrature points and weights."""
         pass
 
+    @property
+    @abstractmethod
+    def dimension(self) -> int:
+        """The number of dimensions of the quadrature rule."""
+        pass
+
+
+class QuadratureRule2D(QuadratureRule):
+    """Abstract base class for a 2D quadrature rule."""
+
+    @property
+    def dimension(self) -> int:
+        """The number of dimensions of the quadrature rule."""
+        return 2
+
 
 class GaussLegendre(QuadratureRule):
     """Implements Gauss-Legendre quadrature on [-1, 1]^(dimension)."""
@@ -31,9 +46,14 @@ class GaussLegendre(QuadratureRule):
             dimension (int): The number of dimensions (default is 1).
         """
         self.order = order
-        self.dimension = dimension
+        self._dimension = dimension
         self.points = None
         self.weights = None
+
+    @property
+    def dimension(self) -> int:
+        """The number of dimensions of the quadrature rule."""
+        return self._dimension
 
     def get_points_weights(self) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -73,3 +93,20 @@ class GaussLegendre(QuadratureRule):
     def __repr__(self) -> str:
         """String representation of the Gauss-Legendre quadrature rule."""
         return f"Gauss-Legendre Quadrature Rule (order={self.order}, dimension={self.dimension})"
+
+
+class GaussLegendre2D(GaussLegendre):
+    """Implements Gauss-Legendre quadrature on [-1, 1]^2."""
+
+    def __init__(self, order: int):
+        """
+        Initialize the 2D Gauss-Legendre quadrature rule.
+
+        Args:
+            order (int): The order of the quadrature rule. Must be greater than 0.
+        """
+        super().__init__(order, dimension=2)
+
+    def __repr__(self) -> str:
+        """String representation of the 2D Gauss-Legendre quadrature rule."""
+        return f"2D Gauss-Legendre Quadrature Rule (order={self.order})"
