@@ -97,4 +97,3 @@ def right_corner2index_map_ttcores() -> Tuple[np.ndarray, np.ndarray, np.ndarray
 
     cores = firstcore, middlecore, lastcore
     return cores
-

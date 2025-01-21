@@ -1,15 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import List, Iterable, Optional, Tuple, Any, Literal
+from typing import List, Iterable, Optional, Tuple, Any, Union
 import matplotlib.pyplot as plt
 import numpy as np
 import torchtt as tntt
-from ttfemesh.types import TensorTrain
+from ttfemesh.types import TensorTrain, BoundarySide2D
 from ttfemesh.basis.basis_utils import left_corner2index_ttmap, right_corner2index_ttmap
 from ttfemesh.tn_tools.operations import zorder_kron
 from ttfemesh.tn_tools.numeric import unit_vector_binary_tt
-
-BoundarySide = Literal['left', 'right', 'top', 'bottom']
-Num2Side = {0: 'bottom', 1: 'right', 2: 'top', 3: 'left'}
 
 
 class Basis(ABC):
@@ -254,13 +251,9 @@ class TensorProductBasis(Basis):
         pass
 
     @abstractmethod
-    def get_dirichlet_mask(self, mesh_size_exponent: int, *sides: BoundarySide) -> TensorTrain:
+    def get_dirichlet_mask(self) -> TensorTrain:
         """
         Get the mask for the Dirichlet boundary condition on the specified sides.
-
-        Args:
-            mesh_size_exponent (int): Exponent of the 1D mesh size.
-            *sides (BoundarySide): Boundary sides to apply the Dirichlet condition.
 
         Returns:
             TensorTrain: TT-representation of the Dirichlet mask.
@@ -455,14 +448,17 @@ class BilinearBasis(TensorProductBasis):
             for i in self.index_range[0]
         ])
 
-    def get_dirichlet_mask(self, mesh_size_exponent: int, *sides: BoundarySide) -> TensorTrain:
+    def get_dirichlet_mask(self,
+                           mesh_size_exponent: int,
+                           *sides: Union[BoundarySide2D, int]) -> TensorTrain:
         """
         Get the mask for the Dirichlet 2D boundary condition on the specified sides.
 
         Args:
             mesh_size_exponent (int): Exponent of the 1D mesh size.
-            *sides (BoundarySide): Boundary sides to apply the Dirichlet condition.
-                Valid sides are 'left', 'right', 'top' and 'bottom'.
+            *sides (Union[BoundarySide2D, int]): Boundary sides to apply the Dirichlet condition.
+                Specify either as integers (0 for bottom, 1 for right, 2 for top, 3 for left)
+                or as BoundarySide2D enums.
 
         Returns:
             TensorTrain: TT-representation of the Dirichlet mask.
@@ -474,26 +470,21 @@ class BilinearBasis(TensorProductBasis):
         if not sides:
             raise ValueError("At least one boundary side must be specified.")
 
-        valid_sides = {'left', 'right', 'top', 'bottom'}
-        side_set = set(sides)
-        if not side_set.issubset(valid_sides):
-            invalid = side_set - valid_sides
-            raise ValueError(f"Invalid side(s): {invalid}. Must be one or more of {valid_sides}.")
-
+        sides_ = [BoundarySide2D(side) if isinstance(side, int) else side for side in sides]
         xmask = tntt.ones([2]*mesh_size_exponent)
-        if 'left' in sides and 'right' in sides:
+        if BoundarySide2D.LEFT in sides_ and BoundarySide2D.RIGHT in sides_:
             xmask = self.basis_functions[0].get_dirichlet_mask_left_right(mesh_size_exponent)
-        elif 'left' in sides:
+        elif BoundarySide2D.LEFT in sides_:
             xmask = self.basis_functions[0].get_dirichlet_mask_left(mesh_size_exponent)
-        elif 'right' in sides:
+        elif BoundarySide2D.RIGHT in sides_:
             xmask = self.basis_functions[0].get_dirichlet_mask_right(mesh_size_exponent)
 
         ymask = tntt.ones([2]*mesh_size_exponent)
-        if 'bottom' in sides and 'top' in sides:
+        if BoundarySide2D.BOTTOM in sides_ and BoundarySide2D.TOP in sides_:
             ymask = self.basis_functions[1].get_dirichlet_mask_left_right(mesh_size_exponent)
-        elif 'bottom' in sides:
+        elif BoundarySide2D.BOTTOM in sides_:
             ymask = self.basis_functions[1].get_dirichlet_mask_left(mesh_size_exponent)
-        elif 'top' in sides:
+        elif BoundarySide2D.TOP in sides_:
             ymask = self.basis_functions[1].get_dirichlet_mask_right(mesh_size_exponent)
 
         return zorder_kron(xmask, ymask)

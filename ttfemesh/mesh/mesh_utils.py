@@ -1,5 +1,6 @@
 from typing import Tuple
 import numpy as np
+from ttfemesh.types import BoundarySide2D, BoundaryVertex2D
 
 
 def bindex2dtuple(bindex: np.ndarray) -> Tuple[int, int]:
@@ -72,3 +73,48 @@ def qindex2dtuple(index: np.ndarray) -> Tuple[int, int]:
     binary_index[1::2] = j
 
     return bindex2dtuple(binary_index)
+
+def side_concatenation_core(side: BoundarySide2D) -> np.ndarray:
+    """
+    Get the TT-core for concatenation of a boundary side.
+    See Section 5.2 of arXiv:1802.02839 for details.
+
+    Args:
+        side (BoundarySide2D): The boundary side.
+
+    Returns:
+        np.ndarray: The TT-core for concatenation of the boundary side.
+    """
+
+    side_values = {BoundarySide2D.BOTTOM: 0, BoundarySide2D.RIGHT: 0,
+                   BoundarySide2D.TOP: 0, BoundarySide2D.LEFT: 0}
+    side_values[side] = 1
+    B, R, T, L = (side_values[BoundarySide2D.BOTTOM],
+                  side_values[BoundarySide2D.RIGHT],
+                  side_values[BoundarySide2D.TOP],
+                  side_values[BoundarySide2D.LEFT])
+
+    core = np.array([[B, R, L, T], [L, B, T, R]]).reshape([1, 2, 4, 1])
+
+    return core
+
+def vertex_concatenation_core(vertex: BoundaryVertex2D) -> np.ndarray:
+    """
+    Get the TT-core for concatenation of a vertex.
+    See Section 5.2 of arXiv:1802.02839 for details.
+
+    Returns:
+        np.ndarray: The TT-core for concatenation of a vertex.
+    """
+
+    vertex_values = {BoundaryVertex2D.BOTTOM_LEFT: 0, BoundaryVertex2D.BOTTOM_RIGHT: 0,
+                     BoundaryVertex2D.TOP_RIGHT: 0, BoundaryVertex2D.TOP_LEFT: 0}
+    vertex_values[vertex] = 1
+    BL, BR, TR, TL = (vertex_values[BoundaryVertex2D.BOTTOM_LEFT],
+                      vertex_values[BoundaryVertex2D.BOTTOM_RIGHT],
+                      vertex_values[BoundaryVertex2D.TOP_RIGHT],
+                      vertex_values[BoundaryVertex2D.TOP_LEFT])
+
+    core = np.array([BL, BR, TL, TR]).reshape([1, 1, 4, 1])
+
+    return core

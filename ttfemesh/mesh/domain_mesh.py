@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Union, List, Optional, Dict
+from typing import Union, List, Optional, Dict, Tuple
 import numpy as np
-from ttfemesh.types import TensorTrain
+from ttfemesh.types import TensorTrain, BoundarySide2D
 from ttfemesh.domain.domain import Domain
 from ttfemesh.quadrature.quadrature import QuadratureRule
-from ttfemesh.basis.basis import TensorProductBasis, Num2Side
+from ttfemesh.basis.basis import TensorProductBasis
 from ttfemesh.mesh.subdomain_mesh import SubdomainMesh, SubdomainMesh2D
 from ttfemesh.tn_tools.tensor_cross import TTCrossConfig
 
@@ -72,7 +72,6 @@ class DomainMesh(ABC):
         self._tt_cross_config = tt_cross_config
         self.subdomain_meshes = self._create_subdomain_meshes()
 
-    #TODO: add concatenation maps
     @abstractmethod
     def _create_subdomain_meshes(self):
         num_subdomains = self.domain.num_subdomains
@@ -157,11 +156,23 @@ class DomainMesh(ABC):
         boundary_masks = {}
         for subdomain_index, curve_indices in grouped.items():
             mesh_size_exponent = self.mesh_size_exponents[subdomain_index]
-            sides = [Num2Side[i] for i in curve_indices]
+            sides = [BoundarySide2D(i) for i in curve_indices]
             boundary_mask = self.basis.get_dirichlet_mask(mesh_size_exponent, *sides)
             boundary_masks[subdomain_index] = boundary_mask
 
         return boundary_masks
+
+    @abstractmethod
+    def get_concatenation_maps(self) -> Dict[Tuple[int, int], TensorTrain]:
+        """
+        Get the TT-representations of the concatenation maps for all pairs of connected subdomains.
+
+        Returns:
+            Dict[Tuple[int, int], TensorTrain]:
+                A dictionary where the keys are pairs of subdomain indices,
+                and the values are TT-representations of the concatenation maps.
+        """
+        pass
 
 
     def _validate_subdomain_index(self, subdomain_index: int):
@@ -177,7 +188,7 @@ class DomainMesh(ABC):
 
 
 class DomainMesh2D(DomainMesh):
-    """Mesh for 2D domains."""
+    """Mesh for 2D domains. This is essentially a factory for SubdomainMesh2D objects."""
     def _create_subdomain_meshes(self):
         num_subdomains = self.domain.num_subdomains
         subdomain_meshes = []
@@ -196,6 +207,59 @@ class DomainMesh2D(DomainMesh):
 
     def __repr__(self) -> str:
         return (f"DomainMesh2D(domain={self.domain}, "
+                f"mesh_size_exponents={self.mesh_size_exponents}, "
+                f"quadrature_rules={self.quadrature_rules}, "
+                f"basis={self.basis})")
+
+
+class DomainBilinearMesh2D(DomainMesh2D):
+    """
+    Mesh for 2D domains with bilinear basis functions.
+    This implementation of the concatenation maps works only for bilinear basis functions.
+    """
+    #TODO: add concatenation maps
+    def get_concatenation_maps(self) -> Dict[Tuple[int, int], TensorTrain]:
+        """
+        Get the TT-representations of the concatenation maps for all pairs of connected subdomains.
+        See Section 5 of arXiv:1802.02839 for details.
+
+        Returns:
+            Dict[Tuple[int, int], TensorTrain]:
+                A dictionary where the keys are pairs of subdomain indices,
+                and the values are TT-representations of the concatenation maps.
+        """
+        domain = self.domain
+        num_subdomains = domain.num_subdomains
+        concatenation_maps = {}
+
+        for i in range(num_subdomains):
+            subdomain = domain.get_subdomain(i)
+            for j in subdomain.connected_subdomains:
+                if (i, j) in concatenation_maps:
+                    continue
+
+                subdomain_mesh_i = self.get_subdomain_mesh(i)
+                subdomain_mesh_j = self.get_subdomain_mesh(j)
+
+                concatenation_map = self._get_concatenation_map(subdomain_mesh_i, subdomain_mesh_j)
+                concatenation_maps[(i, j)] = concatenation_map
+
+        return concatenation_maps
+
+    def _get_concatenation_map(self, subdomain_mesh_i: SubdomainMesh2D, subdomain_mesh_j: SubdomainMesh2D) -> TensorTrain:
+        """
+        Get the TT-representation of the concatenation map between two connected subdomains.
+
+        Args:
+            subdomain_mesh_i (SubdomainMesh2D): The SubdomainMesh for the first subdomain.
+            subdomain_mesh_j (SubdomainMesh2D): The SubdomainMesh for the second subdomain.
+
+        Returns:
+            TensorTrain: The TT-representation of the concatenation map.
+        """
+
+    def __repr__(self):
+        return (f"DomainBilinearMesh2D(domain={self.domain}, "
                 f"mesh_size_exponents={self.mesh_size_exponents}, "
                 f"quadrature_rules={self.quadrature_rules}, "
                 f"basis={self.basis})")

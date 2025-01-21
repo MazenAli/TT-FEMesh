@@ -51,7 +51,7 @@ class VertexConnection2D(SubdomainConnection2D):
 
     def validate(self, subdomains: List[Subdomain], tol: float = 1e-6):
         """
-        Validate that all specified subdomains, curves, and positions have the given vertex.
+        Validate that all specified subdomains, curves, and positions share the given vertex.
 
         Args:
             subdomains (List[Subdomain]): List of subdomains in the domain.
