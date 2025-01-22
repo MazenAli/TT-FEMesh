@@ -35,6 +35,11 @@ class Domain(ABC):
         """Number of subdomains in the domain."""
         return len(self.subdomains)
 
+    @property
+    def num_connections(self) -> int:
+        """Number of connections in the domain."""
+        return len(self.connections)
+
     def get_connections(self) -> List[SubdomainConnection]:
         """Get the list of connections."""
         return self.connections
