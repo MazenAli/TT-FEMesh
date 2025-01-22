@@ -1,6 +1,7 @@
 from typing import Tuple
 import numpy as np
-from ttfemesh.types import BoundarySide2D, BoundaryVertex2D
+import torch
+from ttfemesh.types import BoundarySide2D, BoundaryVertex2D, TensorTrain
 
 
 def bindex2dtuple(bindex: np.ndarray) -> Tuple[int, int]:
@@ -118,3 +119,94 @@ def vertex_concatenation_core(vertex: BoundaryVertex2D) -> np.ndarray:
     core = np.array([BL, BR, TL, TR]).reshape([1, 1, 4, 1])
 
     return core
+
+def concat_core2tt(core: np.ndarray, length: int, exchanged: bool = False) -> TensorTrain:
+    """
+    Convert a TT-core to a TensorTrain.
+    The rank-1 TT-core is assumed to be in the format (1, m, n, 1).
+
+    Args:
+        core (np.ndarray): The TT-core.
+        length (int): The length of the TT.
+        exchanged (bool): Whether the rows of the TT-core are exchanged.
+
+    Returns:
+        TensorTrain: The TT-representation of the core.
+    """
+
+    core_ = core.copy()
+    if exchanged and core_.size > 4:
+        core_ = core_.reshape(2, 4)
+        core_ = core_[[1, 0], :]
+        core_ = core_.reshape(1, 2, 4, 1)
+    cores = [torch.tensor(core_)]*length
+    return TensorTrain(cores)
+
+def concat_ttmaps(tt_left: TensorTrain, tt_right: TensorTrain) -> Tuple[TensorTrain,
+                                                                        TensorTrain,
+                                                                        TensorTrain]:
+    """
+    Put together the two TT-map primitives to form the full connectivity maps.
+    See Section 5 of arXiv:1802.02839 for details.
+
+    Args:
+        tt_left (TensorTrain): The left TT-map.
+        tt_right (TensorTrain): The right TT-map.
+
+    Returns:
+        Tuple[TensorTrain, TensorTrain, TensorTrain]: The connectivity maps.
+    """
+
+    connect_tt = tt_left.t() @ tt_right
+    count_left = -(tt_left.t() @ tt_left)
+    count_right = -(tt_right.t() @ tt_right)
+
+    return connect_tt, count_left, count_right
+
+def side_concatenation_tt(side0: BoundarySide2D,
+                          side1: BoundarySide2D,
+                          length: int) -> Tuple[TensorTrain, TensorTrain, TensorTrain]:
+    """
+    Get the TT-representation of the concatenation tensors of two boundary sides.
+    See Section 5 of arXiv:1802.02839 for details.
+
+    Args:
+        side0 (BoundarySide2D): The first boundary side.
+        side1 (BoundarySide2D): The second boundary side.
+        length (int): The length of the TT.
+
+    Returns:
+        Tuple[TensorTrain, TensorTrain, TensorTrain]: The connectivity maps.
+    """
+
+    core0 = side_concatenation_core(side0)
+    core1 = side_concatenation_core(side1)
+
+    tt_left = concat_core2tt(core0, length, exchanged=False)
+    tt_right = concat_core2tt(core1, length, exchanged=True)
+
+    return concat_ttmaps(tt_left, tt_right)
+
+def vertex_concatenation_tt(vertex0: BoundaryVertex2D,
+                            vertex1: BoundaryVertex2D,
+                            length: int) -> Tuple[TensorTrain, TensorTrain, TensorTrain]:
+    """
+    Get the TT-representation of the concatenation tensor of two boundary vertices.
+    See Section 5 of arXiv:1802.02839 for details.
+
+    Args:
+        vertex0 (BoundaryVertex2D): The first boundary vertex.
+        vertex1 (BoundaryVertex2D): The second boundary vertex.
+        length (int): The length of the TT.
+
+    Returns:
+        Tuple[TensorTrain, TensorTrain, TensorTrain]: The connectivity maps.
+    """
+
+    core0 = vertex_concatenation_core(vertex0)
+    core1 = vertex_concatenation_core(vertex1)
+
+    tt_left = concat_core2tt(core0, length, exchanged=False)
+    tt_right = concat_core2tt(core1, length, exchanged=False)
+
+    return concat_ttmaps(tt_left, tt_right)

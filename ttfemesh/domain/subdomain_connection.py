@@ -25,6 +25,12 @@ class SubdomainConnection(ABC):
         """Dimension of the subdomain connection."""
         pass
 
+    @property
+    @abstractmethod
+    def num_connected_subdomains(self) -> int:
+        """Number of connected subdomains."""
+        pass
+
 
 class SubdomainConnection2D(SubdomainConnection):
     """Generic 2D subdomain connection class."""
@@ -49,6 +55,11 @@ class VertexConnection2D(SubdomainConnection2D):
         """
         self.connection = connection
 
+    @property
+    def num_connected_subdomains(self) -> int:
+        """Number of connected subdomains."""
+        return len(self.connection)
+
     def validate(self, subdomains: List[Subdomain], tol: float = 1e-6):
         """
         Validate that all specified subdomains, curves, and positions share the given vertex.
@@ -56,8 +67,13 @@ class VertexConnection2D(SubdomainConnection2D):
         Args:
             subdomains (List[Subdomain]): List of subdomains in the domain.
             tol (float): Tolerance for point-wise comparison
+
+        Raises:
+            ValueError: If the vertex connections are not consistent.
         """
         self._validate_idxs(subdomains)
+        if self.num_connected_subdomains < 2:
+            raise ValueError("Vertex connection must have at least two connected subdomains.")
 
         curve0 = subdomains[self.connection[0][0]].curves[self.connection[0][1]]
         point0 = curve0.get_start() if self.connection[0][2] == "start" else curve0.get_end()
@@ -70,6 +86,28 @@ class VertexConnection2D(SubdomainConnection2D):
                     f"Subdomain {subdomain_idx}, curve {curve_idx}, {position} point {point} "
                     f"does not match the vertex {point0}."
                 )
+
+    def get_connection_pairs(self) -> List[Tuple[Tuple[int, int],
+                                                          Tuple[int, int],
+                                                          Tuple[CurvePosition, CurvePosition]]]:
+        """
+        Get all unique pairs of connected subdomains with their curve indices and positions.
+
+        Returns:
+            List[Tuple[Tuple[int, int], Tuple[int, int], Tuple[CurvePosition, CurvePosition]]]:
+                List of connected subdomain pairs with the indexing
+                [(subdomain0, subdomain1), (curve0, curve1), (position0, position1)].
+        """
+        pairs = []
+        n = len(self.connection)
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                subd1, curve_idx1, curve_pos1 = self.connection[i]
+                subd2, curve_idx2, curve_pos2 = self.connection[j]
+                pairs.append(((subd1, subd2), (curve_idx1, curve_idx2), (curve_pos1, curve_pos2)))
+
+        return pairs
 
     def get_shared_vertex(self, subdomains: List[Subdomain]) -> np.ndarray:
         """
@@ -98,7 +136,7 @@ class VertexConnection2D(SubdomainConnection2D):
         return f"VertexConnection2D({self.connection})"
 
 
-class CurveConnection(SubdomainConnection2D):
+class CurveConnection2D(SubdomainConnection2D):
     def __init__(self, subdomains_indices: Tuple[int, int], curve_indices: Tuple[int, int]):
         """
         Initialize a curve connection between two subdomains.
@@ -113,6 +151,11 @@ class CurveConnection(SubdomainConnection2D):
 
         self.subdomains_indices = subdomains_indices
         self.curve_indices = curve_indices
+
+    @property
+    def num_connected_subdomains(self) -> int:
+        """Number of connected subdomains."""
+        return 2
 
     def validate(self,
                  subdomains: List[Subdomain],

@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Union, List, Optional, Dict, Tuple
 import numpy as np
-from ttfemesh.types import TensorTrain, BoundarySide2D
+from ttfemesh.types import TensorTrain, BoundarySide2D, BoundaryVertex2D
 from ttfemesh.domain.domain import Domain
 from ttfemesh.quadrature.quadrature import QuadratureRule
 from ttfemesh.basis.basis import TensorProductBasis
 from ttfemesh.mesh.subdomain_mesh import SubdomainMesh, SubdomainMesh2D
+from ttfemesh.mesh.mesh_utils import side_concatenation_tt, vertex_concatenation_tt
 from ttfemesh.tn_tools.tensor_cross import TTCrossConfig
+from ttfemesh.domain.subdomain_connection import VertexConnection2D, CurveConnection2D
 
 
 class DomainMesh(ABC):
@@ -18,8 +20,8 @@ class DomainMesh(ABC):
 
     def __init__(self,
                  domain: Domain,
-                 quadrature_rule: Union[QuadratureRule, List[QuadratureRule]],
-                 mesh_size_exponent: Union[int, List[int]],
+                 quadrature_rule: QuadratureRule,
+                 mesh_size_exponent: int,
                  basis: TensorProductBasis,
                  tt_cross_config: Optional[TTCrossConfig] = None):
         """
@@ -27,15 +29,8 @@ class DomainMesh(ABC):
 
         Args:
             domain (Domain): The domain containing subdomains and their connections.
-            quadrature_rule (Union[QuadratureRule, List[QuadratureRule]]):
-                Quadrature rule(s) for integration.
-                If a single quadrature rule is provided, it is used for all subdomains.
-                If a list is provided, it must have the same length as the number of subdomains.
-                The indexing of the quadrature rules must match the indexing of the subdomains.
-            mesh_size_exponent (Union[int, List[int]]): Discretization size exponent(s).
-                If a single value is provided, it is used for all subdomains.
-                If a list is provided, it must have the same length as the number of subdomains.
-                The indexing of the mesh size exponents must match the indexing of the subdomains.
+            quadrature_rule (QuadratureRule): Quadrature rule for integration.
+            mesh_size_exponent (int): Discretization size exponent.
             basis (TensorProductBasis): The basis functions for the domain.
             cross_config (Optional[TTCrossConfig]):
                 Optional configuration for tensor cross approximation.
@@ -45,28 +40,8 @@ class DomainMesh(ABC):
             ValueError: If the number of quadrature rules or mesh size exponents is invalid.
         """
 
-        num_subdomains = domain.num_subdomains
-
-        if isinstance(quadrature_rule, QuadratureRule):
-            self.quadrature_rules = [quadrature_rule] * num_subdomains
-        elif isinstance(quadrature_rule, list) and len(quadrature_rule) == num_subdomains:
-            self.quadrature_rules = quadrature_rule
-        else:
-            raise ValueError(
-                f"Invalid number of quadrature rules: expected 1 or {num_subdomains}, "
-                f"got {len(quadrature_rule) if isinstance(quadrature_rule, list) else 'scalar'}."
-            )
-
-        if isinstance(mesh_size_exponent, int):
-            self.mesh_size_exponents = [mesh_size_exponent] * num_subdomains
-        elif isinstance(mesh_size_exponent, list) and len(mesh_size_exponent) == num_subdomains:
-            self.mesh_size_exponents = mesh_size_exponent
-        else:
-            raise ValueError(
-                f"Invalid number of mesh size exponents: expected 1 or {num_subdomains}, "
-                f"got {len(mesh_size_exponent) if isinstance(mesh_size_exponent, list) else 'scalar'}."
-            )
-
+        self.quadrature_rule = quadrature_rule
+        self.mesh_size_exponent = mesh_size_exponent
         self.domain = domain
         self.basis = basis
         self._tt_cross_config = tt_cross_config
@@ -78,8 +53,8 @@ class DomainMesh(ABC):
         subdomain_meshes = []
         for i in range(num_subdomains):
             subdomain = self.domain.get_subdomain(i)
-            mesh_size_exponent = self.mesh_size_exponents[i]
-            quadrature_rule = self.quadrature_rules[i]
+            mesh_size_exponent = self.mesh_size_exponent
+            quadrature_rule = self.quadrature_rule
             tt_cross_config = self._tt_cross_config
             subdomain_mesh = SubdomainMesh(subdomain,
                                            quadrature_rule,
@@ -105,7 +80,7 @@ class DomainMesh(ABC):
         self._validate_subdomain_index(subdomain_index)
         return self.subdomain_meshes[subdomain_index]
 
-    def get_element2global_index_maps(self, subdomain_index: int) -> np.ndarray:
+    def get_element2global_index_map(self) -> np.ndarray:
         """
         Get the TT-representation of transformations mapping from element index to global basis
         function index for all reference basis functions on a reference element in a subdomain.
@@ -127,13 +102,8 @@ class DomainMesh(ABC):
                 corresponding to the four vertices of the reference element:
                 lower left, lower right, upper right and upper left, respectively.
                 See also the documentation for the chosen Basis class.
-
-        Raises:
-            ValueError: If the subdomain index is invalid.
         """
-        self._validate_subdomain_index(subdomain_index)
-
-        mesh_size_exponent = self.mesh_size_exponents[subdomain_index]
+        mesh_size_exponent = self.mesh_size_exponent
         ttmaps = self.basis.get_all_element2global_ttmaps(mesh_size_exponent)
 
         return ttmaps
@@ -155,9 +125,8 @@ class DomainMesh(ABC):
         grouped = boundary_condition.group_by_subdomain()
         boundary_masks = {}
         for subdomain_index, curve_indices in grouped.items():
-            mesh_size_exponent = self.mesh_size_exponents[subdomain_index]
             sides = [BoundarySide2D(i) for i in curve_indices]
-            boundary_mask = self.basis.get_dirichlet_mask(mesh_size_exponent, *sides)
+            boundary_mask = self.basis.get_dirichlet_mask(self.mesh_size_exponent, *sides)
             boundary_masks[subdomain_index] = boundary_mask
 
         return boundary_masks
@@ -182,8 +151,8 @@ class DomainMesh(ABC):
 
     def __repr__(self) -> str:
         return (f"DomainMesh(domain={self.domain}, "
-                f"mesh_size_exponents={self.mesh_size_exponents}, "
-                f"quadrature_rules={self.quadrature_rules}, "
+                f"mesh_size_exponent={self.mesh_size_exponent}, "
+                f"quadrature_rule={self.quadrature_rule}, "
                 f"basis={self.basis})")
 
 
@@ -194,8 +163,8 @@ class DomainMesh2D(DomainMesh):
         subdomain_meshes = []
         for i in range(num_subdomains):
             subdomain = self.domain.get_subdomain(i)
-            mesh_size_exponent = self.mesh_size_exponents[i]
-            quadrature_rule = self.quadrature_rules[i]
+            mesh_size_exponent = self.mesh_size_exponent
+            quadrature_rule = self.quadrature_rule
             tt_cross_config = self._tt_cross_config
             subdomain_mesh = SubdomainMesh2D(subdomain,
                                              quadrature_rule,
@@ -207,8 +176,8 @@ class DomainMesh2D(DomainMesh):
 
     def __repr__(self) -> str:
         return (f"DomainMesh2D(domain={self.domain}, "
-                f"mesh_size_exponents={self.mesh_size_exponents}, "
-                f"quadrature_rules={self.quadrature_rules}, "
+                f"mesh_size_exponent={self.mesh_size_exponent}, "
+                f"quadrature_rule={self.quadrature_rule}, "
                 f"basis={self.basis})")
 
 
@@ -217,49 +186,56 @@ class DomainBilinearMesh2D(DomainMesh2D):
     Mesh for 2D domains with bilinear basis functions.
     This implementation of the concatenation maps works only for bilinear basis functions.
     """
-    #TODO: add concatenation maps
-    def get_concatenation_maps(self) -> Dict[Tuple[int, int], TensorTrain]:
+    def get_concatenation_maps(self) -> Dict[Tuple[int, int],
+                                        Tuple[TensorTrain, TensorTrain, TensorTrain]]:
         """
         Get the TT-representations of the concatenation maps for all pairs of connected subdomains.
         See Section 5 of arXiv:1802.02839 for details.
 
         Returns:
-            Dict[Tuple[int, int], TensorTrain]:
+            Dict[Tuple[int, int], Tuple[TensorTrain, TensorTrain, TensorTrain]]:
                 A dictionary where the keys are pairs of subdomain indices,
-                and the values are TT-representations of the concatenation maps.
+                and the values are tuples TT-representations of the connectivity maps.
+
+        Raises:
+            ValueError: If the connection type is not supported.
         """
-        domain = self.domain
-        num_subdomains = domain.num_subdomains
+
+        connections = self.domain.get_connections()
         concatenation_maps = {}
+        for connection in connections:
+            if isinstance(connection, VertexConnection2D):
+                for (subdidx1, subdidx2), (curveidx1, curveidx2), (pos1, pos2) \
+                        in connection.get_connection_pairs():
 
-        for i in range(num_subdomains):
-            subdomain = domain.get_subdomain(i)
-            for j in subdomain.connected_subdomains:
-                if (i, j) in concatenation_maps:
-                    continue
+                    offset1 = 0 if pos1 == "start" else 1
+                    vertex_idx1 = (curveidx1+offset1) % 4
 
-                subdomain_mesh_i = self.get_subdomain_mesh(i)
-                subdomain_mesh_j = self.get_subdomain_mesh(j)
+                    offset2 = 0 if pos2 == "start" else 1
+                    vertex_idx2 = (curveidx2+offset2) % 4
 
-                concatenation_map = self._get_concatenation_map(subdomain_mesh_i, subdomain_mesh_j)
-                concatenation_maps[(i, j)] = concatenation_map
+                    vertex1 = BoundaryVertex2D(vertex_idx1)
+                    vertex2 = BoundaryVertex2D(vertex_idx2)
+
+                    tt_connectivity = vertex_concatenation_tt(vertex1, vertex2,
+                                                              self.mesh_size_exponent)
+                    concatenation_maps[(subdidx1, subdidx2)] = tt_connectivity
+
+            elif isinstance(connection, CurveConnection2D):
+                subdidx1, subdidx2 = connection.subdomains_indices
+                curveidx1, curveidx2 = connection.curve_indices
+                side1 = BoundarySide2D(curveidx1)
+                side2 = BoundarySide2D(curveidx2)
+                tt_connectivity = side_concatenation_tt(side1, side2, self.mesh_size_exponent)
+                concatenation_maps[(subdidx1, subdidx2)] = tt_connectivity
+
+            else:
+                raise ValueError(f"Unsupported connection type: {type(connection)}.")
 
         return concatenation_maps
 
-    def _get_concatenation_map(self, subdomain_mesh_i: SubdomainMesh2D, subdomain_mesh_j: SubdomainMesh2D) -> TensorTrain:
-        """
-        Get the TT-representation of the concatenation map between two connected subdomains.
-
-        Args:
-            subdomain_mesh_i (SubdomainMesh2D): The SubdomainMesh for the first subdomain.
-            subdomain_mesh_j (SubdomainMesh2D): The SubdomainMesh for the second subdomain.
-
-        Returns:
-            TensorTrain: The TT-representation of the concatenation map.
-        """
-
     def __repr__(self):
         return (f"DomainBilinearMesh2D(domain={self.domain}, "
-                f"mesh_size_exponents={self.mesh_size_exponents}, "
-                f"quadrature_rules={self.quadrature_rules}, "
+                f"mesh_size_exponent={self.mesh_size_exponent}, "
+                f"quadrature_rule={self.quadrature_rule}, "
                 f"basis={self.basis})")

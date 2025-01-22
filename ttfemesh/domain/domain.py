@@ -6,7 +6,7 @@ from ttfemesh.domain.subdomain import Subdomain, Subdomain2D
 from ttfemesh.domain.subdomain_connection import (SubdomainConnection,
                                                   SubdomainConnection2D,
                                                   VertexConnection2D,
-                                                  CurveConnection)
+                                                  CurveConnection2D)
 from ttfemesh.domain.boundary_condition import BoundaryCondition, DirichletBoundary2D
 
 
@@ -35,7 +35,11 @@ class Domain(ABC):
         """Number of subdomains in the domain."""
         return len(self.subdomains)
 
-    def get_subdomain(self, idx):
+    def get_connections(self) -> List[SubdomainConnection]:
+        """Get the list of connections."""
+        return self.connections
+
+    def get_subdomain(self, idx) -> Subdomain:
         """
         Get a subdomain by index.
 
@@ -116,7 +120,7 @@ class Domain2D(Domain):
             if isinstance(connection, VertexConnection2D):
                 shared_vertex = connection.get_shared_vertex(self.subdomains)
                 plt.plot(shared_vertex[0], shared_vertex[1], 'ro', label="Shared Vertex")
-            elif isinstance(connection, CurveConnection):
+            elif isinstance(connection, CurveConnection2D):
                 curve = connection.get_shared_curve(self.subdomains)
                 curve_points = curve.evaluate(np.linspace(-1, 1, num_points))
                 plt.plot(curve_points[:, 0], curve_points[:, 1], 'g--', label="Shared Curve")
