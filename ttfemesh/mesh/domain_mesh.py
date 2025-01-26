@@ -191,6 +191,9 @@ class DomainBilinearMesh2D(DomainMesh2D):
         """
         Get the TT-representations of the concatenation maps for all pairs of connected subdomains.
         See Section 5 of arXiv:1802.02839 for details.
+        Pmp describes which nodes in the left domain are connected to which nodes in the right domain,
+        Pmm describes which nodes in the left domain are to be connected,
+        Ppp describes which nodes in the right domain are to be connected.
 
         Returns:
             Dict[Tuple[int, int], Tuple[TensorTrain, TensorTrain, TensorTrain]]:

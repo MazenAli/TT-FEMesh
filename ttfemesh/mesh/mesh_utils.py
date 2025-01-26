@@ -136,9 +136,7 @@ def concat_core2tt(core: np.ndarray, length: int, exchanged: bool = False) -> Te
 
     core_ = core.copy()
     if exchanged and core_.size > 4:
-        core_ = core_.reshape(2, 4)
-        core_ = core_[[1, 0], :]
-        core_ = core_.reshape(1, 2, 4, 1)
+        core_ = core[:, [1, 0], :, :]
     cores = [torch.tensor(core_)]*length
     return TensorTrain(cores)
 
@@ -148,6 +146,10 @@ def concat_ttmaps(tt_left: TensorTrain, tt_right: TensorTrain) -> Tuple[TensorTr
     """
     Put together the two TT-map primitives to form the full connectivity maps.
     See Section 5 of arXiv:1802.02839 for details.
+    The connectivity maps are defined as follows:
+    Pmp describes which nodes in the left domain are connected to which nodes in the right domain,
+    Pmm describes which nodes in the left domain are to be connected,
+    Ppp describes which nodes in the right domain are to be connected.
 
     Args:
         tt_left (TensorTrain): The left TT-map.
@@ -169,6 +171,10 @@ def side_concatenation_tt(side0: BoundarySide2D,
     """
     Get the TT-representation of the concatenation tensors of two boundary sides.
     See Section 5 of arXiv:1802.02839 for details.
+    The connectivity maps are defined as follows:
+    Pmp describes which nodes in the left domain are connected to which nodes in the right domain,
+    Pmm describes which nodes in the left domain are to be connected,
+    Ppp describes which nodes in the right domain are to be connected.
 
     Args:
         side0 (BoundarySide2D): The first boundary side.
@@ -193,6 +199,10 @@ def vertex_concatenation_tt(vertex0: BoundaryVertex2D,
     """
     Get the TT-representation of the concatenation tensor of two boundary vertices.
     See Section 5 of arXiv:1802.02839 for details.
+    The connectivity maps are defined as follows:
+    Pmp describes which nodes in the left domain are connected to which nodes in the right domain,
+    Pmm describes which nodes in the left domain are to be connected,
+    Ppp describes which nodes in the right domain are to be connected.
 
     Args:
         vertex0 (BoundaryVertex2D): The first boundary vertex.
