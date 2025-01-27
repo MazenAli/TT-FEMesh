@@ -1,16 +1,19 @@
 from abc import ABC, abstractmethod
-from typing import List, Iterable, Optional, Tuple, Any, Union
+from typing import Any, Iterable, List, Optional, Tuple, Union
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torchtt as tntt
-from ttfemesh.types import TensorTrain, BoundarySide2D
+
 from ttfemesh.basis.basis_utils import left_corner2index_ttmap, right_corner2index_ttmap
-from ttfemesh.tn_tools.operations import zorder_kron
 from ttfemesh.tn_tools.numeric import unit_vector_binary_tt
+from ttfemesh.tn_tools.operations import zorder_kron
+from ttfemesh.types import BoundarySide2D, TensorTrain
 
 
 class Basis(ABC):
     """Abstract base class for basis functions."""
+
     @property
     @abstractmethod
     def index_range(self):
@@ -36,6 +39,7 @@ class Basis(ABC):
 
 class Basis1D(Basis):
     """Abstract base class for 1D basis functions on the reference element [-1, 1]."""
+
     def plot(self, idx: int, num_points: int = 100):
         """
         Plot the basis function indexed with idx.
@@ -95,7 +99,6 @@ class LinearBasis(Basis1D):
         self._validate(idx)
         return -0.5 if self.idx == 0 else 0.5
 
-
     @property
     def index_range(self):
         """
@@ -137,8 +140,9 @@ class LinearBasis(Basis1D):
             Tuple[TensorTrain, ...]: TT-representations of all corner-to-global index maps.
                 First element is the map for index 0, second element is the map for index 1.
         """
-        return tuple(self.get_element2global_ttmap(index, mesh_size_exponent)
-                     for index in self.index_range)
+        return tuple(
+            self.get_element2global_ttmap(index, mesh_size_exponent) for index in self.index_range
+        )
 
     def get_dirichlet_mask_left(self, mesh_size_exponent: int) -> TensorTrain:
         """
@@ -152,7 +156,7 @@ class LinearBasis(Basis1D):
             TensorTrain: TT-representation of the Dirichlet mask.
         """
 
-        mask = tntt.ones([2]*mesh_size_exponent) - unit_vector_binary_tt(mesh_size_exponent, 0)
+        mask = tntt.ones([2] * mesh_size_exponent) - unit_vector_binary_tt(mesh_size_exponent, 0)
         return mask
 
     def get_dirichlet_mask_right(self, mesh_size_exponent: int) -> TensorTrain:
@@ -167,8 +171,9 @@ class LinearBasis(Basis1D):
             TensorTrain: TT-representation of the Dirichlet mask.
         """
 
-        mask = tntt.ones([2]*mesh_size_exponent) - unit_vector_binary_tt(mesh_size_exponent,
-                                                                         2**mesh_size_exponent - 1)
+        mask = tntt.ones([2] * mesh_size_exponent) - unit_vector_binary_tt(
+            mesh_size_exponent, 2**mesh_size_exponent - 1
+        )
         return mask
 
     def get_dirichlet_mask_left_right(self, mesh_size_exponent: int) -> TensorTrain:
@@ -183,16 +188,20 @@ class LinearBasis(Basis1D):
             TensorTrain: TT-representation of the Dirichlet mask.
         """
 
-        mask = (tntt.ones([2]*mesh_size_exponent) -
-                unit_vector_binary_tt(mesh_size_exponent, 0) -
-                unit_vector_binary_tt(mesh_size_exponent, 2**mesh_size_exponent - 1))
+        mask = (
+            tntt.ones([2] * mesh_size_exponent)
+            - unit_vector_binary_tt(mesh_size_exponent, 0)
+            - unit_vector_binary_tt(mesh_size_exponent, 2**mesh_size_exponent - 1)
+        )
 
         return mask
 
     def _validate(self, idx: int):
         if idx not in self.index_range:
-            raise ValueError(f"Invalid basis function index: {idx}."
-                             f" Expected one of {list(self.index_range)}.")
+            raise ValueError(
+                f"Invalid basis function index: {idx}."
+                f" Expected one of {list(self.index_range)}."
+            )
 
     def __repr__(self):
         return "LinearBasis"
@@ -219,7 +228,9 @@ class TensorProductBasis(Basis):
         return self._dimension
 
     @abstractmethod
-    def get_element2global_ttmap(self, index: Tuple[int, ...], mesh_size_exponent: int) -> TensorTrain:
+    def get_element2global_ttmap(
+        self, index: Tuple[int, ...], mesh_size_exponent: int
+    ) -> TensorTrain:
         """
         Get the TT-representation of a corner element index to global basis index map.
 
@@ -292,7 +303,9 @@ class TensorProductBasis(Basis):
         """
         self._validate(idx)
         if dim < 0 or dim >= self.dimension:
-            raise ValueError(f"Invalid dimension index: {dim}, expected 0 <= dim < {self.dimension}")
+            raise ValueError(
+                f"Invalid dimension index: {dim}, expected 0 <= dim < {self.dimension}"
+            )
 
         result = 1.0
         for i, (bf, xi) in enumerate(zip(self.basis_functions, x)):
@@ -305,7 +318,9 @@ class TensorProductBasis(Basis):
     def _validate(self, idx: Iterable[int]):
         """Validate the basis function indices."""
         if len(idx) != self.dimension:
-            raise ValueError(f"Invalid number of indices: expected {self.dimension}, got {len(idx)}")
+            raise ValueError(
+                f"Invalid number of indices: expected {self.dimension}, got {len(idx)}"
+            )
         for i, idx_i in enumerate(idx):
             self.basis_functions[i]._validate(idx_i)
 
@@ -371,15 +386,14 @@ class TensorProductBasis(Basis):
         values_normalized = (values - values.min()) / (values.max() - values.min())
 
         fig = plt.figure(figsize=(10, 8))
-        ax = fig.add_subplot(111, projection='3d')
+        ax = fig.add_subplot(111, projection="3d")
 
         scatter = ax.scatter(
-            X.ravel(), Y.ravel(), Z.ravel(),
-            c=values_normalized, cmap='viridis', s=5, alpha=0.8
+            X.ravel(), Y.ravel(), Z.ravel(), c=values_normalized, cmap="viridis", s=5, alpha=0.8
         )
 
         cbar = fig.colorbar(scatter, ax=ax, shrink=0.5, aspect=10)
-        cbar.set_label('Basis function value')
+        cbar.set_label("Basis function value")
 
         # Set plot labels
         plt.title("3D Tensor Product Basis Function")
@@ -400,7 +414,9 @@ class BilinearBasis(TensorProductBasis):
     def dimension(self) -> int:
         return 2
 
-    def get_element2global_ttmap(self, index: Tuple[int, int], mesh_size_exponent: int) -> TensorTrain:
+    def get_element2global_ttmap(
+        self, index: Tuple[int, int], mesh_size_exponent: int
+    ) -> TensorTrain:
         """
         Get the TT-representation of a corner element index to global basis index map.
 
@@ -422,7 +438,7 @@ class BilinearBasis(TensorProductBasis):
         self._validate(index)
         return zorder_kron(
             self.basis_functions[0].get_index_ttmap(index[0], mesh_size_exponent),
-            self.basis_functions[1].get_index_ttmap(index[1], mesh_size_exponent)
+            self.basis_functions[1].get_index_ttmap(index[1], mesh_size_exponent),
         )
 
     def get_all_element2global_ttmaps(self, mesh_size_exponent: int) -> np.ndarray:
@@ -437,20 +453,22 @@ class BilinearBasis(TensorProductBasis):
             np.ndarray: A 2D matrix of TT-representations, indexed by (i, j)
                 where i and j are the indices of the basis functions in each dimension.
         """
-        return np.array([
+        return np.array(
             [
-                zorder_kron(
-                    self.basis_functions[0].get_element2global_ttmap(i, mesh_size_exponent),
-                    self.basis_functions[1].get_element2global_ttmap(j, mesh_size_exponent)
-                )
-                for j in self.index_range[1]
+                [
+                    zorder_kron(
+                        self.basis_functions[0].get_element2global_ttmap(i, mesh_size_exponent),
+                        self.basis_functions[1].get_element2global_ttmap(j, mesh_size_exponent),
+                    )
+                    for j in self.index_range[1]
+                ]
+                for i in self.index_range[0]
             ]
-            for i in self.index_range[0]
-        ])
+        )
 
-    def get_dirichlet_mask(self,
-                           mesh_size_exponent: int,
-                           *sides: Union[BoundarySide2D, int]) -> TensorTrain:
+    def get_dirichlet_mask(
+        self, mesh_size_exponent: int, *sides: Union[BoundarySide2D, int]
+    ) -> TensorTrain:
         """
         Get the mask for the Dirichlet 2D boundary condition on the specified sides.
 
@@ -471,7 +489,7 @@ class BilinearBasis(TensorProductBasis):
             raise ValueError("At least one boundary side must be specified.")
 
         sides_ = [BoundarySide2D(side) if isinstance(side, int) else side for side in sides]
-        xmask = tntt.ones([2]*mesh_size_exponent)
+        xmask = tntt.ones([2] * mesh_size_exponent)
         if BoundarySide2D.LEFT in sides_ and BoundarySide2D.RIGHT in sides_:
             xmask = self.basis_functions[0].get_dirichlet_mask_left_right(mesh_size_exponent)
         elif BoundarySide2D.LEFT in sides_:
@@ -479,7 +497,7 @@ class BilinearBasis(TensorProductBasis):
         elif BoundarySide2D.RIGHT in sides_:
             xmask = self.basis_functions[0].get_dirichlet_mask_right(mesh_size_exponent)
 
-        ymask = tntt.ones([2]*mesh_size_exponent)
+        ymask = tntt.ones([2] * mesh_size_exponent)
         if BoundarySide2D.BOTTOM in sides_ and BoundarySide2D.TOP in sides_:
             ymask = self.basis_functions[1].get_dirichlet_mask_left_right(mesh_size_exponent)
         elif BoundarySide2D.BOTTOM in sides_:

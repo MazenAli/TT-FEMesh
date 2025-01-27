@@ -1,7 +1,9 @@
+import warnings
 from abc import ABC, abstractmethod
 from typing import Union
-import warnings
+
 import numpy as np
+
 from ttfemesh.utils.array import ensure_1d
 
 
@@ -13,11 +15,11 @@ class Curve(ABC):
 
     def get_start(self) -> np.ndarray:
         """Get the start point of the curve."""
-        return self.evaluate(-1.)[0]
+        return self.evaluate(-1.0)[0]
 
     def get_end(self) -> np.ndarray:
         """Get the end point of the curve."""
-        return self.evaluate(1.)[0]
+        return self.evaluate(1.0)[0]
 
     def __call__(self, *args, **kwargs) -> np.ndarray:
         return self.evaluate(*args, **kwargs)
@@ -37,9 +39,11 @@ class Curve(ABC):
         t_ = ensure_1d(t)
 
         if not np.all(-1 - tol <= t_) or not np.all(t_ <= 1 + tol):
-            warnings.warn(f"Parameter values are not in the interval [-1, 1]"
-                          f" within tolerance {tol}."
-                          f" May lead to unexpected behavior.")
+            warnings.warn(
+                f"Parameter values are not in the interval [-1, 1]"
+                f" within tolerance {tol}."
+                f" May lead to unexpected behavior."
+            )
 
     @abstractmethod
     def evaluate(self, t: Union[np.ndarray, float]) -> np.ndarray:
@@ -113,24 +117,26 @@ class Line2D(Curve):
         t_ = ensure_1d(t)
         self._validate(t_)
 
-        return np.outer((1-t_)*0.5, self.start) + np.outer((1+t_)*0.5, self.end)
+        return np.outer((1 - t_) * 0.5, self.start) + np.outer((1 + t_) * 0.5, self.end)
 
     def tangent(self, t: Union[np.ndarray, float]) -> np.ndarray:
         t_ = ensure_1d(t)
         self._validate(t_)
 
-        return np.tile(0.5*(self.end - self.start), (len(t_), 1))
+        return np.tile(0.5 * (self.end - self.start), (len(t_), 1))
 
     def __repr__(self):
         return f"Line2D(start={tuple(self.start)}, end={tuple(self.end)})"
 
 
 class CircularArc2D(Curve):
-    def __init__(self,
-                 center: tuple[float, float],
-                 radius: float,
-                 start_angle: float = 0.,
-                 angle_sweep: float = np.pi):
+    def __init__(
+        self,
+        center: tuple[float, float],
+        radius: float,
+        start_angle: float = 0.0,
+        angle_sweep: float = np.pi,
+    ):
         """
         Initialize a circular arc defined by a center, radius, and angle sweep.
 
@@ -149,7 +155,7 @@ class CircularArc2D(Curve):
         t_ = ensure_1d(t)
         self._validate(t_)
 
-        angle = self.start_angle + 0.5 * (t_+1) * self.angle_sweep
+        angle = self.start_angle + 0.5 * (t_ + 1) * self.angle_sweep
         x = self.center[0] + self.radius * np.cos(angle)
         y = self.center[1] + self.radius * np.sin(angle)
         return np.stack((x, y), axis=-1)
@@ -158,17 +164,19 @@ class CircularArc2D(Curve):
         t_ = ensure_1d(t)
         self._validate(t_)
 
-        angle = self.start_angle + 0.5 * (t_+1) * self.angle_sweep
+        angle = self.start_angle + 0.5 * (t_ + 1) * self.angle_sweep
         mul_factor = 0.5 * self.angle_sweep * self.radius
-        dx = -np.sin(angle)*mul_factor
-        dy = np.cos(angle)*mul_factor
+        dx = -np.sin(angle) * mul_factor
+        dy = np.cos(angle) * mul_factor
         tangent = np.stack((dx, dy), axis=-1)
         return tangent
 
     def __repr__(self):
-        return (f"CircularArc2D(center={tuple(self.center)}, "
-                f"radius={self.radius}, start_angle={self.start_angle}, "
-                f"angle_sweep={self.angle_sweep})")
+        return (
+            f"CircularArc2D(center={tuple(self.center)}, "
+            f"radius={self.radius}, start_angle={self.start_angle}, "
+            f"angle_sweep={self.angle_sweep})"
+        )
 
 
 class ParametricCurve2D(Curve):

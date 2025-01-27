@@ -1,4 +1,5 @@
-from typing import List, Callable, Optional
+from typing import Callable, List, Optional
+
 import numpy as np
 import teneva
 
@@ -21,16 +22,18 @@ class TTCrossConfig:
         verbose (bool, optional): Verbose output. Defaults to False.
     """
 
-    def __init__(self,
-                 cache: Optional[dict] = None,
-                 info: Optional[dict] = None,
-                 num_sweeps: int = 10,
-                 rel_stagnation_tol: float = 1e-4,
-                 max_func_calls: Optional[int] = None,
-                 cache_calls_factor: int = 5,
-                 num_anova_init: int = 1000,
-                 anova_order: int = 2,
-                 verbose: bool = False):
+    def __init__(
+        self,
+        cache: Optional[dict] = None,
+        info: Optional[dict] = None,
+        num_sweeps: int = 10,
+        rel_stagnation_tol: float = 1e-4,
+        max_func_calls: Optional[int] = None,
+        cache_calls_factor: int = 5,
+        num_anova_init: int = 1000,
+        anova_order: int = 2,
+        verbose: bool = False,
+    ):
 
         self.cache = cache
         self.info = info
@@ -50,15 +53,17 @@ class TTCrossConfig:
         Returns:
             dict: A dictionary representation of the configuration.
         """
-        kwargs = {"cache": self.cache,
-                  "info": self.info,
-                  "nswp": self.num_sweeps,
-                  "e": self.rel_stagnation_tol,
-                  "log": self.verbose,
-                  "m": self.max_func_calls,
-                  "m_cache_scale": self.cache_calls_factor,
-                  "num_anova_init": self.num_anova_init,
-                  "anova_order": self.anova_order}
+        kwargs = {
+            "cache": self.cache,
+            "info": self.info,
+            "nswp": self.num_sweeps,
+            "e": self.rel_stagnation_tol,
+            "log": self.verbose,
+            "m": self.max_func_calls,
+            "m_cache_scale": self.cache_calls_factor,
+            "num_anova_init": self.num_anova_init,
+            "anova_order": self.anova_order,
+        }
 
         return kwargs
 
@@ -77,9 +82,10 @@ def gen_teneva_indices(num_indices: int, tensor_shape: List[int]) -> np.ndarray:
     idxs = np.vstack([np.random.choice(k, num_indices) for k in tensor_shape]).T
     return idxs
 
-def anova_init_tensor_train(oracle: Callable[[np.ndarray], np.ndarray],
-                            train_indices: np.ndarray,
-                            order: int = 2) -> List[np.ndarray]:
+
+def anova_init_tensor_train(
+    oracle: Callable[[np.ndarray], np.ndarray], train_indices: np.ndarray, order: int = 2
+) -> List[np.ndarray]:
     """
     Initialize the tensor train with the ANOVA decomposition of the training data.
 
@@ -95,9 +101,10 @@ def anova_init_tensor_train(oracle: Callable[[np.ndarray], np.ndarray],
     yanova = teneva.anova(train_indices, ytrain, order=order)
     return yanova
 
-def tensor_train_cross_approximation(oracle: Callable[[np.ndarray], np.ndarray],
-                                     tt_init: List[np.ndarray],
-                                     **kwargs) -> List[np.ndarray]:
+
+def tensor_train_cross_approximation(
+    oracle: Callable[[np.ndarray], np.ndarray], tt_init: List[np.ndarray], **kwargs
+) -> List[np.ndarray]:
     """
     Approximate the tensor train with the cross approximation algorithm.
 
@@ -112,9 +119,12 @@ def tensor_train_cross_approximation(oracle: Callable[[np.ndarray], np.ndarray],
 
     return teneva.cross(oracle, tt_init, **kwargs)
 
-def test_accuracy(oracle: Callable[[np.ndarray], np.ndarray],
-                  approx_tt: List[np.ndarray],
-                  test_indices: np.ndarray) -> float:
+
+def test_accuracy(
+    oracle: Callable[[np.ndarray], np.ndarray],
+    approx_tt: List[np.ndarray],
+    test_indices: np.ndarray,
+) -> float:
     """
     Test the accuracy of the approximated tensor train.
 
@@ -130,10 +140,13 @@ def test_accuracy(oracle: Callable[[np.ndarray], np.ndarray],
     error = teneva.accuracy_on_data(approx_tt, test_indices, ytest)
     return error
 
-def test_accuracy_random(oracle: Callable[[np.ndarray], np.ndarray],
-                         approx_tt: List[np.ndarray],
-                         num_test_indices: int,
-                         tensor_shape: List[int]) -> float:
+
+def test_accuracy_random(
+    oracle: Callable[[np.ndarray], np.ndarray],
+    approx_tt: List[np.ndarray],
+    num_test_indices: int,
+    tensor_shape: List[int],
+) -> float:
     """
     Test the accuracy of the approximated tensor train with random test indices.
 

@@ -1,13 +1,15 @@
 from abc import ABC, abstractmethod
-from ttfemesh.domain.subdomain import Subdomain2D, Quad
-from ttfemesh.domain.curve import Line2D
 from typing import Tuple
+
+from ttfemesh.domain.curve import Line2D
+from ttfemesh.domain.subdomain import Quad, Subdomain2D
 
 
 class SubdomainFactory(ABC):
     """
     Abstract base class for a subdomain factory.
     """
+
     @staticmethod
     @abstractmethod
     def create():
@@ -18,6 +20,7 @@ class RectangleFactory(SubdomainFactory):
     """
     Factory class for creating rectangle subdomains.
     """
+
     @staticmethod
     def create(bottom_left: Tuple[float, float], top_right: Tuple[float, float]) -> Quad:
         """
@@ -40,11 +43,14 @@ class QuadFactory(SubdomainFactory):
     """
     Factory class for creating quadrilateral subdomains.
     """
+
     @staticmethod
-    def create(p1: Tuple[float, float],
-               p2: Tuple[float, float],
-               p3: Tuple[float, float],
-               p4: Tuple[float, float]) -> Quad:
+    def create(
+        p1: Tuple[float, float],
+        p2: Tuple[float, float],
+        p3: Tuple[float, float],
+        p4: Tuple[float, float],
+    ) -> Quad:
         """
         Create a trapezoid subdomain defined by the four corner points.
         Points must be ordered counter-clockwise.

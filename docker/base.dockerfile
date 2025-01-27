@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     libopenblas-dev \
     liblapack-dev \
     libfftw3-dev \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./

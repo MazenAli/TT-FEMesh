@@ -1,8 +1,14 @@
 from typing import List
-from ttfemesh.types import TensorTrain
+
 import torch
 
-def integer_to_little_endian(length: int, num: int, ) -> List[int]:
+from ttfemesh.types import TensorTrain
+
+
+def integer_to_little_endian(
+    length: int,
+    num: int,
+) -> List[int]:
     """
     Convert an integer to its little-endian binary representation.
 
@@ -49,7 +55,7 @@ def unit_vector_binary_tt(length: int, index: int) -> TensorTrain:
     binidx = integer_to_little_endian(length, index)
     for j in range(length):
         core = torch.zeros(1, 2, 1)
-        core[0, binidx[j], 0] = 1.
+        core[0, binidx[j], 0] = 1.0
         cores[j] = core
 
     return TensorTrain(cores)

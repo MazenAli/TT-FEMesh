@@ -1,22 +1,28 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
+
 import matplotlib.pyplot as plt
 import numpy as np
-from ttfemesh.domain.subdomain import Subdomain, Subdomain2D
-from ttfemesh.domain.subdomain_connection import (SubdomainConnection,
-                                                  SubdomainConnection2D,
-                                                  VertexConnection2D,
-                                                  CurveConnection2D)
+
 from ttfemesh.domain.boundary_condition import BoundaryCondition, DirichletBoundary2D
+from ttfemesh.domain.subdomain import Subdomain, Subdomain2D
+from ttfemesh.domain.subdomain_connection import (
+    CurveConnection2D,
+    SubdomainConnection,
+    SubdomainConnection2D,
+    VertexConnection2D,
+)
 
 
 class Domain(ABC):
     """Domain class that contains subdomains and their connections."""
 
-    def __init__(self,
-                 subdomains: List[Subdomain],
-                 connections: List[SubdomainConnection],
-                 boundary_condition: Optional[BoundaryCondition] = None):
+    def __init__(
+        self,
+        subdomains: List[Subdomain],
+        connections: List[SubdomainConnection],
+        boundary_condition: Optional[BoundaryCondition] = None,
+    ):
         """
         Initialize a domain with subdomains and their connections.
 
@@ -58,8 +64,9 @@ class Domain(ABC):
             ValueError: If the index is out of bounds.
         """
         if idx < 0 or idx >= len(self.subdomains):
-            raise ValueError(f"Invalid subdomain index: {idx}. "
-                             f"Must be in [0, {len(self.subdomains)}).")
+            raise ValueError(
+                f"Invalid subdomain index: {idx}. " f"Must be in [0, {len(self.subdomains)})."
+            )
 
         return self.subdomains[idx]
 
@@ -88,10 +95,12 @@ class Domain(ABC):
 class Domain2D(Domain):
     """A 2D domain with subdomains and their connections."""
 
-    def __init__(self,
-                 subdomains: List[Subdomain2D],
-                 connections: List[SubdomainConnection2D],
-                 boundary_condition: Optional[DirichletBoundary2D] = None):
+    def __init__(
+        self,
+        subdomains: List[Subdomain2D],
+        connections: List[SubdomainConnection2D],
+        boundary_condition: Optional[DirichletBoundary2D] = None,
+    ):
         """
         Initialize a 2D domain with subdomains and their connections.
 
@@ -124,17 +133,17 @@ class Domain2D(Domain):
         for connection in self.connections:
             if isinstance(connection, VertexConnection2D):
                 shared_vertex = connection.get_shared_vertex(self.subdomains)
-                plt.plot(shared_vertex[0], shared_vertex[1], 'ro', label="Shared Vertex")
+                plt.plot(shared_vertex[0], shared_vertex[1], "ro", label="Shared Vertex")
             elif isinstance(connection, CurveConnection2D):
                 curve = connection.get_shared_curve(self.subdomains)
                 curve_points = curve.evaluate(np.linspace(-1, 1, num_points))
-                plt.plot(curve_points[:, 0], curve_points[:, 1], 'g--', label="Shared Curve")
+                plt.plot(curve_points[:, 0], curve_points[:, 1], "g--", label="Shared Curve")
 
         if self.boundary_condition:
             for subdomain_idx, curve_idx in self.boundary_condition.boundary:
                 curve = self.subdomains[subdomain_idx].curves[curve_idx]
                 curve_points = curve.evaluate(np.linspace(-1, 1, num_points))
-                plt.plot(curve_points[:, 0], curve_points[:, 1], 'k--', label="Boundary Condition")
+                plt.plot(curve_points[:, 0], curve_points[:, 1], "k--", label="Boundary Condition")
 
         plt.axis("equal")
         plt.title("Domain Plot")

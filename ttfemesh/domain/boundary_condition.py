@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
+
 from ttfemesh.domain.subdomain import Subdomain
 
 
@@ -59,8 +60,9 @@ class DirichletBoundary2D(BoundaryCondition):
             if subdomain_idx >= len(subdomains):
                 raise ValueError(f"Subdomain index {subdomain_idx} out of range.")
             if curve_idx >= len(subdomains[subdomain_idx].curves):
-                raise ValueError(f"Curve index {curve_idx} out of range"
-                                 f" for subdomain {subdomain_idx}.")
+                raise ValueError(
+                    f"Curve index {curve_idx} out of range" f" for subdomain {subdomain_idx}."
+                )
 
     def num_bcs(self) -> int:
         """

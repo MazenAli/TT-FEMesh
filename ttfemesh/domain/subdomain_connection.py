@@ -1,14 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Literal
-import numpy as np
-from ttfemesh.domain.subdomain import Subdomain
-from ttfemesh.domain.curve import Curve
+from typing import List, Literal, Tuple
 
-CurvePosition = Literal['start', 'end']
+import numpy as np
+
+from ttfemesh.domain.curve import Curve
+from ttfemesh.domain.subdomain import Subdomain
+
+CurvePosition = Literal["start", "end"]
 
 
 class SubdomainConnection(ABC):
     """Generic subdomain connection class."""
+
     @abstractmethod
     def validate(self, subdomains: List[Subdomain]):
         """
@@ -34,6 +37,7 @@ class SubdomainConnection(ABC):
 
 class SubdomainConnection2D(SubdomainConnection):
     """Generic 2D subdomain connection class."""
+
     @property
     def dimension(self) -> int:
         """Dimension of the subdomain connection."""
@@ -87,9 +91,9 @@ class VertexConnection2D(SubdomainConnection2D):
                     f"does not match the vertex {point0}."
                 )
 
-    def get_connection_pairs(self) -> List[Tuple[Tuple[int, int],
-                                                          Tuple[int, int],
-                                                          Tuple[CurvePosition, CurvePosition]]]:
+    def get_connection_pairs(
+        self,
+    ) -> List[Tuple[Tuple[int, int], Tuple[int, int], Tuple[CurvePosition, CurvePosition]]]:
         """
         Get all unique pairs of connected subdomains with their curve indices and positions.
 
@@ -125,7 +129,7 @@ class VertexConnection2D(SubdomainConnection2D):
         return curve0.get_start() if self.connection[0][2] == "start" else curve0.get_end()
 
     def _validate_idxs(self, subdomains: List[Subdomain]):
-        """ Validate that the subdomain and curve indices are within bounds."""
+        """Validate that the subdomain and curve indices are within bounds."""
         for subdomain_idx, curve_idx, position in self.connection:
             if subdomain_idx >= len(subdomains):
                 raise ValueError(f"Subdomain index {subdomain_idx} is out of bounds.")
@@ -157,10 +161,7 @@ class CurveConnection2D(SubdomainConnection2D):
         """Number of connected subdomains."""
         return 2
 
-    def validate(self,
-                 subdomains: List[Subdomain],
-                 num_points: int = 100,
-                 tol: float = 1e-6):
+    def validate(self, subdomains: List[Subdomain], num_points: int = 100, tol: float = 1e-6):
         """
         Validate that the curves are approximately equal.
 
@@ -201,7 +202,7 @@ class CurveConnection2D(SubdomainConnection2D):
         return subdomains[sub1_idx].curves[curve1_idx]
 
     def _validate_idxs(self, subdomains: List[Subdomain]):
-        """ Validate that the subdomain and curve indices are within bounds."""
+        """Validate that the subdomain and curve indices are within bounds."""
         sub1_idx, sub2_idx = self.subdomains_indices
         curve1_idx, curve2_idx = self.curve_indices
 

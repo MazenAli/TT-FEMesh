@@ -1,6 +1,8 @@
 from typing import Tuple
+
 import numpy as np
 import torch
+
 from ttfemesh.types import BoundarySide2D, BoundaryVertex2D, TensorTrain
 
 
@@ -40,6 +42,7 @@ def bindex2dtuple(bindex: np.ndarray) -> Tuple[int, int]:
 
     return (i, j)
 
+
 def qindex2dtuple(index: np.ndarray) -> Tuple[int, int]:
     """
     Convert a quaternary index to a 2D tuple.
@@ -75,6 +78,7 @@ def qindex2dtuple(index: np.ndarray) -> Tuple[int, int]:
 
     return bindex2dtuple(binary_index)
 
+
 def side_concatenation_core(side: BoundarySide2D) -> np.ndarray:
     """
     Get the TT-core for concatenation of a boundary side.
@@ -87,17 +91,24 @@ def side_concatenation_core(side: BoundarySide2D) -> np.ndarray:
         np.ndarray: The TT-core for concatenation of the boundary side.
     """
 
-    side_values = {BoundarySide2D.BOTTOM: 0, BoundarySide2D.RIGHT: 0,
-                   BoundarySide2D.TOP: 0, BoundarySide2D.LEFT: 0}
+    side_values = {
+        BoundarySide2D.BOTTOM: 0,
+        BoundarySide2D.RIGHT: 0,
+        BoundarySide2D.TOP: 0,
+        BoundarySide2D.LEFT: 0,
+    }
     side_values[side] = 1
-    B, R, T, L = (side_values[BoundarySide2D.BOTTOM],
-                  side_values[BoundarySide2D.RIGHT],
-                  side_values[BoundarySide2D.TOP],
-                  side_values[BoundarySide2D.LEFT])
+    B, R, T, L = (
+        side_values[BoundarySide2D.BOTTOM],
+        side_values[BoundarySide2D.RIGHT],
+        side_values[BoundarySide2D.TOP],
+        side_values[BoundarySide2D.LEFT],
+    )
 
     core = np.array([[B, R, L, T], [L, B, T, R]]).reshape([1, 2, 4, 1])
 
     return core
+
 
 def vertex_concatenation_core(vertex: BoundaryVertex2D) -> np.ndarray:
     """
@@ -108,17 +119,24 @@ def vertex_concatenation_core(vertex: BoundaryVertex2D) -> np.ndarray:
         np.ndarray: The TT-core for concatenation of a vertex.
     """
 
-    vertex_values = {BoundaryVertex2D.BOTTOM_LEFT: 0, BoundaryVertex2D.BOTTOM_RIGHT: 0,
-                     BoundaryVertex2D.TOP_RIGHT: 0, BoundaryVertex2D.TOP_LEFT: 0}
+    vertex_values = {
+        BoundaryVertex2D.BOTTOM_LEFT: 0,
+        BoundaryVertex2D.BOTTOM_RIGHT: 0,
+        BoundaryVertex2D.TOP_RIGHT: 0,
+        BoundaryVertex2D.TOP_LEFT: 0,
+    }
     vertex_values[vertex] = 1
-    BL, BR, TR, TL = (vertex_values[BoundaryVertex2D.BOTTOM_LEFT],
-                      vertex_values[BoundaryVertex2D.BOTTOM_RIGHT],
-                      vertex_values[BoundaryVertex2D.TOP_RIGHT],
-                      vertex_values[BoundaryVertex2D.TOP_LEFT])
+    BL, BR, TR, TL = (
+        vertex_values[BoundaryVertex2D.BOTTOM_LEFT],
+        vertex_values[BoundaryVertex2D.BOTTOM_RIGHT],
+        vertex_values[BoundaryVertex2D.TOP_RIGHT],
+        vertex_values[BoundaryVertex2D.TOP_LEFT],
+    )
 
     core = np.array([BL, BR, TL, TR]).reshape([1, 1, 4, 1])
 
     return core
+
 
 def concat_core2tt(core: np.ndarray, length: int, exchanged: bool = False) -> TensorTrain:
     """
@@ -137,12 +155,13 @@ def concat_core2tt(core: np.ndarray, length: int, exchanged: bool = False) -> Te
     core_ = core.copy()
     if exchanged and core_.size > 4:
         core_ = core[:, [1, 0], :, :]
-    cores = [torch.tensor(core_)]*length
+    cores = [torch.tensor(core_)] * length
     return TensorTrain(cores)
 
-def concat_ttmaps(tt_left: TensorTrain, tt_right: TensorTrain) -> Tuple[TensorTrain,
-                                                                        TensorTrain,
-                                                                        TensorTrain]:
+
+def concat_ttmaps(
+    tt_left: TensorTrain, tt_right: TensorTrain
+) -> Tuple[TensorTrain, TensorTrain, TensorTrain]:
     """
     Put together the two TT-map primitives to form the full connectivity maps.
     See Section 5 of arXiv:1802.02839 for details.
@@ -165,9 +184,10 @@ def concat_ttmaps(tt_left: TensorTrain, tt_right: TensorTrain) -> Tuple[TensorTr
 
     return connect_tt, count_left, count_right
 
-def side_concatenation_tt(side0: BoundarySide2D,
-                          side1: BoundarySide2D,
-                          length: int) -> Tuple[TensorTrain, TensorTrain, TensorTrain]:
+
+def side_concatenation_tt(
+    side0: BoundarySide2D, side1: BoundarySide2D, length: int
+) -> Tuple[TensorTrain, TensorTrain, TensorTrain]:
     """
     Get the TT-representation of the concatenation tensors of two boundary sides.
     See Section 5 of arXiv:1802.02839 for details.
@@ -193,9 +213,10 @@ def side_concatenation_tt(side0: BoundarySide2D,
 
     return concat_ttmaps(tt_left, tt_right)
 
-def vertex_concatenation_tt(vertex0: BoundaryVertex2D,
-                            vertex1: BoundaryVertex2D,
-                            length: int) -> Tuple[TensorTrain, TensorTrain, TensorTrain]:
+
+def vertex_concatenation_tt(
+    vertex0: BoundaryVertex2D, vertex1: BoundaryVertex2D, length: int
+) -> Tuple[TensorTrain, TensorTrain, TensorTrain]:
     """
     Get the TT-representation of the concatenation tensor of two boundary vertices.
     See Section 5 of arXiv:1802.02839 for details.

@@ -1,6 +1,7 @@
 import torchtt as tntt
-from ttfemesh.types import TensorTrain
+
 from ttfemesh.tn_tools.operations import zorder_kron
+from ttfemesh.types import TensorTrain
 
 
 def zmeshgrid2d(X: TensorTrain, Y: TensorTrain) -> TensorTrain:
@@ -21,6 +22,7 @@ def zmeshgrid2d(X: TensorTrain, Y: TensorTrain) -> TensorTrain:
     YY = zorder_kron(ones_x, Y)
 
     return XX, YY
+
 
 def range_meshgrid2d(mesh_size_exponent: int) -> TensorTrain:
     """

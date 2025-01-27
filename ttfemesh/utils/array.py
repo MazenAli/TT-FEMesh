@@ -1,4 +1,5 @@
 from typing import Union
+
 import numpy as np
 
 
@@ -24,7 +25,10 @@ def ensure_1d(array_or_scalar: Union[np.ndarray, any]) -> np.ndarray:
     if array_or_scalar.ndim == 1:
         return array_or_scalar
     else:
-        raise ValueError(f"Input must be a scalar or a 1D array, got {array_or_scalar.ndim} dimensions.")
+        raise ValueError(
+            f"Input must be a scalar or a 1D array, got {array_or_scalar.ndim} dimensions."
+        )
+
 
 def ensure_2d(array: np.ndarray) -> np.ndarray:
     """

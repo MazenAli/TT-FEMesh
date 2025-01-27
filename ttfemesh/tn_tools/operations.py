@@ -1,5 +1,7 @@
-import torch
 import copy
+
+import torch
+
 from ttfemesh.types import TensorTrain
 
 
@@ -27,12 +29,15 @@ def zorder_kron(left: TensorTrain, right: TensorTrain) -> TensorTrain:
     cores_right = right.cores
 
     if len(cores_left) != len(cores_right):
-        raise ValueError(f"TT-length of left ({len(cores_left)})"
-                         f" and right ({len(cores_right)}) tensors must be equal.")
+        raise ValueError(
+            f"TT-length of left ({len(cores_left)})"
+            f" and right ({len(cores_right)}) tensors must be equal."
+        )
 
     cores = [torch.kron(b, a) for a, b in zip(cores_left, cores_right)]
 
     return TensorTrain(cores)
+
 
 def zorder_linfunc2d(c: float, cx: float, X: TensorTrain, cy: float, Y: TensorTrain) -> TensorTrain:
     """
@@ -58,7 +63,7 @@ def zorder_linfunc2d(c: float, cx: float, X: TensorTrain, cy: float, Y: TensorTr
     result[-1][1, :, :] = cx * X_cores[-1][1, :, :] + (c + cy * Y_cores[-1][1, :, :])
 
     d = len(result)
-    for k in range(1, d-1):
+    for k in range(1, d - 1):
         result[k][1, :, 0] = cx * X_cores[k][1, :, 0] + cy * Y_cores[k][1, :, 0]
 
     return TensorTrain(result)

@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+
 from ttfemesh.domain.curve import Curve, Line2D
 
 
@@ -101,6 +103,7 @@ class Subdomain2D(Subdomain):
 
 class Quad(Subdomain2D):
     """Quadrilateral subdomain defined by 4 boundary lines."""
+
     def __init__(self, curves: List[Line2D]):
         super().__init__(curves)
 

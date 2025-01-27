@@ -1,5 +1,3 @@
-from .quadrature import QuadratureRule, GaussLegendre, GaussLegendre2D
+from .quadrature import GaussLegendre, GaussLegendre2D, QuadratureRule
 
-__all__ = ['QuadratureRule',
-           'GaussLegendre',
-           'GaussLegendre2D']
+__all__ = ["QuadratureRule", "GaussLegendre", "GaussLegendre2D"]

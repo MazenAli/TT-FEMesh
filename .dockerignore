@@ -36,4 +36,4 @@ dist/
 
 # Exclude data not needed in the image
 notebooks/
-ttfemesh/tests/
+tests/

@@ -1,8 +1,10 @@
 from typing import Callable
+
 import numpy as np
-from ttfemesh.types import TensorTrain
+
 from ttfemesh.tn_tools.meshgrid import range_meshgrid2d
 from ttfemesh.tn_tools.operations import zorder_linfunc2d
+from ttfemesh.types import TensorTrain
 
 
 def interpolate_linear2d(func: Callable[[np.ndarray], float], d) -> TensorTrain:
@@ -20,17 +22,16 @@ def interpolate_linear2d(func: Callable[[np.ndarray], float], d) -> TensorTrain:
         TensorTrain resulting from the linear interpolation of the function.
     """
 
-    num_total = 2 ** d
+    num_total = 2**d
     index0 = np.zeros(d, dtype=int)
     indexn0 = np.zeros(d, dtype=int)
     index0n = np.zeros(d, dtype=int)
     indexn0[::2] = 3
     index0n[1::2] = 3
 
-
     c = func(index0)
-    cx = (func(indexn0) - c) / (num_total-1.)
-    cy = (func(index0n) - c) / (num_total-1.)
+    cx = (func(indexn0) - c) / (num_total - 1.0)
+    cy = (func(index0n) - c) / (num_total - 1.0)
 
     XX, YY = range_meshgrid2d(d)
     result = zorder_linfunc2d(c, cx, XX, cy, YY)

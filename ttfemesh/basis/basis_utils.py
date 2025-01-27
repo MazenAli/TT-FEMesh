@@ -1,6 +1,8 @@
 from typing import Tuple
+
 import numpy as np
 import torch
+
 from ttfemesh.types import TensorTrain
 
 
@@ -22,6 +24,7 @@ def left_corner2index_ttmap(d: int) -> TensorTrain:
 
     return TensorTrain(torch_cores)
 
+
 def right_corner2index_ttmap(d: int) -> TensorTrain:
     """
     Returns the TT-representation of the right corner element index to global basis index map (W_1).
@@ -39,6 +42,7 @@ def right_corner2index_ttmap(d: int) -> TensorTrain:
     torch_cores = [torch.tensor(core) for core in cores]
 
     return TensorTrain(torch_cores)
+
 
 def left_corner2index_map_ttcores() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
@@ -69,6 +73,7 @@ def left_corner2index_map_ttcores() -> Tuple[np.ndarray, np.ndarray, np.ndarray]
     cores = firstcore, middlecore, lastcore
     return cores
 
+
 def right_corner2index_map_ttcores() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Returns the TT-cores for the right corner element index to global basis index map (W_1).
@@ -83,7 +88,6 @@ def right_corner2index_map_ttcores() -> Tuple[np.ndarray, np.ndarray, np.ndarray
     firstcore = np.zeros((1, 2, 2, 2))
     firstcore[0, :, :, 0] = np.array([[0.0, 1.0], [0.0, 0.0]])
     firstcore[0, :, :, 1] = np.array([[0.0, 0.0], [1.0, 0.0]])
-
 
     middlecore = np.zeros((2, 2, 2, 2))
     middlecore[0, :, :, 0] = np.array([[0.0, 1.0], [0.0, 0.0]])

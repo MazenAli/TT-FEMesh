@@ -1,29 +1,35 @@
-from abc import ABC, abstractmethod
-from typing import Tuple, List, Callable, Optional
 import warnings
+from abc import ABC, abstractmethod
+from typing import Callable, List, Optional, Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from ttfemesh.domain import Subdomain, Subdomain2D, Quad
-from ttfemesh.quadrature.quadrature import QuadratureRule, QuadratureRule2D
+
+from ttfemesh.domain import Quad, Subdomain, Subdomain2D
 from ttfemesh.mesh.mesh_utils import qindex2dtuple as index_map2d
-from ttfemesh.tn_tools.tensor_cross import (gen_teneva_indices,
-                                            anova_init_tensor_train,
-                                            tensor_train_cross_approximation,
-                                            TTCrossConfig)
-from ttfemesh.utils.array import ensure_2d
+from ttfemesh.quadrature.quadrature import QuadratureRule, QuadratureRule2D
 from ttfemesh.tn_tools import interpolate_linear2d
+from ttfemesh.tn_tools.tensor_cross import (
+    TTCrossConfig,
+    anova_init_tensor_train,
+    gen_teneva_indices,
+    tensor_train_cross_approximation,
+)
 from ttfemesh.types import TensorTrain
+from ttfemesh.utils.array import ensure_2d
 
 
 class SubdomainMesh(ABC):
     """Subdomain mesh for a finite element problem."""
 
-    def __init__(self,
-                 subdomain: Subdomain,
-                 quadrature_rule: QuadratureRule,
-                 mesh_size_exponent: int,
-                 tt_cross_config: Optional[TTCrossConfig] = None):
+    def __init__(
+        self,
+        subdomain: Subdomain,
+        quadrature_rule: QuadratureRule,
+        mesh_size_exponent: int,
+        tt_cross_config: Optional[TTCrossConfig] = None,
+    ):
         """
         Initialize a subdomain mesh.
 
@@ -95,11 +101,13 @@ class SubdomainMesh(ABC):
 class SubdomainMesh2D(SubdomainMesh):
     """Subdomain mesh for a 2D finite element problem."""
 
-    def __init__(self,
-                 subdomain: Subdomain2D,
-                 quadrature_rule: QuadratureRule2D,
-                 mesh_size_exponent: int,
-                 tt_cross_config: Optional[TTCrossConfig] = None):
+    def __init__(
+        self,
+        subdomain: Subdomain2D,
+        quadrature_rule: QuadratureRule2D,
+        mesh_size_exponent: int,
+        tt_cross_config: Optional[TTCrossConfig] = None,
+    ):
         """
         Initialize a 2D subdomain mesh.
 
@@ -143,7 +151,7 @@ class SubdomainMesh2D(SubdomainMesh):
     @property
     def num_elements(self):
         """Total number of elements."""
-        return (self.num_points1d - 1)**2
+        return (self.num_points1d - 1) ** 2
 
     @property
     def index_map(self):
@@ -202,23 +210,27 @@ class SubdomainMesh2D(SubdomainMesh):
         side2_x_start, side2_y_start = side2_start[0], side2_start[1]
         side3_x_start, side3_y_start = side3_start[0], side3_start[1]
 
-        N_xi_eta_x = (0.5 * (1. - eta) * side0_x +
-                      0.5 * (1. + xi) * side1_x +
-                      0.5 * (1. + eta) * side2_x +
-                      0.5 * (1. - xi) * side3_x -
-                      0.25 * (1. - xi) * (1. - eta) * side0_x_start -
-                      0.25 * (1. + xi) * (1. - eta) * side1_x_start -
-                      0.25 * (1. + xi) * (1. + eta) * side2_x_start -
-                      0.25 * (1. - xi) * (1. + eta) * side3_x_start)
+        N_xi_eta_x = (
+            0.5 * (1.0 - eta) * side0_x
+            + 0.5 * (1.0 + xi) * side1_x
+            + 0.5 * (1.0 + eta) * side2_x
+            + 0.5 * (1.0 - xi) * side3_x
+            - 0.25 * (1.0 - xi) * (1.0 - eta) * side0_x_start
+            - 0.25 * (1.0 + xi) * (1.0 - eta) * side1_x_start
+            - 0.25 * (1.0 + xi) * (1.0 + eta) * side2_x_start
+            - 0.25 * (1.0 - xi) * (1.0 + eta) * side3_x_start
+        )
 
-        N_xi_eta_y = (0.5 * (1. - eta) * side0_y +
-                      0.5 * (1. + xi) * side1_y +
-                      0.5 * (1. + eta) * side2_y +
-                      0.5 * (1. - xi) * side3_y -
-                      0.25 * (1. - xi) * (1. - eta) * side0_y_start -
-                      0.25 * (1. + xi) * (1. - eta) * side1_y_start -
-                      0.25 * (1. + xi) * (1. + eta) * side2_y_start -
-                      0.25 * (1. - xi) * (1. + eta) * side3_y_start)
+        N_xi_eta_y = (
+            0.5 * (1.0 - eta) * side0_y
+            + 0.5 * (1.0 + xi) * side1_y
+            + 0.5 * (1.0 + eta) * side2_y
+            + 0.5 * (1.0 - xi) * side3_y
+            - 0.25 * (1.0 - xi) * (1.0 - eta) * side0_y_start
+            - 0.25 * (1.0 + xi) * (1.0 - eta) * side1_y_start
+            - 0.25 * (1.0 + xi) * (1.0 + eta) * side2_y_start
+            - 0.25 * (1.0 - xi) * (1.0 + eta) * side3_y_start
+        )
 
         N_xi_eta = np.stack([N_xi_eta_x, N_xi_eta_y], axis=-1)
 
@@ -244,10 +256,10 @@ class SubdomainMesh2D(SubdomainMesh):
 
         index_x, index_y = index
         xi, eta = xi_eta_[:, 0], xi_eta_[:, 1]
-        offset_xi = -1. + index_x * self._grid_step1d
-        offset_eta = -1. + index_y * self._grid_step1d
-        xi_rescaled = offset_xi + 0.5 * (1. + xi) * self._grid_step1d
-        eta_rescaled = offset_eta + 0.5 * (1. + eta) * self._grid_step1d
+        offset_xi = -1.0 + index_x * self._grid_step1d
+        offset_eta = -1.0 + index_y * self._grid_step1d
+        xi_rescaled = offset_xi + 0.5 * (1.0 + xi) * self._grid_step1d
+        eta_rescaled = offset_eta + 0.5 * (1.0 + eta) * self._grid_step1d
 
         return self.ref2domain_map(np.column_stack((xi_rescaled, eta_rescaled)))
 
@@ -285,25 +297,25 @@ class SubdomainMesh2D(SubdomainMesh):
         side3_tangent = -side3.tangent(-eta)
 
         dxi_N = (
-                0.5 * (1. - eta)[:, None] * side0_tangent
-                + 0.5 * side1_vals
-                + 0.5 * (1. + eta)[:, None] * side2_tangent
-                - 0.5 * side3_vals
-                + 0.25 * (1. - eta)[:, None] * side0.get_start()
-                - 0.25 * (1. - eta)[:, None] * side1.get_start()
-                - 0.25 * (1. + eta)[:, None] * side2.get_start()
-                + 0.25 * (1. + eta)[:, None] * side3.get_start()
+            0.5 * (1.0 - eta)[:, None] * side0_tangent
+            + 0.5 * side1_vals
+            + 0.5 * (1.0 + eta)[:, None] * side2_tangent
+            - 0.5 * side3_vals
+            + 0.25 * (1.0 - eta)[:, None] * side0.get_start()
+            - 0.25 * (1.0 - eta)[:, None] * side1.get_start()
+            - 0.25 * (1.0 + eta)[:, None] * side2.get_start()
+            + 0.25 * (1.0 + eta)[:, None] * side3.get_start()
         )
 
         deta_N = (
-                -0.5 * side0_vals
-                + 0.5 * (1. + xi)[:, None] * side1_tangent
-                + 0.5 * side2_vals
-                + 0.5 * (1. - xi)[:, None] * side3_tangent
-                + 0.25 * (1. - xi)[:, None] * side0.get_start()
-                + 0.25 * (1. + xi)[:, None] * side1.get_start()
-                - 0.25 * (1. + xi)[:, None] * side2.get_start()
-                - 0.25 * (1. - xi)[:, None] * side3.get_start()
+            -0.5 * side0_vals
+            + 0.5 * (1.0 + xi)[:, None] * side1_tangent
+            + 0.5 * side2_vals
+            + 0.5 * (1.0 - xi)[:, None] * side3_tangent
+            + 0.25 * (1.0 - xi)[:, None] * side0.get_start()
+            + 0.25 * (1.0 + xi)[:, None] * side1.get_start()
+            - 0.25 * (1.0 + xi)[:, None] * side2.get_start()
+            - 0.25 * (1.0 - xi)[:, None] * side3.get_start()
         )
 
         jacobian = np.stack([dxi_N[:, 0], deta_N[:, 0], dxi_N[:, 1], deta_N[:, 1]], axis=-1)
@@ -331,14 +343,14 @@ class SubdomainMesh2D(SubdomainMesh):
 
         index_x, index_y = index
         xi, eta = xi_eta_[:, 0], xi_eta_[:, 1]
-        offset_xi = -1. + index_x * self._grid_step1d
-        offset_eta = -1. + index_y * self._grid_step1d
-        xi_rescaled = offset_xi + 0.5 * (1. + xi) * self._grid_step1d
-        eta_rescaled = offset_eta + 0.5 * (1. + eta) * self._grid_step1d
+        offset_xi = -1.0 + index_x * self._grid_step1d
+        offset_eta = -1.0 + index_y * self._grid_step1d
+        xi_rescaled = offset_xi + 0.5 * (1.0 + xi) * self._grid_step1d
+        eta_rescaled = offset_eta + 0.5 * (1.0 + eta) * self._grid_step1d
 
         jacobian_domain = self.ref2domain_jacobian(np.column_stack((xi_rescaled, eta_rescaled)))
         scaling = 0.5 * self._grid_step1d
-        jacobian_rescaled = jacobian_domain*scaling
+        jacobian_rescaled = jacobian_domain * scaling
 
         return jacobian_rescaled
 
@@ -409,12 +421,12 @@ class SubdomainMesh2D(SubdomainMesh):
         invdet_tensor_networks = []
         for quad_point in quadrature_points:
             eval_point = np.array([quad_point])
-            cross_func = lambda idx: 1. / np.linalg.det(self._cross_func(idx, eval_point))
+            cross_func = lambda idx: 1.0 / np.linalg.det(self._cross_func(idx, eval_point))
 
             # out of bounds intentional
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", UserWarning)
-                jac_invdet = self.__tca_default(cross_func) # linear interpolation never works here
+                jac_invdet = self.__tca_default(cross_func)  # linear interpolation never works here
 
             invdet_tensor_networks.append(jac_invdet)
 
@@ -478,7 +490,7 @@ class SubdomainMesh2D(SubdomainMesh):
         """
 
         jacobian_dets = self.get_jacobian_dets()
-        jacobian_invdets = 1. / jacobian_dets
+        jacobian_invdets = 1.0 / jacobian_dets
 
         return jacobian_invdets
 
@@ -496,7 +508,7 @@ class SubdomainMesh2D(SubdomainMesh):
         kwargs = self.tt_cross_config.to_dict()
         num_indices = kwargs.pop("num_anova_init")
         order = kwargs.pop("anova_order")
-        tensor_shape = [4]*self.mesh_size_exponent
+        tensor_shape = [4] * self.mesh_size_exponent
         train_indices = gen_teneva_indices(num_indices, tensor_shape)
 
         tt_init = anova_init_tensor_train(oracle, train_indices, order)
@@ -504,9 +516,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return TensorTrain([torch.tensor(core) for core in tt_cross_cores])
 
-    def _cross_func(self,
-                    qindex: np.ndarray,
-                    xi_eta: np.ndarray) -> np.ndarray:
+    def _cross_func(self, qindex: np.ndarray, xi_eta: np.ndarray) -> np.ndarray:
         """
         Compute the Jacobian for a given element index given in binary
         and reference coordinates.
@@ -569,7 +579,7 @@ class SubdomainMesh2D(SubdomainMesh):
         Y = transformed_points[:, 1]
 
         # Plot the 2D scatter plot of the mapped points
-        plt.scatter(X, Y, c='red', marker='o', alpha=0.6)
+        plt.scatter(X, Y, c="red", marker="o", alpha=0.6)
 
         plt.title(f"2D Mapped Points for Index {index}")
         plt.xlabel("X")
@@ -591,17 +601,24 @@ class SubdomainMesh2D(SubdomainMesh):
             np.column_stack((np.linspace(-1, 1, num_points), -1 * np.ones(num_points))),
             np.column_stack((np.ones(num_points), np.linspace(-1, 1, num_points))),
             np.column_stack((np.linspace(1, -1, num_points), np.ones(num_points))),
-            np.column_stack((-1 * np.ones(num_points), np.linspace(1, -1, num_points)))
+            np.column_stack((-1 * np.ones(num_points), np.linspace(1, -1, num_points))),
         ]
 
         for index_x in range(self.num_elements1d):
             for index_y in range(self.num_elements1d):
                 for edge in xi_eta_edges:
                     physical_edge = np.array(
-                        [self.ref2element_map((index_x, index_y), xi_eta[np.newaxis, :])[0]
-                         for xi_eta in edge])
-                    plt.plot(physical_edge[:, 0], physical_edge[:, 1], 'b-',
-                             label="Element Boundary" if (index_x, index_y) == (0, 0) else "")
+                        [
+                            self.ref2element_map((index_x, index_y), xi_eta[np.newaxis, :])[0]
+                            for xi_eta in edge
+                        ]
+                    )
+                    plt.plot(
+                        physical_edge[:, 0],
+                        physical_edge[:, 1],
+                        "b-",
+                        label="Element Boundary" if (index_x, index_y) == (0, 0) else "",
+                    )
 
         plt.axis("equal")
         plt.title("Mesh Plot")
@@ -610,11 +627,13 @@ class SubdomainMesh2D(SubdomainMesh):
         plt.show()
 
     def __repr__(self):
-        return (f"SubdomainMesh2D(subdomain={self.subdomain},"
-                f" quadrature_rule={self.quadrature_rule},"
-                f" mesh_size_exponent={self.mesh_size_exponent},"
-                f" num_points={self.num_points},"
-                f" num_elements={self.num_elements})")
+        return (
+            f"SubdomainMesh2D(subdomain={self.subdomain},"
+            f" quadrature_rule={self.quadrature_rule},"
+            f" mesh_size_exponent={self.mesh_size_exponent},"
+            f" num_points={self.num_points},"
+            f" num_elements={self.num_elements})"
+        )
 
     def _validate_idxs(self, index_x: int, index_y: int):
         """
@@ -634,11 +653,15 @@ class SubdomainMesh2D(SubdomainMesh):
             such that the total number of elements is a power of 2: (num_elements1d)**2.
         """
         if index_x < 0 or index_x >= self.num_elements1d:
-            warnings.warn(f"Index x={index_x} is out of bounds [0, {self.num_elements1d})."
-                          f" The last element is a padded element.")
+            warnings.warn(
+                f"Index x={index_x} is out of bounds [0, {self.num_elements1d})."
+                f" The last element is a padded element."
+            )
         if index_y < 0 or index_y >= self.num_elements1d:
-            warnings.warn(f"Index y={index_y} is out of bounds [0, {self.num_elements1d})."
-                          f" The last element is a padded element.")
+            warnings.warn(
+                f"Index y={index_y} is out of bounds [0, {self.num_elements1d})."
+                f" The last element is a padded element."
+            )
 
     def _validate_ref_coords(self, xi_eta: np.ndarray, tol: float = 1e-6):
         """
@@ -656,9 +679,11 @@ class SubdomainMesh2D(SubdomainMesh):
             raise ValueError("Reference coordinates must have shape (num_points, 2).")
 
         if not np.all(-1 - tol <= xi_eta) or not np.all(xi_eta <= 1 + tol):
-            warnings.warn(f"Reference coordinates are not in the range [-1, 1]"
-                          f" within tolerance {tol}."
-                          " This behavior may be intentional when using tensorized Jacobians.")
+            warnings.warn(
+                f"Reference coordinates are not in the range [-1, 1]"
+                f" within tolerance {tol}."
+                " This behavior may be intentional when using tensorized Jacobians."
+            )
 
 
 class QuadMesh(SubdomainMesh2D):
@@ -670,11 +695,13 @@ class QuadMesh(SubdomainMesh2D):
     low-rank Tensor Train.
     """
 
-    def __init__(self,
-                 quad: Quad,
-                 quadrature_rule: QuadratureRule2D,
-                 mesh_size_exponent: int,
-                 tt_cross_config: Optional[TTCrossConfig] = None):
+    def __init__(
+        self,
+        quad: Quad,
+        quadrature_rule: QuadratureRule2D,
+        mesh_size_exponent: int,
+        tt_cross_config: Optional[TTCrossConfig] = None,
+    ):
         """
         Initialize a quadrilateral mesh.
 
@@ -690,8 +717,7 @@ class QuadMesh(SubdomainMesh2D):
         super().__init__(quad, quadrature_rule, mesh_size_exponent, tt_cross_config)
         self._tca_strategy = self.__linear_interpolation
 
-    def __linear_interpolation(self,
-        oracle: Callable[[np.ndarray], np.ndarray]) -> TensorTrain:
+    def __linear_interpolation(self, oracle: Callable[[np.ndarray], np.ndarray]) -> TensorTrain:
         """
         Perform linear interpolation for a given oracle function.
 
@@ -707,8 +733,10 @@ class QuadMesh(SubdomainMesh2D):
         return tt_interpolant
 
     def __repr__(self):
-        return (f"QuadMesh(subdomain={self.subdomain},"
-                f" quadrature_rule={self.quadrature_rule},"
-                f" mesh_size_exponent={self.mesh_size_exponent},"
-                f" num_points={self.num_points},"
-                f" num_elements={self.num_elements})")
+        return (
+            f"QuadMesh(subdomain={self.subdomain},"
+            f" quadrature_rule={self.quadrature_rule},"
+            f" mesh_size_exponent={self.mesh_size_exponent},"
+            f" num_points={self.num_points},"
+            f" num_elements={self.num_elements})"
+        )
