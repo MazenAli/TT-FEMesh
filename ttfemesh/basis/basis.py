@@ -59,6 +59,7 @@ class Basis1D(Basis):
         plt.ylabel("Basis Function Value")
         plt.show()
 
+    @property
     def dimension(self) -> int:
         return 1
 
@@ -97,7 +98,7 @@ class LinearBasis(Basis1D):
             float: Derivative of the basis function at x.
         """
         self._validate(idx)
-        return -0.5 if self.idx == 0 else 0.5
+        return -0.5 if idx == 0 else 0.5
 
     @property
     def index_range(self):
@@ -262,7 +263,7 @@ class TensorProductBasis(Basis):
         pass
 
     @abstractmethod
-    def get_dirichlet_mask(self) -> TensorTrain:
+    def get_dirichlet_mask(self, *args, **kwargs) -> TensorTrain:
         """
         Get the mask for the Dirichlet boundary condition on the specified sides.
 

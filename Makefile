@@ -6,7 +6,7 @@ DIRS		  = ttfemesh tests
 
 default: all
 
-all: docs-html format_check static test_coverage secrets_check security imports
+all: format_check static test_coverage secrets_check security imports
 
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
@@ -34,10 +34,10 @@ test_coverage:
 	coverage xml
 
 security:
-	@bandit --format json --output bandit-report.json --recursive ${DIRS}
+	bandit --configfile bandit.yml --recursive $(DIRS)
 
 imports:
-	vulture $(DIR)
-	pip-missing-reqs $(DIR)
+	vulture $(DIRS)
+	pip-missing-reqs $(DIRS)
 
 .PHONY: help docs-% format format_check static test test_coverage secrets_check security imports

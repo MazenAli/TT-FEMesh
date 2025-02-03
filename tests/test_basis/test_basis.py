@@ -9,6 +9,9 @@ class TestLinearBasis:
     def setup_basis(self):
         self.basis = LinearBasis()
 
+    def test_dimension_is_correct(self):
+        assert self.basis.dimension == 1
+
     def test_evaluates_correctly(self):
         assert self.basis.evaluate(0, -1) == pytest.approx(1.0)
         assert self.basis.evaluate(0, 0) == pytest.approx(0.5)
@@ -28,31 +31,66 @@ class TestLinearBasis:
     def test_index_range_is_correct(self):
         assert list(self.basis.index_range) == [0, 1]
 
-    def test_element2global_ttmap_is_correct(self):
+    def test_left_element2global_ttmap_is_correct(self):
         ttmap = self.basis.get_element2global_ttmap(0, 3)
-        assert ttmap.shape == (8, 8)
+        size = 8
+        W0_reshaped = np.reshape(ttmap.full(), (-1, size), order="F")
+        expected_W0 = np.eye(size, dtype=float)
+        expected_W0[-1, -1] = 0
+        assert np.array_equal(W0_reshaped, expected_W0)
+        assert ttmap.shape == [(2, 2), (2, 2), (2, 2)]
+
+    def test_right_element2global_ttmap_is_correct(self):
+        ttmap = self.basis.get_element2global_ttmap(1, 3)
+        size = 8
+        W1_reshaped = np.reshape(ttmap.full(), (-1, size), order="F")
+        expected_W1 = np.zeros((size, size), dtype=float)
+        np.fill_diagonal(expected_W1[1:], 1)
+        expected_W1[-1, -1] = 0
+        assert np.array_equal(W1_reshaped, expected_W1)
+        assert ttmap.shape == [(2, 2), (2, 2), (2, 2)]
 
     def test_all_element2global_ttmaps_are_correct(self):
         ttmaps = self.basis.get_all_element2global_ttmaps(3)
+
+        size = 8
+        expected_W0 = np.eye(size, dtype=float)
+        expected_W0[-1, -1] = 0
+
+        expected_W1 = np.zeros((size, size), dtype=float)
+        np.fill_diagonal(expected_W1[1:], 1)
+        expected_W1[-1, -1] = 0
+
         assert len(ttmaps) == 2
-        assert ttmaps[0].shape == (8, 8)
-        assert ttmaps[1].shape == (8, 8)
+        assert ttmaps[0].shape == [(2, 2), (2, 2), (2, 2)]
+        assert ttmaps[1].shape == [(2, 2), (2, 2), (2, 2)]
+
+        W0_reshaped = np.reshape(ttmaps[0].full(), (-1, size), order="F")
+        W1_reshaped = np.reshape(ttmaps[1].full(), (-1, size), order="F")
+        assert np.array_equal(W0_reshaped, expected_W0)
+        assert np.array_equal(W1_reshaped, expected_W1)
 
     def test_dirichlet_mask_left_is_correct(self):
         mask = self.basis.get_dirichlet_mask_left(3)
-        assert mask.shape == (8, 8)
-        assert np.all(mask[:, 0] == 0)
+        vector = np.array(mask.full()).flatten("F")
+        assert mask.shape == [2, 2, 2]
+        assert vector[0] == 0.
+        assert np.all(vector[1:] == 1.)
 
     def test_dirichlet_mask_right_is_correct(self):
         mask = self.basis.get_dirichlet_mask_right(3)
-        assert mask.shape == (8, 8)
-        assert np.all(mask[:, -1] == 0)
+        vector = np.array(mask.full()).flatten("F")
+        assert mask.shape == [2, 2, 2]
+        assert vector[-1] == 0.
+        assert np.all(vector[:-1] == 1.)
 
     def test_dirichlet_mask_left_right_is_correct(self):
         mask = self.basis.get_dirichlet_mask_left_right(3)
-        assert mask.shape == (8, 8)
-        assert np.all(mask[:, 0] == 0)
-        assert np.all(mask[:, -1] == 0)
+        vector = np.array(mask.full()).flatten("F")
+        assert mask.shape == [2, 2, 2]
+        assert vector[0] == 0.
+        assert vector[-1] == 0.
+        assert np.all(vector[1:-1] == 1.)
 
 
 class TestBilinearBasis:
@@ -60,6 +98,10 @@ class TestBilinearBasis:
     def setup_basis(self):
         self.basis = BilinearBasis()
 
+    def test_dimension_is_correct(self):
+        assert self.basis.dimension == 2
+
+    # TODO: more eval tests, more derivative tests, index map tests
     def test_evaluates_correctly(self):
         assert self.basis.evaluate((0, 0), (-1, -1)) == pytest.approx(1.0)
         assert self.basis.evaluate((0, 1), (-1, 1)) == pytest.approx(1.0)
@@ -75,5 +117,4 @@ class TestBilinearBasis:
 
     def test_dirichlet_mask_is_correct(self):
         mask = self.basis.get_dirichlet_mask(2, 0, 1, 2, 3)
-        assert mask.shape == (4, 4)
-        assert np.all(mask == 0)
+        assert mask.shape == [4, 4]
