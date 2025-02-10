@@ -309,11 +309,11 @@ class TensorProductBasis(Basis):
             )
 
         result = 1.0
-        for i, (bf, xi) in enumerate(zip(self.basis_functions, x)):
+        for i, (bf, idx_xi, xi) in enumerate(zip(self.basis_functions, idx, x)):
             if i == dim:
-                result *= bf.derivative(xi)
+                result *= bf.derivative(idx_xi, xi)
             else:
-                result *= bf.evaluate(xi)
+                result *= bf.evaluate(idx_xi, xi)
         return result
 
     def _validate(self, idx: Iterable[int]):

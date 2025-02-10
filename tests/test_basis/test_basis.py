@@ -101,12 +101,29 @@ class TestBilinearBasis:
     def test_dimension_is_correct(self):
         assert self.basis.dimension == 2
 
-    # TODO: more eval tests, more derivative tests, index map tests
+    def test_raises_error_for_invalid_index(self):
+        with pytest.raises(ValueError):
+            self.basis.evaluate((2, 0), (0, 0))
+
     def test_evaluates_correctly(self):
         assert self.basis.evaluate((0, 0), (-1, -1)) == pytest.approx(1.0)
         assert self.basis.evaluate((0, 1), (-1, 1)) == pytest.approx(1.0)
         assert self.basis.evaluate((1, 0), (1, -1)) == pytest.approx(1.0)
         assert self.basis.evaluate((1, 1), (1, 1)) == pytest.approx(1.0)
+        assert self.basis.evaluate((0, 0), (0, 0)) == pytest.approx(0.25)
+        assert self.basis.evaluate((0, 1), (0, 0)) == pytest.approx(0.25)
+        assert self.basis.evaluate((1, 0), (0, 0)) == pytest.approx(0.25)
+        assert self.basis.evaluate((1, 1), (0, 0)) == pytest.approx(0.25)
+        assert self.basis.evaluate((0, 1), (0, 1)) == pytest.approx(0.5)
+        assert self.basis.evaluate((1, 0), (1, 0)) == pytest.approx(0.5)
+
+    def test_derivative_is_correct(self):
+        assert self.basis.derivative((0, 0), (-1, -1), 0) == pytest.approx(-0.5)
+        assert self.basis.derivative((0, 0), (-1, -1), 1) == pytest.approx(-0.5)
+        assert self.basis.derivative((0, 1), (-1, -1), 0) == pytest.approx(0.)
+        assert self.basis.derivative((0, 1), (-1, 1), 1) == pytest.approx(0.5)
+        assert self.basis.derivative((1, 0), (0, 0), 0) == pytest.approx(0.25)
+        assert self.basis.derivative((1, 0), (0, 0), 1) == pytest.approx(-0.25)
 
     def test_raises_error_for_invalid_index(self):
         with pytest.raises(ValueError):
@@ -114,6 +131,16 @@ class TestBilinearBasis:
 
     def test_index_range_is_correct(self):
         assert [list(r) for r in self.basis.index_range] == [[0, 1], [0, 1]]
+
+    # TODO: index map tests
+    def test_left_element2global_ttmap_is_correct(self):
+        ttmap = self.basis.get_element2global_ttmap((0, 0), 3)
+        size = 8
+        W00_reshaped = np.reshape(ttmap.full(), (-1, size), order="F")
+        expected_W00 = np.eye(size, dtype=float)
+        expected_W00[-1, -1] = 0
+        assert np.array_equal(W00_reshaped, expected_W00)
+        assert ttmap.shape == [(2, 2), (2, 2), (2, 2)]
 
     def test_dirichlet_mask_is_correct(self):
         mask = self.basis.get_dirichlet_mask(2, 0, 1, 2, 3)
