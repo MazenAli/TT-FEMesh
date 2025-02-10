@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 
+from prototypes.prototyping import mesh_exponent
 from ttfemesh.basis.basis import BilinearBasis, LinearBasis
+from ttfemesh.tn_tools.meshgrid import map2canonical2d
 
 
 class TestLinearBasis:
@@ -134,8 +136,11 @@ class TestBilinearBasis:
 
     # TODO: index map tests
     def test_left_element2global_ttmap_is_correct(self):
-        ttmap = self.basis.get_element2global_ttmap((0, 0), 3)
-        size = 8
+        mesh_size_exponent = 3
+        ttmap = self.basis.get_element2global_ttmap((0, 0), mesh_size_exponent)
+        zmap = map2canonical2d(mesh_size_exponent)
+
+        size = 4**mesh_size_exponent
         W00_reshaped = np.reshape(ttmap.full(), (-1, size), order="F")
         expected_W00 = np.eye(size, dtype=float)
         expected_W00[-1, -1] = 0

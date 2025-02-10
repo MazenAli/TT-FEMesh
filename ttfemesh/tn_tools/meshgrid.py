@@ -39,6 +39,7 @@ def range_meshgrid2d(mesh_size_exponent: int) -> TensorTrain:
     range = tntt._extras.xfun([2] * mesh_size_exponent)
     return zmeshgrid2d(range, range)
 
+
 def map2canonical2d(mesh_size_exponent: int) -> np.ndarray:
     """
     Computes a vector where the i-th element is the index of the i-th element
@@ -47,21 +48,20 @@ def map2canonical2d(mesh_size_exponent: int) -> np.ndarray:
     i + j * 2**d and does not correspond to the z-ordering of (i, j).
     When a TT-tensor in the z-ordering is reshaped to a vector,
     the order of the elements is given by the vector returned by this function.
-    This effectively allows to map the z-ordering to the canonical ordering.
+    This effectively allows to map the z-ordering back to the canonical ordering.
     Useful for debugging and testing.
-
-    ```Example```
-    ```python
-    zmap = map2canonical2d(3)
-    array = tt.full().flatten("F")
-    canonical_array = array[zmap]
-    ```
 
     Args:
         mesh_size_exponent (int): Exponent of 1D grid size.
 
     Returns:
         np.ndarray: Vector of indices mapping z-ordering to canonical ordering.
+
+    Example:
+        .. code-block:: python
+            array = tt.full().flatten("F")
+            zmap = map2canonical2d(3)
+            canonical_array = array[zmap]
     """
 
     meshgrid = range_meshgrid2d(mesh_size_exponent)
