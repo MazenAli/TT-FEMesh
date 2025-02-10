@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-from prototypes.prototyping import mesh_exponent
 from ttfemesh.basis.basis import BilinearBasis, LinearBasis
 from ttfemesh.tn_tools.meshgrid import map2canonical2d
 

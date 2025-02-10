@@ -438,8 +438,8 @@ class BilinearBasis(TensorProductBasis):
 
         self._validate(index)
         return zorder_kron(
-            self.basis_functions[0].get_index_ttmap(index[0], mesh_size_exponent),
-            self.basis_functions[1].get_index_ttmap(index[1], mesh_size_exponent),
+            self.basis_functions[0].get_element2global_ttmap(index[0], mesh_size_exponent),
+            self.basis_functions[1].get_element2global_ttmap(index[1], mesh_size_exponent),
         )
 
     def get_all_element2global_ttmaps(self, mesh_size_exponent: int) -> np.ndarray:
