@@ -133,19 +133,99 @@ class TestBilinearBasis:
     def test_index_range_is_correct(self):
         assert [list(r) for r in self.basis.index_range] == [[0, 1], [0, 1]]
 
-    # TODO: index map tests
-    def test_left_element2global_ttmap_is_correct(self):
-        mesh_size_exponent = 3
-        ttmap = self.basis.get_element2global_ttmap((0, 0), mesh_size_exponent)
+    def test_element2global_ttmap_is_correct(self):
+        mesh_size_exponent = 2
         zmap = map2canonical2d(mesh_size_exponent)
 
-        size = 4**mesh_size_exponent
-        W00_reshaped = np.reshape(ttmap.full(), (-1, size), order="F")
-        expected_W00 = np.eye(size, dtype=float)
-        expected_W00[-1, -1] = 0
-        assert np.array_equal(W00_reshaped, expected_W00)
-        assert ttmap.shape == [(2, 2), (2, 2), (2, 2)]
+        size = 4 ** mesh_size_exponent
+        new_size = 2 ** mesh_size_exponent
+        def reshape_ttmap(ttmap):
+            ttmap_reshape = np.array(ttmap.full()).reshape((size, size), order="F")
+            ttmap_reordered = np.empty_like(ttmap_reshape)
+            ttmap_reordered[np.ix_(zmap, zmap)] = ttmap_reshape
+            ttmap_reordered_reshaped = ttmap_reordered.reshape((new_size, new_size,
+                                                                new_size, new_size),
+                                                                order="F")
+            return ttmap_reordered_reshaped
 
+        W00 = self.basis.get_element2global_ttmap((0, 0), mesh_size_exponent)
+        W10 = self.basis.get_element2global_ttmap((1, 0), mesh_size_exponent)
+        W01 = self.basis.get_element2global_ttmap((0, 1), mesh_size_exponent)
+        W11 = self.basis.get_element2global_ttmap((1, 1), mesh_size_exponent)
+
+        W00_reordered = reshape_ttmap(W00)
+        W10_reordered = reshape_ttmap(W10)
+        W01_reordered = reshape_ttmap(W01)
+        W11_reordered = reshape_ttmap(W11)
+
+        expected_W00 = np.zeros((new_size, new_size, new_size, new_size), dtype=float)
+        expected_W00[0, 0, 0, 0] = 1.
+        expected_W00[0, 1, 0, 1] = 1.
+        expected_W00[0, 2, 0, 2] = 1.
+        expected_W00[1, 0, 1, 0] = 1.
+        expected_W00[1, 1, 1, 1] = 1.
+        expected_W00[1, 2, 1, 2] = 1.
+        expected_W00[2, 0, 2, 0] = 1.
+        expected_W00[2, 1, 2, 1] = 1.
+        expected_W00[2, 2, 2, 2] = 1.
+
+        expected_W10 = np.zeros((new_size, new_size, new_size, new_size), dtype=float)
+        expected_W10[1, 0, 0, 0] = 1.
+        expected_W10[1, 1, 0, 1] = 1.
+        expected_W10[1, 2, 0, 2] = 1.
+        expected_W10[2, 0, 1, 0] = 1.
+        expected_W10[2, 1, 1, 1] = 1.
+        expected_W10[2, 2, 1, 2] = 1.
+        expected_W10[3, 0, 2, 0] = 1.
+        expected_W10[3, 1, 2, 1] = 1.
+        expected_W10[3, 2, 2, 2] = 1.
+
+        expected_W01 = np.zeros((new_size, new_size, new_size, new_size), dtype=float)
+        expected_W01[0, 1, 0, 0] = 1.
+        expected_W01[0, 2, 0, 1] = 1.
+        expected_W01[0, 3, 0, 2] = 1.
+        expected_W01[1, 1, 1, 0] = 1.
+        expected_W01[1, 2, 1, 1] = 1.
+        expected_W01[1, 3, 1, 2] = 1.
+        expected_W01[2, 1, 2, 0] = 1.
+        expected_W01[2, 2, 2, 1] = 1.
+        expected_W01[2, 3, 2, 2] = 1.
+
+        expected_W11 = np.zeros((new_size, new_size, new_size, new_size), dtype=float)
+        expected_W11[1, 1, 0, 0] = 1.
+        expected_W11[1, 2, 0, 1] = 1.
+        expected_W11[1, 3, 0, 2] = 1.
+        expected_W11[2, 1, 1, 0] = 1.
+        expected_W11[2, 2, 1, 1] = 1.
+        expected_W11[2, 3, 1, 2] = 1.
+        expected_W11[3, 1, 2, 0] = 1.
+        expected_W11[3, 2, 2, 1] = 1.
+        expected_W11[3, 3, 2, 2] = 1.
+
+        assert W00.shape == [(4, 4), (4, 4)]
+        assert W10.shape == [(4, 4), (4, 4)]
+        assert W01.shape == [(4, 4), (4, 4)]
+        assert W11.shape == [(4, 4), (4, 4)]
+
+        assert np.array_equal(W00_reordered, expected_W00)
+        assert np.array_equal(W10_reordered, expected_W10)
+        assert np.array_equal(W01_reordered, expected_W01)
+        assert np.array_equal(W11_reordered, expected_W11)
+
+    def test_all_element2global_ttmaps_are_correct(self):
+        mesh_size_exponent = 2
+        ttmaps = self.basis.get_all_element2global_ttmaps(mesh_size_exponent)
+        W00_expected = self.basis.get_element2global_ttmap((0, 0), mesh_size_exponent)
+        W10_expected = self.basis.get_element2global_ttmap((1, 0), mesh_size_exponent)
+        W01_expected = self.basis.get_element2global_ttmap((0, 1), mesh_size_exponent)
+        W11_expected = self.basis.get_element2global_ttmap((1, 1), mesh_size_exponent)
+
+        assert np.array_equal(np.array(ttmaps[0, 0].full()), np.array(W00_expected.full()))
+        assert np.array_equal(np.array(ttmaps[1, 0].full()), np.array(W10_expected.full()))
+        assert np.array_equal(np.array(ttmaps[0, 1].full()), np.array(W01_expected.full()))
+        assert np.array_equal(np.array(ttmaps[1, 1].full()), np.array(W11_expected.full()))
+
+    # TODO: finish dirichlet mask tests
     def test_dirichlet_mask_is_correct(self):
         mask = self.basis.get_dirichlet_mask(2, 0, 1, 2, 3)
         assert mask.shape == [4, 4]
