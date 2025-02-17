@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from ttfemesh.types import BoundarySide2D
 from ttfemesh.basis.basis import BilinearBasis, LinearBasis
 from ttfemesh.tn_tools.meshgrid import map2canonical2d
 
@@ -225,7 +226,44 @@ class TestBilinearBasis:
         assert np.array_equal(np.array(ttmaps[0, 1].full()), np.array(W01_expected.full()))
         assert np.array_equal(np.array(ttmaps[1, 1].full()), np.array(W11_expected.full()))
 
-    # TODO: finish dirichlet mask tests
     def test_dirichlet_mask_is_correct(self):
-        mask = self.basis.get_dirichlet_mask(2, 0, 1, 2, 3)
-        assert mask.shape == [4, 4]
+        mesh_size_exponent = 3
+        mask_left = self.basis.get_dirichlet_mask(mesh_size_exponent, BoundarySide2D.LEFT)
+        mask_bottom = self.basis.get_dirichlet_mask(mesh_size_exponent, BoundarySide2D.BOTTOM)
+        mask_right_top = self.basis.get_dirichlet_mask(mesh_size_exponent,
+                                                       BoundarySide2D.RIGHT,
+                                                       BoundarySide2D.TOP)
+
+        zmap = map2canonical2d(mesh_size_exponent)
+        def reshape_ttvec(ttvec):
+            size = 4 ** mesh_size_exponent
+            reshaped = np.array(ttvec.full()).reshape((size), order="F")
+            reordered = np.empty_like(reshaped)
+            reordered[zmap] = reshaped
+            W = reordered.reshape((2 ** mesh_size_exponent, 2 ** mesh_size_exponent), order="F")
+
+            return W
+
+        mask_left_full = reshape_ttvec(mask_left)
+        mask_bottom_full = reshape_ttvec(mask_bottom)
+        mask_right_top_full = reshape_ttvec(mask_right_top)
+
+        expected_mask_left = np.ones((2 ** mesh_size_exponent, 2 ** mesh_size_exponent),
+                                     dtype=float)
+        expected_mask_left[0, :] = 0.
+
+        expected_mask_bottom = np.ones((2 ** mesh_size_exponent, 2 ** mesh_size_exponent),
+                                       dtype=float)
+        expected_mask_bottom[:, 0] = 0.
+
+        expected_mask_right_top = np.ones((2 ** mesh_size_exponent, 2 ** mesh_size_exponent),
+                                           dtype=float)
+        expected_mask_right_top[-1, :] = 0.
+        expected_mask_right_top[:, -1] = 0.
+
+        assert mask_left.shape == [4]*mesh_size_exponent
+        assert mask_bottom.shape == [4]*mesh_size_exponent
+        assert mask_right_top.shape == [4]*mesh_size_exponent
+        assert np.array_equal(mask_left_full, expected_mask_left)
+        assert np.array_equal(mask_bottom_full, expected_mask_bottom)
+        assert np.array_equal(mask_right_top_full, expected_mask_right_top)
