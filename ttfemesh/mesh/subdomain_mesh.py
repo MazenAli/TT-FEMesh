@@ -1,6 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -373,7 +373,9 @@ class SubdomainMesh2D(SubdomainMesh):
             for i in range(2):
                 for j in range(2):
                     eval_point = np.array([quad_point])
-                    cross_func = lambda idx: self._cross_func(idx, eval_point)[:, i, j]
+
+                    def cross_func(idx):
+                        return self._cross_func(idx, eval_point)[:, i, j]
 
                     # out of bounds intentional
                     with warnings.catch_warnings():
@@ -396,7 +398,9 @@ class SubdomainMesh2D(SubdomainMesh):
         det_tensor_networks = np.ndarray((len(quadrature_points)), dtype=object)
         for q, quad_point in enumerate(quadrature_points):
             eval_point = np.array([quad_point])
-            cross_func = lambda idx: np.linalg.det(self._cross_func(idx, eval_point))
+
+            def cross_func(idx):
+                return np.linalg.det(self._cross_func(idx, eval_point))
 
             # out of bounds intentional
             with warnings.catch_warnings():
@@ -421,7 +425,9 @@ class SubdomainMesh2D(SubdomainMesh):
         invdet_tensor_networks = []
         for quad_point in quadrature_points:
             eval_point = np.array([quad_point])
-            cross_func = lambda idx: 1.0 / np.linalg.det(self._cross_func(idx, eval_point))
+
+            def cross_func(idx):
+                return 1.0 / np.linalg.det(self._cross_func(idx, eval_point))
 
             # out of bounds intentional
             with warnings.catch_warnings():
@@ -727,7 +733,10 @@ class QuadMesh(SubdomainMesh2D):
         Returns:
             List[np.ndarray]: The tensor train cores of the linear interpolation.
         """
-        func = lambda idx: oracle(idx)[0]
+
+        def func(idx):
+            return oracle(idx)[0]
+
         tt_interpolant = interpolate_linear2d(func, self.mesh_size_exponent)
 
         return tt_interpolant

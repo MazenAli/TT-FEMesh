@@ -70,9 +70,10 @@ def map2canonical2d(mesh_size_exponent: int) -> np.ndarray:
     vecy = np.array(YY.full()).flatten("F")
     z2tuples = list(zip(vecx, vecy))
     xlen = 2**mesh_size_exponent
+
     def index_map(pair):
         i, j = pair
-        idx = int(j*xlen + i)
+        idx = int(j * xlen + i)
         return idx
 
     zmap = [index_map(pair) for pair in z2tuples]

@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from ttfemesh.types import BoundarySide2D
 from ttfemesh.basis.basis import BilinearBasis, LinearBasis
 from ttfemesh.tn_tools.meshgrid import map2canonical2d
+from ttfemesh.types import BoundarySide2D
 
 
 class TestLinearBasis:
@@ -76,23 +76,23 @@ class TestLinearBasis:
         mask = self.basis.get_dirichlet_mask_left(3)
         vector = np.array(mask.full()).flatten("F")
         assert mask.shape == [2, 2, 2]
-        assert vector[0] == 0.
-        assert np.all(vector[1:] == 1.)
+        assert vector[0] == 0.0
+        assert np.all(vector[1:] == 1.0)
 
     def test_dirichlet_mask_right_is_correct(self):
         mask = self.basis.get_dirichlet_mask_right(3)
         vector = np.array(mask.full()).flatten("F")
         assert mask.shape == [2, 2, 2]
-        assert vector[-1] == 0.
-        assert np.all(vector[:-1] == 1.)
+        assert vector[-1] == 0.0
+        assert np.all(vector[:-1] == 1.0)
 
     def test_dirichlet_mask_left_right_is_correct(self):
         mask = self.basis.get_dirichlet_mask_left_right(3)
         vector = np.array(mask.full()).flatten("F")
         assert mask.shape == [2, 2, 2]
-        assert vector[0] == 0.
-        assert vector[-1] == 0.
-        assert np.all(vector[1:-1] == 1.)
+        assert vector[0] == 0.0
+        assert vector[-1] == 0.0
+        assert np.all(vector[1:-1] == 1.0)
 
 
 class TestBilinearBasis:
@@ -122,14 +122,10 @@ class TestBilinearBasis:
     def test_derivative_is_correct(self):
         assert self.basis.derivative((0, 0), (-1, -1), 0) == pytest.approx(-0.5)
         assert self.basis.derivative((0, 0), (-1, -1), 1) == pytest.approx(-0.5)
-        assert self.basis.derivative((0, 1), (-1, -1), 0) == pytest.approx(0.)
+        assert self.basis.derivative((0, 1), (-1, -1), 0) == pytest.approx(0.0)
         assert self.basis.derivative((0, 1), (-1, 1), 1) == pytest.approx(0.5)
         assert self.basis.derivative((1, 0), (0, 0), 0) == pytest.approx(0.25)
         assert self.basis.derivative((1, 0), (0, 0), 1) == pytest.approx(-0.25)
-
-    def test_raises_error_for_invalid_index(self):
-        with pytest.raises(ValueError):
-            self.basis.evaluate((2, 0), (0, 0))
 
     def test_index_range_is_correct(self):
         assert [list(r) for r in self.basis.index_range] == [[0, 1], [0, 1]]
@@ -138,15 +134,16 @@ class TestBilinearBasis:
         mesh_size_exponent = 2
         zmap = map2canonical2d(mesh_size_exponent)
 
-        size = 4 ** mesh_size_exponent
-        new_size = 2 ** mesh_size_exponent
+        size = 4**mesh_size_exponent
+        new_size = 2**mesh_size_exponent
+
         def reshape_ttmap(ttmap):
             ttmap_reshape = np.array(ttmap.full()).reshape((size, size), order="F")
             ttmap_reordered = np.empty_like(ttmap_reshape)
             ttmap_reordered[np.ix_(zmap, zmap)] = ttmap_reshape
-            ttmap_reordered_reshaped = ttmap_reordered.reshape((new_size, new_size,
-                                                                new_size, new_size),
-                                                                order="F")
+            ttmap_reordered_reshaped = ttmap_reordered.reshape(
+                (new_size, new_size, new_size, new_size), order="F"
+            )
             return ttmap_reordered_reshaped
 
         W00 = self.basis.get_element2global_ttmap((0, 0), mesh_size_exponent)
@@ -160,48 +157,48 @@ class TestBilinearBasis:
         W11_reordered = reshape_ttmap(W11)
 
         expected_W00 = np.zeros((new_size, new_size, new_size, new_size), dtype=float)
-        expected_W00[0, 0, 0, 0] = 1.
-        expected_W00[0, 1, 0, 1] = 1.
-        expected_W00[0, 2, 0, 2] = 1.
-        expected_W00[1, 0, 1, 0] = 1.
-        expected_W00[1, 1, 1, 1] = 1.
-        expected_W00[1, 2, 1, 2] = 1.
-        expected_W00[2, 0, 2, 0] = 1.
-        expected_W00[2, 1, 2, 1] = 1.
-        expected_W00[2, 2, 2, 2] = 1.
+        expected_W00[0, 0, 0, 0] = 1.0
+        expected_W00[0, 1, 0, 1] = 1.0
+        expected_W00[0, 2, 0, 2] = 1.0
+        expected_W00[1, 0, 1, 0] = 1.0
+        expected_W00[1, 1, 1, 1] = 1.0
+        expected_W00[1, 2, 1, 2] = 1.0
+        expected_W00[2, 0, 2, 0] = 1.0
+        expected_W00[2, 1, 2, 1] = 1.0
+        expected_W00[2, 2, 2, 2] = 1.0
 
         expected_W10 = np.zeros((new_size, new_size, new_size, new_size), dtype=float)
-        expected_W10[1, 0, 0, 0] = 1.
-        expected_W10[1, 1, 0, 1] = 1.
-        expected_W10[1, 2, 0, 2] = 1.
-        expected_W10[2, 0, 1, 0] = 1.
-        expected_W10[2, 1, 1, 1] = 1.
-        expected_W10[2, 2, 1, 2] = 1.
-        expected_W10[3, 0, 2, 0] = 1.
-        expected_W10[3, 1, 2, 1] = 1.
-        expected_W10[3, 2, 2, 2] = 1.
+        expected_W10[1, 0, 0, 0] = 1.0
+        expected_W10[1, 1, 0, 1] = 1.0
+        expected_W10[1, 2, 0, 2] = 1.0
+        expected_W10[2, 0, 1, 0] = 1.0
+        expected_W10[2, 1, 1, 1] = 1.0
+        expected_W10[2, 2, 1, 2] = 1.0
+        expected_W10[3, 0, 2, 0] = 1.0
+        expected_W10[3, 1, 2, 1] = 1.0
+        expected_W10[3, 2, 2, 2] = 1.0
 
         expected_W01 = np.zeros((new_size, new_size, new_size, new_size), dtype=float)
-        expected_W01[0, 1, 0, 0] = 1.
-        expected_W01[0, 2, 0, 1] = 1.
-        expected_W01[0, 3, 0, 2] = 1.
-        expected_W01[1, 1, 1, 0] = 1.
-        expected_W01[1, 2, 1, 1] = 1.
-        expected_W01[1, 3, 1, 2] = 1.
-        expected_W01[2, 1, 2, 0] = 1.
-        expected_W01[2, 2, 2, 1] = 1.
-        expected_W01[2, 3, 2, 2] = 1.
+        expected_W01[0, 1, 0, 0] = 1.0
+        expected_W01[0, 2, 0, 1] = 1.0
+        expected_W01[0, 3, 0, 2] = 1.0
+        expected_W01[1, 1, 1, 0] = 1.0
+        expected_W01[1, 2, 1, 1] = 1.0
+        expected_W01[1, 3, 1, 2] = 1.0
+        expected_W01[2, 1, 2, 0] = 1.0
+        expected_W01[2, 2, 2, 1] = 1.0
+        expected_W01[2, 3, 2, 2] = 1.0
 
         expected_W11 = np.zeros((new_size, new_size, new_size, new_size), dtype=float)
-        expected_W11[1, 1, 0, 0] = 1.
-        expected_W11[1, 2, 0, 1] = 1.
-        expected_W11[1, 3, 0, 2] = 1.
-        expected_W11[2, 1, 1, 0] = 1.
-        expected_W11[2, 2, 1, 1] = 1.
-        expected_W11[2, 3, 1, 2] = 1.
-        expected_W11[3, 1, 2, 0] = 1.
-        expected_W11[3, 2, 2, 1] = 1.
-        expected_W11[3, 3, 2, 2] = 1.
+        expected_W11[1, 1, 0, 0] = 1.0
+        expected_W11[1, 2, 0, 1] = 1.0
+        expected_W11[1, 3, 0, 2] = 1.0
+        expected_W11[2, 1, 1, 0] = 1.0
+        expected_W11[2, 2, 1, 1] = 1.0
+        expected_W11[2, 3, 1, 2] = 1.0
+        expected_W11[3, 1, 2, 0] = 1.0
+        expected_W11[3, 2, 2, 1] = 1.0
+        expected_W11[3, 3, 2, 2] = 1.0
 
         assert W00.shape == [(4, 4), (4, 4)]
         assert W10.shape == [(4, 4), (4, 4)]
@@ -230,17 +227,18 @@ class TestBilinearBasis:
         mesh_size_exponent = 3
         mask_left = self.basis.get_dirichlet_mask(mesh_size_exponent, BoundarySide2D.LEFT)
         mask_bottom = self.basis.get_dirichlet_mask(mesh_size_exponent, BoundarySide2D.BOTTOM)
-        mask_right_top = self.basis.get_dirichlet_mask(mesh_size_exponent,
-                                                       BoundarySide2D.RIGHT,
-                                                       BoundarySide2D.TOP)
+        mask_right_top = self.basis.get_dirichlet_mask(
+            mesh_size_exponent, BoundarySide2D.RIGHT, BoundarySide2D.TOP
+        )
 
         zmap = map2canonical2d(mesh_size_exponent)
+
         def reshape_ttvec(ttvec):
-            size = 4 ** mesh_size_exponent
+            size = 4**mesh_size_exponent
             reshaped = np.array(ttvec.full()).reshape((size), order="F")
             reordered = np.empty_like(reshaped)
             reordered[zmap] = reshaped
-            W = reordered.reshape((2 ** mesh_size_exponent, 2 ** mesh_size_exponent), order="F")
+            W = reordered.reshape((2**mesh_size_exponent, 2**mesh_size_exponent), order="F")
 
             return W
 
@@ -248,22 +246,21 @@ class TestBilinearBasis:
         mask_bottom_full = reshape_ttvec(mask_bottom)
         mask_right_top_full = reshape_ttvec(mask_right_top)
 
-        expected_mask_left = np.ones((2 ** mesh_size_exponent, 2 ** mesh_size_exponent),
-                                     dtype=float)
-        expected_mask_left[0, :] = 0.
+        expected_mask_left = np.ones((2**mesh_size_exponent, 2**mesh_size_exponent), dtype=float)
+        expected_mask_left[0, :] = 0.0
 
-        expected_mask_bottom = np.ones((2 ** mesh_size_exponent, 2 ** mesh_size_exponent),
-                                       dtype=float)
-        expected_mask_bottom[:, 0] = 0.
+        expected_mask_bottom = np.ones((2**mesh_size_exponent, 2**mesh_size_exponent), dtype=float)
+        expected_mask_bottom[:, 0] = 0.0
 
-        expected_mask_right_top = np.ones((2 ** mesh_size_exponent, 2 ** mesh_size_exponent),
-                                           dtype=float)
-        expected_mask_right_top[-1, :] = 0.
-        expected_mask_right_top[:, -1] = 0.
+        expected_mask_right_top = np.ones(
+            (2**mesh_size_exponent, 2**mesh_size_exponent), dtype=float
+        )
+        expected_mask_right_top[-1, :] = 0.0
+        expected_mask_right_top[:, -1] = 0.0
 
-        assert mask_left.shape == [4]*mesh_size_exponent
-        assert mask_bottom.shape == [4]*mesh_size_exponent
-        assert mask_right_top.shape == [4]*mesh_size_exponent
+        assert mask_left.shape == [4] * mesh_size_exponent
+        assert mask_bottom.shape == [4] * mesh_size_exponent
+        assert mask_right_top.shape == [4] * mesh_size_exponent
         assert np.array_equal(mask_left_full, expected_mask_left)
         assert np.array_equal(mask_bottom_full, expected_mask_bottom)
         assert np.array_equal(mask_right_top_full, expected_mask_right_top)

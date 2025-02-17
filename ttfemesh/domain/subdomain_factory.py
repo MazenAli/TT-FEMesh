@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 
 from ttfemesh.domain.curve import Line2D
-from ttfemesh.domain.subdomain import Quad, Subdomain2D
+from ttfemesh.domain.subdomain import Quad
 
 
 class SubdomainFactory(ABC):

@@ -1,5 +1,5 @@
 from .interpolate import interpolate_linear2d
-from .meshgrid import range_meshgrid2d, zmeshgrid2d, map2canonical2d
+from .meshgrid import map2canonical2d, range_meshgrid2d, zmeshgrid2d
 from .numeric import unit_vector_binary_tt
 from .operations import levelwise_kron, transpose_kron, zorder_kron
 from .tensor_cross import (
