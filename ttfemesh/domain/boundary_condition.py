@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
-from ttfemesh.domain.subdomain import Subdomain
+from ttfemesh.domain.subdomain import Subdomain2D
 
 
 class BoundaryCondition(ABC):
@@ -11,12 +11,9 @@ class BoundaryCondition(ABC):
     """
 
     @abstractmethod
-    def validate(self, subdomains: List[Subdomain]):
+    def validate(self, *args, **kwargs):
         """
         Validate the boundary condition with respect to the subdomains.
-
-        Args:
-            subdomains (List[Subdomain]): List of subdomains in the domain.
         """
         pass
 
@@ -49,7 +46,7 @@ class DirichletBoundary2D(BoundaryCondition):
         """
         self.boundary = boundary
 
-    def validate(self, subdomains: List[Subdomain]):
+    def validate(self, subdomains: List[Subdomain2D]):
         """
         Validate the boundary condition. Ensure that the specified curve exists.
 
@@ -79,7 +76,8 @@ class DirichletBoundary2D(BoundaryCondition):
 
         Returns:
             Dict[int, List[int]]: A dictionary where the keys are subdomain indices,
-                                  and the values are lists of curve indices with the boundary condition.
+                                  and the values are lists of curve indices with
+                                  the boundary condition.
         """
         grouped = defaultdict(list)
         for subdomain, curve in self.boundary:

@@ -23,7 +23,7 @@ format_check:
 	isort --multi-line 3 --trailing-comma --force-grid-wrap 0 --use-parentheses --line-width 100 $(DIRS) --check-only
 
 static:
-	flake8 --ignore E501,E203,W503 --max-line-length=100 $(DIRS)
+	flake8 --max-line-length=100 $(DIRS)
 	mypy $(DIRS) --ignore-missing-imports --no-strict-optional
 
 test:

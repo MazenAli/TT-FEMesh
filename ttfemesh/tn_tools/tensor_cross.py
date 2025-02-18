@@ -13,7 +13,8 @@ class TTCrossConfig:
         info (dict, optional): Stores TTCross run information.
         num_sweeps (int, optional): Number of sweeps for DMRG. Defaults to 10.
         rel_stagnation_tol (float, optional): Relative stagnation tolerance. Defaults to 1e-4.
-        max_func_calls (Optional[int], optional): Maximum number of function calls. Defaults to None.
+        max_func_calls (Optional[int], optional): Maximum number of function calls.
+            Defaults to None.
         cache_calls_factor (int, optional): If the number of calls to cache is this factor
             times larger than number of function calls, TTCross stops. Defaults to 20.
         num_anova_init (int, optional): Number of training indices for ANOVA initializations.

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Iterable, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,12 +21,17 @@ class Basis(ABC):
         pass
 
     @abstractmethod
-    def evaluate(self, idx: Any, x: Any) -> Any:
+    def evaluate(self, *args, **kwargs) -> Any:
         """Evaluate the basis function indexed with idx at a given point."""
         pass
 
     @abstractmethod
-    def _validate(self, idx: Any):
+    def derivative(self, *args, **kwargs) -> Any:
+        """Evaluate the derivative of the basis function indexed with idx at a given point."""
+        pass
+
+    @abstractmethod
+    def _validate(self, *args, **kwargs):
         """Validate the basis function index."""
         pass
 
@@ -63,6 +68,58 @@ class Basis1D(Basis):
     def dimension(self) -> int:
         return 1
 
+    @abstractmethod
+    def get_element2global_ttmap(self, *args, **kwargs) -> TensorTrain:
+        """
+        Get the TT-representation of a corner element index to global basis index map.
+
+        Returns:
+            TensorTrain: TT-representation of the corner to global index map.
+        """
+        pass
+
+    @abstractmethod
+    def get_all_element2global_ttmaps(self, *args, **kwargs) -> Tuple[TensorTrain, ...]:
+        """
+        Get the TT-representation for all corner elements in `index_range`
+        to global basis index maps.
+
+        Returns:
+            Tuple[TensorTrain, ...]:  TT-representations of all corner-to-global index maps.
+                First element is the map for index 0, second element is the map for index 1.
+        """
+        pass
+
+    @abstractmethod
+    def get_dirichlet_mask_left(self, *args, **kwargs) -> TensorTrain:
+        """
+        Get the mask for the left Dirichlet boundary condition.
+
+        Returns:
+            TensorTrain: TT-representation of the Dirichlet mask.
+        """
+        pass
+
+    @abstractmethod
+    def get_dirichlet_mask_right(self, *args, **kwargs) -> TensorTrain:
+        """
+        Get the mask for the right Dirichlet boundary condition.
+
+        Returns:
+            TensorTrain: TT-representation of the Dirichlet mask.
+        """
+        pass
+
+    @abstractmethod
+    def get_dirichlet_mask_left_right(self, *args, **kwargs) -> TensorTrain:
+        """
+        Get the mask for the left and right Dirichlet boundary conditions.
+
+        Returns:
+            TensorTrain: TT-representation of the Dirichlet mask.
+        """
+        pass
+
 
 class LinearBasis(Basis1D):
     """Linear basis functions on the reference element [-1, 1]."""
@@ -84,6 +141,8 @@ class LinearBasis(Basis1D):
             return 0.5 * (1 - x)
         elif idx == 1:
             return 0.5 * (1 + x)
+
+        return 0.0
 
     def derivative(self, idx: int, _: Optional[float] = None) -> float:
         """
@@ -229,32 +288,20 @@ class TensorProductBasis(Basis):
         return self._dimension
 
     @abstractmethod
-    def get_element2global_ttmap(
-        self, index: Tuple[int, ...], mesh_size_exponent: int
-    ) -> TensorTrain:
+    def get_element2global_ttmap(self, *args, **kwargs) -> TensorTrain:
         """
         Get the TT-representation of a corner element index to global basis index map.
 
-        Args:
-            index (Tuple[int, ...]): Indices of the corner element.
-            mesh_size_exponent (int): Exponent of the 1D mesh size.
-
         Returns:
             TensorTrain: TT-representation of the corner to global index map.
-
-        Raises:
-            ValueError: If the index is invalid.
         """
         pass
 
     @abstractmethod
-    def get_all_element2global_ttmaps(self, mesh_size_exponent: int) -> np.ndarray:
+    def get_all_element2global_ttmaps(self, *args, **kwargs) -> np.ndarray:
         """
         Get the TT-representation for all corner elements in `index_range`
         to global basis index maps.
-
-        Args:
-            mesh_size_exponent (int): Exponent of the 1D mesh size.
 
         Returns:
             np.ndarray: A 2D matrix of TT-representations, indexed by (i, j)
@@ -276,13 +323,13 @@ class TensorProductBasis(Basis):
     def index_range(self):
         return [bf.index_range for bf in self.basis_functions]
 
-    def evaluate(self, idx: Iterable[int], x: Iterable[float]) -> float:
+    def evaluate(self, idx: List[int], x: List[float]) -> float:
         """
         Evaluate the tensor product basis function at a given point.
 
         Args:
-            idx (Iterable[int]): Indices of the basis functions in each dimension.
-            x (Iterable[float]): Coordinates in the reference element [-1, 1]^d.
+            idx (List[int]): Indices of the basis functions in each dimension.
+            x (List[float]): Coordinates in the reference element [-1, 1]^d.
 
         Returns:
             float: Value of the tensor product basis function at x.
@@ -290,13 +337,13 @@ class TensorProductBasis(Basis):
         self._validate(idx)
         return np.prod([bf.evaluate(i, xi) for bf, i, xi in zip(self.basis_functions, idx, x)])
 
-    def derivative(self, idx: Iterable[int], x: Iterable[float], dim: int) -> float:
+    def derivative(self, idx: List[int], x: List[float], dim: int) -> float:
         """
         Evaluate the partial derivative with respect to a given dimension.
 
         Args:
-            idx (Iterable[int]): Indices of the basis functions in each dimension.
-            x (Iterable[float]): Coordinates in the reference element [-1, 1]^d.
+            idx (List[int]): Indices of the basis functions in each dimension.
+            x (List[float]): Coordinates in the reference element [-1, 1]^d.
             dim (int): Dimension index (0-based) to differentiate.
 
         Returns:
@@ -316,7 +363,7 @@ class TensorProductBasis(Basis):
                 result *= bf.evaluate(idx_xi, xi)
         return result
 
-    def _validate(self, idx: Iterable[int]):
+    def _validate(self, idx: List[int]):
         """Validate the basis function indices."""
         if len(idx) != self.dimension:
             raise ValueError(
@@ -328,29 +375,32 @@ class TensorProductBasis(Basis):
     def __repr__(self):
         return f"TensorProductBasis(dim={self.dimension})"
 
-    def plot(self, idx: Iterable[int], num_points: int = 100):
+    def plot(self, idx: List[int], num_points: int = 100):
         """
         Plot the tensor product basis function indexed with idx.
 
         Args:
-            idx (Iterable[int]): Indices of the basis functions in each dimension.
+            idx (List[int]): Indices of the basis functions in each dimension.
             num_points (int): Number of points to plot.
+
+        Raises:
+            NotImplementedError: If the dimension is not 2.
         """
         self._validate(idx)
 
         if self.dimension == 2:
             self._plot2d(idx, num_points)
-        elif self.dimension == 3:
-            self._plot3d(idx, num_points)
         else:
-            raise NotImplementedError("Plotting is only supported for 2D and 3D basis functions.")
+            raise NotImplementedError(
+                "Tensor product plotting" " is only supported for 2D basis functions."
+            )
 
-    def _plot2d(self, idx: Iterable[int], num_points: int = 100):
+    def _plot2d(self, idx: List[int], num_points: int = 100):
         """
         Plot the tensor product basis function indexed with idx in 2D.
 
         Args:
-            idx (Iterable[int]): Indices of the basis functions in each dimension.
+            idx (List[int]): Indices of the basis functions in each dimension.
             num_points (int): Number of points to plot.
         """
         x_vals = np.linspace(-1, 1, num_points)
@@ -359,49 +409,12 @@ class TensorProductBasis(Basis):
         Z = np.zeros_like(X)
         for i in range(num_points):
             for j in range(num_points):
-                Z[i, j] = self.evaluate(idx, (X[i, j], Y[i, j]))
+                Z[i, j] = self.evaluate(idx, [X[i, j], Y[i, j]])
         plt.contourf(X, Y, Z, levels=20)
         plt.colorbar()
         plt.title("2D Tensor Product Basis Function")
         plt.xlabel("x")
         plt.ylabel("y")
-        plt.show()
-
-    def _plot3d(self, idx: Iterable[int], num_points: int = 30):
-        """
-        Plot the tensor product basis function as a 3D heatmap.
-
-        Args:
-            idx (Iterable[int]): Indices of the basis functions in each dimension.
-            num_points (int): Number of points per dimension for the plot.
-        """
-
-        x = np.linspace(-1, 1, num_points)
-        y = np.linspace(-1, 1, num_points)
-        z = np.linspace(-1, 1, num_points)
-        X, Y, Z = np.meshgrid(x, y, z, indexing="ij")
-
-        points = np.vstack([X.ravel(), Y.ravel(), Z.ravel()]).T
-        values = np.array([self.evaluate(idx, point) for point in points])
-
-        values_normalized = (values - values.min()) / (values.max() - values.min())
-
-        fig = plt.figure(figsize=(10, 8))
-        ax = fig.add_subplot(111, projection="3d")
-
-        scatter = ax.scatter(
-            X.ravel(), Y.ravel(), Z.ravel(), c=values_normalized, cmap="viridis", s=5, alpha=0.8
-        )
-
-        cbar = fig.colorbar(scatter, ax=ax, shrink=0.5, aspect=10)
-        cbar.set_label("Basis function value")
-
-        # Set plot labels
-        plt.title("3D Tensor Product Basis Function")
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-        ax.set_zlabel("z")
-
         plt.show()
 
 
@@ -415,14 +428,12 @@ class BilinearBasis(TensorProductBasis):
     def dimension(self) -> int:
         return 2
 
-    def get_element2global_ttmap(
-        self, index: Tuple[int, int], mesh_size_exponent: int
-    ) -> TensorTrain:
+    def get_element2global_ttmap(self, index: List[int], mesh_size_exponent: int) -> TensorTrain:
         """
         Get the TT-representation of a corner element index to global basis index map.
 
         Args:
-            index (Tuple[int, int]): Indices of the corner element
+            index (List[int]): Indices of the corner element
                 ((0, 0) for lower left,
                 (1, 0) for lower right,
                 (0, 1) for upper left,
