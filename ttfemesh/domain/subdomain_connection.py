@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List, Literal, Tuple
+from typing import List, Literal, Sequence, Tuple
 
 import numpy as np
 
 from ttfemesh.domain.curve import Curve
-from ttfemesh.domain.subdomain import Subdomain
+from ttfemesh.domain.subdomain import Subdomain, Subdomain2D
 
 CurvePosition = Literal["start", "end"]
 
@@ -13,12 +13,12 @@ class SubdomainConnection(ABC):
     """Generic subdomain connection class."""
 
     @abstractmethod
-    def validate(self, subdomains: List[Subdomain]):
+    def validate(self, subdomains: Sequence[Subdomain], **kwargs):
         """
         Validates that the connection is consistent with the provided subdomains.
 
         Args:
-            subdomains (List[Subdomain]): List of subdomains in the domain.
+            subdomains (Sequence[Subdomain]): List of subdomains in the domain.
         """
         pass
 
@@ -64,12 +64,12 @@ class VertexConnection2D(SubdomainConnection2D):
         """Number of connected subdomains."""
         return len(self.connection)
 
-    def validate(self, subdomains: List[Subdomain], tol: float = 1e-6):
+    def validate(self, subdomains: Sequence[Subdomain2D], tol: float = 1e-6):
         """
         Validate that all specified subdomains, curves, and positions share the given vertex.
 
         Args:
-            subdomains (List[Subdomain]): List of subdomains in the domain.
+            subdomains (Sequence[Subdomain2D]): List of subdomains in the domain.
             tol (float): Tolerance for point-wise comparison
 
         Raises:
@@ -113,12 +113,12 @@ class VertexConnection2D(SubdomainConnection2D):
 
         return pairs
 
-    def get_shared_vertex(self, subdomains: List[Subdomain]) -> np.ndarray:
+    def get_shared_vertex(self, subdomains: List[Subdomain2D]) -> np.ndarray:
         """
         Get the shared vertex between the connected subdomains.
 
         Args:
-            subdomains (List[Subdomain]): List of subdomains in the domain.
+            subdomains (List[Subdomain2D]): List of subdomains in the domain.
 
         Returns:
             np.ndarray: Shared vertex coordinates.
@@ -161,12 +161,12 @@ class CurveConnection2D(SubdomainConnection2D):
         """Number of connected subdomains."""
         return 2
 
-    def validate(self, subdomains: List[Subdomain], num_points: int = 100, tol: float = 1e-6):
+    def validate(self, subdomains: Sequence[Subdomain2D], num_points: int = 100, tol: float = 1e-6):
         """
         Validate that the curves are approximately equal.
 
         Args:
-            subdomains (List[Subdomain]): List of subdomains in the domain.
+            subdomains (Sequence[Subdomain2D]): List of subdomains in the domain.
             num_points (int): Number of points to sample along the curve.
             tol (float): Tolerance for point-wise comparison.
         """
@@ -184,12 +184,12 @@ class CurveConnection2D(SubdomainConnection2D):
                 f" and {curve2_idx} of subdomain {sub2_idx} are not equal."
             )
 
-    def get_shared_curve(self, subdomains: List[Subdomain]) -> Curve:
+    def get_shared_curve(self, subdomains: List[Subdomain2D]) -> Curve:
         """
         Get the shared curve between the connected subdomains.
 
         Args:
-            subdomains (List[Subdomain]): List of subdomains in the domain.
+            subdomains (List[Subdomain2D]): List of subdomains in the domain.
 
         Returns:
             Curve: Shared curve.

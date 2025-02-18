@@ -1,6 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Callable, Union
 
 import numpy as np
 
@@ -180,14 +180,16 @@ class CircularArc2D(Curve):
 
 
 class ParametricCurve2D(Curve):
-    def __init__(self, x_func: callable, y_func: callable):
+    def __init__(
+        self, x_func: Callable[[np.ndarray], np.ndarray], y_func: Callable[[np.ndarray], np.ndarray]
+    ):
         """
         Initialize a parametric curve defined by functions x(t) and y(t).
         Uses a finite difference approximation to compute the tangent.
 
         Args:
-            x_func (callable): Function x(t) where t is in [-1, 1].
-            y_func (callable): Function y(t) where t is in [-1, 1].
+            x_func (Callable[[np.ndarray], np.ndarray]): Function x(t) where t is in [-1, 1].
+            y_func (Callable[[np.ndarray], np.ndarray]): Function y(t) where t is in [-1, 1].
         """
         self.x_func = x_func
         self.y_func = y_func

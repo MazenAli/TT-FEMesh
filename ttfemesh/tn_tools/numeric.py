@@ -51,11 +51,11 @@ def unit_vector_binary_tt(length: int, index: int) -> TensorTrain:
     if index >= 2**length:
         raise ValueError(f"Index ({index}) must be less than 2^{length}.")
 
-    cores = [None] * length
+    cores = []
     binidx = integer_to_little_endian(length, index)
     for j in range(length):
         core = torch.zeros(1, 2, 1)
         core[0, binidx[j], 0] = 1.0
-        cores[j] = core
+        cores.append(core)
 
     return TensorTrain(cores)

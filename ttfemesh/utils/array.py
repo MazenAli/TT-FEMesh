@@ -3,7 +3,7 @@ from typing import Union
 import numpy as np
 
 
-def ensure_1d(array_or_scalar: Union[np.ndarray, any]) -> np.ndarray:
+def ensure_1d(array_or_scalar: Union[np.ndarray, float]) -> np.ndarray:
     """
     Ensure the input is a 1D array.
 

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 
 from ttfemesh.domain.curve import Line2D
-from ttfemesh.domain.subdomain import Quad
+from ttfemesh.domain.subdomain import Quad, Subdomain2D
 
 
 class SubdomainFactory(ABC):
@@ -12,7 +12,7 @@ class SubdomainFactory(ABC):
 
     @staticmethod
     @abstractmethod
-    def create():
+    def create(*args, **kwargs) -> Subdomain2D:
         pass
 
 
@@ -61,7 +61,7 @@ class QuadFactory(SubdomainFactory):
             p3 (Tuple[float, float]): Coordinates of the third corner.
             p4 (Tuple[float, float]): Coordinates of the fourth corner.
         Returns:
-            Subdomain2D: A trapezoid subdomain.
+            Quad: A trapezoid subdomain.
         """
 
         points = (p1, p2, p3, p4)

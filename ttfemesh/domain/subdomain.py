@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,14 +25,14 @@ class Subdomain(ABC):
 
 
 class Subdomain2D(Subdomain):
-    def __init__(self, curves: List[Curve]):
+    def __init__(self, curves: Sequence[Curve]):
         """
         Initialize a 2D subdomain defined by 4 boundary curves.
         The curves must connect properly to form a closed subdomain.
         The start and end points of the curves must be ordered counter-clockwise.
 
         Args:
-            curves (List[Curve]): List of 4 boundary curves.
+            curves (Sequence[Curve]): List of 4 boundary curves.
         """
         if len(curves) != 4:
             raise ValueError("A 2D subdomain must be defined by exactly 4 curves.")
@@ -104,7 +104,7 @@ class Subdomain2D(Subdomain):
 class Quad(Subdomain2D):
     """Quadrilateral subdomain defined by 4 boundary lines."""
 
-    def __init__(self, curves: List[Line2D]):
+    def __init__(self, curves: Sequence[Line2D]):
         super().__init__(curves)
 
     def __repr__(self):

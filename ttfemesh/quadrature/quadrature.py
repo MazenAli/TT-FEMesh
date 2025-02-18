@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import numpy.polynomial.legendre as leg
@@ -48,8 +48,8 @@ class GaussLegendre(QuadratureRule):
         """
         self.order = order
         self._dimension = dimension
-        self.points = None
-        self.weights = None
+        self.points: Optional[np.ndarray] = None
+        self.weights: Optional[np.ndarray] = None
 
     @property
     def dimension(self) -> int:
