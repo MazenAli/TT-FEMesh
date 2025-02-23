@@ -39,7 +39,7 @@ class Subdomain2D(Subdomain):
         self.curves = curves
         self._validate()
 
-    def get_curve(self, index: int) -> Curve:
+    def get_curve(self, index: int) -> Curve:  # noqa
         """
         Get the curve at the specified index.
 

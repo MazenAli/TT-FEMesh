@@ -67,7 +67,7 @@ class DomainMesh(ABC):
 
         return subdomain_meshes
 
-    def get_subdomain_mesh(self, subdomain_index: int) -> SubdomainMesh:
+    def get_subdomain_mesh(self, subdomain_index: int) -> SubdomainMesh:  # noqa
         """
         Get the SubdomainMesh for a subdomain.
 
@@ -83,7 +83,7 @@ class DomainMesh(ABC):
         self._validate_subdomain_index(subdomain_index)
         return self.subdomain_meshes[subdomain_index]
 
-    def get_element2global_index_map(self) -> np.ndarray:
+    def get_element2global_index_map(self) -> np.ndarray:  # noqa
         """
         Get the TT-representation of transformations mapping from element index to global basis
         function index for all reference basis functions on a reference element in a subdomain.
@@ -111,7 +111,7 @@ class DomainMesh(ABC):
 
         return ttmaps
 
-    def get_dirichlet_masks(self) -> Dict[int, TensorTrain]:
+    def get_dirichlet_masks(self) -> Dict[int, TensorTrain]:  # noqa
         """
         Get the dirichlet boundary masks.
 
@@ -134,7 +134,7 @@ class DomainMesh(ABC):
 
         return boundary_masks
 
-    @abstractmethod
+    @abstractmethod  # noqa
     def get_concatenation_maps(self) -> Dict[Tuple[int, int], TensorTrain]:
         """
         Get the TT-representations of the concatenation maps for all pairs of connected subdomains.
@@ -195,7 +195,7 @@ class DomainBilinearMesh2D(DomainMesh2D):
     This implementation of the concatenation maps works only for bilinear basis functions.
     """
 
-    def get_concatenation_maps(
+    def get_concatenation_maps(  # noqa
         self,
     ) -> Dict[Tuple[int, int], Tuple[TensorTrain, TensorTrain, TensorTrain]]:
         """

@@ -10,7 +10,7 @@ class SubdomainFactory(ABC):
     Abstract base class for a subdomain factory.
     """
 
-    @staticmethod
+    @staticmethod  # noqa
     @abstractmethod
     def create(*args, **kwargs) -> Subdomain2D:
         pass
@@ -21,7 +21,7 @@ class RectangleFactory(SubdomainFactory):
     Factory class for creating rectangle subdomains.
     """
 
-    @staticmethod
+    @staticmethod  # noqa
     def create(bottom_left: Tuple[float, float], top_right: Tuple[float, float]) -> Quad:
         """
         Create a rectangle subdomain defined by the bottom-left and top-right corners.
@@ -44,7 +44,7 @@ class QuadFactory(SubdomainFactory):
     Factory class for creating quadrilateral subdomains.
     """
 
-    @staticmethod
+    @staticmethod  # noqa
     def create(
         p1: Tuple[float, float],
         p2: Tuple[float, float],

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import Optional, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,16 +19,16 @@ class Domain(ABC):
 
     def __init__(
         self,
-        subdomains: List[Subdomain],
-        connections: List[SubdomainConnection],
+        subdomains: Sequence[Subdomain],
+        connections: Sequence[SubdomainConnection],
         boundary_condition: Optional[BoundaryCondition] = None,
     ):
         """
         Initialize a domain with subdomains and their connections.
 
         Args:
-            subdomains (List[Subdomain]): List of subdomains in the domain.
-            connections (List[SubdomainConnection]): List of connections between subdomains.
+            subdomains (Sequence[Subdomain]): List of subdomains in the domain.
+            connections (Sequence[SubdomainConnection]): List of connections between subdomains.
             boundary_condition (Optional[BoundaryCondition]): Optional boundary condition.
         """
         self.subdomains = subdomains
@@ -41,12 +41,12 @@ class Domain(ABC):
         """Number of subdomains in the domain."""
         return len(self.subdomains)
 
-    @property
+    @property  # noqa
     def num_connections(self) -> int:
         """Number of connections in the domain."""
         return len(self.connections)
 
-    def get_connections(self) -> List[SubdomainConnection]:
+    def get_connections(self) -> Sequence[SubdomainConnection]:
         """Get the list of connections."""
         return self.connections
 
@@ -97,16 +97,16 @@ class Domain2D(Domain):
 
     def __init__(
         self,
-        subdomains: List[Subdomain2D],
-        connections: List[SubdomainConnection2D],
+        subdomains: Sequence[Subdomain2D],
+        connections: Sequence[SubdomainConnection2D],
         boundary_condition: Optional[DirichletBoundary2D] = None,
     ):
         """
         Initialize a 2D domain with subdomains and their connections.
 
         Args:
-            subdomains (List[Subdomain2D]): List of 2D subdomains in the domain.
-            connections (List[SubdomainConnection2D]): List of connections between subdomains.
+            subdomains (Sequence[Subdomain2D]): List of 2D subdomains in the domain.
+            connections (Sequence[SubdomainConnection2D]): List of connections between subdomains.
             boundary_condition (Optional[DirichletBoundary2D]): Optional 2D boundary condition.
         """
         super().__init__(subdomains, connections, boundary_condition)

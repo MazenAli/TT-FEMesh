@@ -45,28 +45,53 @@ class SubdomainMesh(ABC):
         self.subdomain = subdomain
         self.quadrature_rule = quadrature_rule
         self.mesh_size_exponent = mesh_size_exponent
-        self._index_map = None
+        self._index_map: Optional[Callable] = None
 
         self._tt_cross_config = tt_cross_config
         if self._tt_cross_config is None:
             self._tt_cross_config = TTCrossConfig(info={})
 
     @abstractmethod
-    def ref2domain_map(self):
-        """Return the reference to domain map."""
+    def ref2domain_map(self, xi) -> np.ndarray:
+        """
+        Return the reference to domain map.
+
+        Args:
+            xi: The reference coordinates in the element.
+
+        Returns:
+            np.ndarray: The physical coordinates in the domain.
+        """
         pass
 
     @abstractmethod
-    def ref2element_map(self):
-        """Return the element transformation function."""
+    def ref2element_map(self, index, xi) -> np.ndarray:
+        """
+        Return the element transformation function.
+
+        Args:
+            index: The index of the element.
+            xi: The reference coordinates in the element.
+
+        Returns:
+            np.ndarray: The physical coordinates in the element.
+        """
         pass
 
     @abstractmethod
-    def ref2domain_jacobian(self):
-        """Return the Jacobian function for the domain transformation."""
+    def ref2domain_jacobian(self, xi) -> np.ndarray:
+        """
+        Return the Jacobian function for the domain transformation.
+
+        Args:
+            xi: The reference coordinates in the element.
+
+        Returns:
+            np.ndarray: The Jacobian of the domain transformation.
+        """
         pass
 
-    @abstractmethod
+    @abstractmethod  # noqa
     def get_jacobian_tensor_networks(self):
         """
         Compute the tensor network approximating the Jacobian evaluated on all elements.
@@ -82,12 +107,12 @@ class SubdomainMesh(ABC):
         pass
 
     @abstractmethod
-    def _validate_idxs(self):
+    def _validate_idxs(self, *indices):  # noqa
         """Validate indices."""
         pass
 
     @abstractmethod
-    def _validate_ref_coords(self):
+    def _validate_ref_coords(self, *coords, **kwargs):  # noqa
         """Validate reference element coordinates."""
         pass
 
@@ -185,6 +210,8 @@ class SubdomainMesh2D(SubdomainMesh):
         self._validate_ref_coords(xi_eta_)
         xi, eta = xi_eta_[:, 0], xi_eta_[:, 1]
 
+        assert isinstance(self.subdomain, Subdomain2D)  # nosec
+
         side0 = self.subdomain.curves[0]
         side1 = self.subdomain.curves[1]
         side2 = self.subdomain.curves[2]
@@ -281,6 +308,8 @@ class SubdomainMesh2D(SubdomainMesh):
 
         xi, eta = xi_eta_[:, 0], xi_eta_[:, 1]
 
+        assert isinstance(self.subdomain, Subdomain2D)  # nosec
+
         side0 = self.subdomain.curves[0]
         side1 = self.subdomain.curves[1]
         side2 = self.subdomain.curves[2]
@@ -354,7 +383,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian_rescaled
 
-    def get_jacobian_tensor_networks(self) -> np.ndarray:
+    def get_jacobian_tensor_networks(self) -> np.ndarray:  # noqa
         """
         Compute the tensor network approximating the Jacobian evaluated on all elements.
         The tensor index corresponds to the element index.
@@ -368,7 +397,9 @@ class SubdomainMesh2D(SubdomainMesh):
 
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
 
-        jacobian_tensor_networks = np.ndarray((len(quadrature_points), 2, 2), dtype=object)
+        jacobian_tensor_networks: np.ndarray = np.ndarray(
+            (len(quadrature_points), 2, 2), dtype=object
+        )
         for q, quad_point in enumerate(quadrature_points):
             for i in range(2):
                 for j in range(2):
@@ -385,7 +416,7 @@ class SubdomainMesh2D(SubdomainMesh):
                     jacobian_tensor_networks[q, i, j] = jac_ij
         return jacobian_tensor_networks
 
-    def get_jacobian_det_tensor_networks(self) -> np.ndarray:
+    def get_jacobian_det_tensor_networks(self) -> np.ndarray:  # noqa
         """
         Compute the tensor network approximating
         the Jacobian determinants evaluated on all elements.
@@ -395,7 +426,8 @@ class SubdomainMesh2D(SubdomainMesh):
                 Indexing: [quadrature_point_index].
         """
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
-        det_tensor_networks = np.ndarray((len(quadrature_points)), dtype=object)
+
+        det_tensor_networks: np.ndarray = np.ndarray((len(quadrature_points)), dtype=object)
         for q, quad_point in enumerate(quadrature_points):
             eval_point = np.array([quad_point])
 
@@ -411,7 +443,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return det_tensor_networks
 
-    def get_jacobian_invdet_tensor_networks(self) -> np.ndarray:
+    def get_jacobian_invdet_tensor_networks(self) -> np.ndarray:  # noqa
         """
         Compute the tensor network approximating
         the inverse of Jacobian determinants evaluated on all elements.
@@ -436,7 +468,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
             invdet_tensor_networks.append(jac_invdet)
 
-        return invdet_tensor_networks
+        return np.array(invdet_tensor_networks)
 
     def get_jacobian_tensors(self) -> np.ndarray:
         """
@@ -485,7 +517,7 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian_dets
 
-    def get_jacobian_invdets(self) -> np.ndarray:
+    def get_jacobian_invdets(self) -> np.ndarray:  # noqa
         """
         Compute the inverse of the determinants of the Jacobians
         evaluated on all elements and all quadrature points.
@@ -561,7 +593,7 @@ class SubdomainMesh2D(SubdomainMesh):
         jac = np.stack(jacobians)
         return jac
 
-    def plot_element(self, index: Tuple[int, int], num_points: int = 100) -> None:
+    def plot_element(self, index: Tuple[int, int], num_points: int = 100) -> None:  # noqa
         """
         Plot the 2D points generated by the ref2element_map for a given index.
 

@@ -7,7 +7,7 @@ from ttfemesh.types import BoundarySide2D
 
 
 class TestLinearBasis:
-    @pytest.fixture(autouse=True)
+    @pytest.fixture(autouse=True)  # noqa
     def setup_basis(self):
         self.basis = LinearBasis()
 
@@ -96,7 +96,7 @@ class TestLinearBasis:
 
 
 class TestBilinearBasis:
-    @pytest.fixture(autouse=True)
+    @pytest.fixture(autouse=True)  # noqa
     def setup_basis(self):
         self.basis = BilinearBasis()
 

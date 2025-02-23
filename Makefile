@@ -3,6 +3,7 @@ SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = docs
 BUILDDIR      = build
 DIRS		  = ttfemesh tests
+LIBS		  = ttfemesh
 
 default: all
 
@@ -38,6 +39,7 @@ security:
 
 imports:
 	vulture $(DIRS)
-	pip-missing-reqs $(DIRS)
+	pip-missing-reqs $(DIRS) --ignore-module=pytest
+	pip-extra-reqs $(DIRS)
 
 .PHONY: help docs-% format format_check static test test_coverage secrets_check security imports
