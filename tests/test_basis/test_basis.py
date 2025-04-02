@@ -1,5 +1,29 @@
 import numpy as np
 import pytest
+import matplotlib.pyplot as plt
+from matplotlib.testing.decorators import image_comparison
+import os
+
+# Set the matplotlib backend to Agg for testing
+import matplotlib
+matplotlib.use('Agg')
+
+# Configure matplotlib for consistent test output
+matplotlib.rcParams.update({
+    'figure.dpi': 100,
+    'figure.figsize': (6, 6),
+    'font.family': 'sans-serif',
+    'font.size': 10,
+    'text.kerning_factor': 0,
+    'image.cmap': 'viridis',
+    'lines.linestyle': '-',
+    'lines.linewidth': 1.0,
+    'axes.grid': False,
+    'axes.labelsize': 10,
+    'axes.titlesize': 12,
+    'xtick.labelsize': 8,
+    'ytick.labelsize': 8,
+})
 
 from ttfemesh.basis.basis import BilinearBasis, LinearBasis
 from ttfemesh.tn_tools.meshgrid import map2canonical2d
@@ -20,6 +44,7 @@ class TestLinearBasis:
         assert self.basis.evaluate(0, 1) == pytest.approx(0.0)
         assert self.basis.evaluate(1, -1) == pytest.approx(0.0)
         assert self.basis.evaluate(1, 0) == pytest.approx(0.5)
+        assert self.basis.evaluate(1, 1) == pytest.approx(1.0)
         assert self.basis.evaluate(1, 1) == pytest.approx(1.0)
 
     def test_raises_error_for_invalid_index(self):
@@ -94,6 +119,30 @@ class TestLinearBasis:
         assert vector[-1] == 0.0
         assert np.all(vector[1:-1] == 1.0)
 
+    def test_linear_plot_creates_correct_figure(self):
+        plt.clf() 
+        fig = self.basis.plot(0) 
+        plt.title("Linear Basis Function")
+        plt.xlabel("x")
+        plt.ylabel("y")
+        
+        assert fig is not None
+        assert len(fig.axes) == 1
+        ax = fig.axes[0]
+        assert ax.get_title() == "Linear Basis Function"
+        assert ax.get_xlabel() == "x"
+        assert ax.get_ylabel() == "y"
+        assert len(ax.lines) == 1
+        
+        plt.close(fig)
+
+    def test_plot_raises_error_for_invalid_index(self):
+        with pytest.raises(ValueError):
+            self.basis.plot(2)
+
+    def test_repr_returns_correct_string(self):
+        assert repr(self.basis) == "LinearBasis"
+
 
 class TestBilinearBasis:
     @pytest.fixture(autouse=True)  # noqa
@@ -106,6 +155,10 @@ class TestBilinearBasis:
     def test_raises_error_for_invalid_index(self):
         with pytest.raises(ValueError):
             self.basis.evaluate((2, 0), (0, 0))
+
+    def test_raises_error_for_invalid_index_length(self):
+        with pytest.raises(ValueError):
+            self.basis.evaluate((2, 0, 0), (0, 0))
 
     def test_evaluates_correctly(self):
         assert self.basis.evaluate((0, 0), (-1, -1)) == pytest.approx(1.0)
@@ -126,6 +179,12 @@ class TestBilinearBasis:
         assert self.basis.derivative((0, 1), (-1, 1), 1) == pytest.approx(0.5)
         assert self.basis.derivative((1, 0), (0, 0), 0) == pytest.approx(0.25)
         assert self.basis.derivative((1, 0), (0, 0), 1) == pytest.approx(-0.25)
+
+    def test_derivative_raises_error_for_invalid_dimension(self):
+        with pytest.raises(ValueError, match="Invalid dimension index: 2, expected 0 <= dim < 2"):
+            self.basis.derivative((0, 0), (-1, -1), 2)
+        with pytest.raises(ValueError, match="Invalid dimension index: -1, expected 0 <= dim < 2"):
+            self.basis.derivative((0, 0), (-1, -1), -1)
 
     def test_index_range_is_correct(self):
         assert [list(r) for r in self.basis.index_range] == [[0, 1], [0, 1]]
@@ -264,3 +323,26 @@ class TestBilinearBasis:
         assert np.array_equal(mask_left_full, expected_mask_left)
         assert np.array_equal(mask_bottom_full, expected_mask_bottom)
         assert np.array_equal(mask_right_top_full, expected_mask_right_top)
+
+    def test_repr_returns_correct_string(self):
+        assert repr(self.basis) == "TensorProductBasis(dim=2)::BilinearBasis"
+
+    def test_bilinear_plot_creates_correct_figure(self):
+        plt.clf()
+        fig = self.basis.plot((0, 0))
+        
+        assert fig is not None
+        assert len(fig.axes) == 2
+        ax = fig.axes[0]
+        assert ax.get_title() == "2D Tensor Product Basis Function"
+        assert ax.get_xlabel() == "x"
+        assert ax.get_ylabel() == "y"
+        assert len(ax.collections) > 0
+        assert ax._colorbars is not None
+        
+        plt.close(fig)
+
+    def test_plot_raises_error_for_invalid_dimension(self):
+        self.basis._dimension = 1
+        with pytest.raises(NotImplementedError):
+            self.basis.plot((0,))

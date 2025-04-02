@@ -6,39 +6,39 @@ import torch
 from ttfemesh.types import TensorTrain
 
 
-def left_corner2index_ttmap(d: int) -> TensorTrain:
+def left_corner2index_ttmap(mesh_size_exponent: int) -> TensorTrain:
     """
     Returns the TT-representation of the left corner element index to global basis index map (W_0).
     See arXiv:1802.02839, Section 5.4 for more details.
     Note the size of the TT alone already implies we are working with a linear 2D basis.
 
     Args:
-        d (int): Exponent of the 1D mesh size (length of TT).
+        mesh_size_exponent (int): Exponent of the 1D mesh size (length of TT).
 
     Returns:
         TensorTrain: TT-representation of the left corner to global index map.
     """
     firstcore, middlecore, lastcore = left_corner2index_map_ttcores()
-    cores = [firstcore] + [middlecore] * (d - 2) + [lastcore]
+    cores = [firstcore] + [middlecore] * (mesh_size_exponent - 2) + [lastcore]
     torch_cores = [torch.tensor(core) for core in cores]
 
     return TensorTrain(torch_cores)
 
 
-def right_corner2index_ttmap(d: int) -> TensorTrain:
+def right_corner2index_ttmap(mesh_size_exponent: int) -> TensorTrain:
     """
     Returns the TT-representation of the right corner element index to global basis index map (W_1).
     See arXiv:1802.02839, Section 5.4 for more details.
     Note the size of the TT alone already implies we are working with a linear 2D basis.
 
     Args:
-        d (int): Exponent of the 1D mesh size (length of TT).
+        mesh_size_exponent (int): Exponent of the 1D mesh size (length of TT).
 
     Returns:
         TensorTrain: TT-representation of the right corner to global index map
     """
     firstcore, middlecore, lastcore = right_corner2index_map_ttcores()
-    cores = [firstcore] + [middlecore] * (d - 2) + [lastcore]
+    cores = [firstcore] + [middlecore] * (mesh_size_exponent - 2) + [lastcore]
     torch_cores = [torch.tensor(core) for core in cores]
 
     return TensorTrain(torch_cores)

@@ -16,28 +16,28 @@ class Basis(ABC):
 
     @property
     @abstractmethod
-    def index_range(self):
+    def index_range(self): # pragma: no cover
         """Range of valid indices for the basis functions."""
         pass
 
     @abstractmethod
-    def evaluate(self, *args, **kwargs) -> Any:
+    def evaluate(self, *args, **kwargs) -> Any: # pragma: no cover
         """Evaluate the basis function indexed with idx at a given point."""
         pass
 
     @abstractmethod
-    def derivative(self, *args, **kwargs) -> Any:
+    def derivative(self, *args, **kwargs) -> Any: # pragma: no cover
         """Evaluate the derivative of the basis function indexed with idx at a given point."""
         pass
 
     @abstractmethod
-    def _validate(self, *args, **kwargs):
+    def _validate(self, *args, **kwargs): # pragma: no cover
         """Validate the basis function index."""
         pass
 
     @property
     @abstractmethod
-    def dimension(self) -> int:
+    def dimension(self) -> int: # pragma: no cover
         """The number of dimensions of the basis functions."""
         pass
 
@@ -52,9 +52,13 @@ class Basis1D(Basis):
         Args:
             idx (int): Index of the basis function.
             num_points (int): Number of points to plot.
+
+        Returns:
+            matplotlib.figure.Figure: The figure object containing the plot.
         """
         self._validate(idx)
 
+        fig = plt.figure()
         x_vals = np.linspace(-1, 1, num_points)
         y_vals = np.array([self.evaluate(idx, x) for x in x_vals])
         plt.plot(x_vals, y_vals, label=f"Basis Function {idx}")
@@ -62,14 +66,14 @@ class Basis1D(Basis):
         plt.title("1D Basis Function on [-1, 1]")
         plt.xlabel("x")
         plt.ylabel("Basis Function Value")
-        plt.show()
+        return fig
 
     @property
     def dimension(self) -> int:
         return 1
 
     @abstractmethod
-    def get_element2global_ttmap(self, *args, **kwargs) -> TensorTrain:
+    def get_element2global_ttmap(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
         """
         Get the TT-representation of a corner element index to global basis index map.
 
@@ -79,7 +83,7 @@ class Basis1D(Basis):
         pass
 
     @abstractmethod
-    def get_all_element2global_ttmaps(self, *args, **kwargs) -> Tuple[TensorTrain, ...]:
+    def get_all_element2global_ttmaps(self, *args, **kwargs) -> Tuple[TensorTrain, ...]: # pragma: no cover
         """
         Get the TT-representation for all corner elements in `index_range`
         to global basis index maps.
@@ -91,7 +95,7 @@ class Basis1D(Basis):
         pass
 
     @abstractmethod
-    def get_dirichlet_mask_left(self, *args, **kwargs) -> TensorTrain:
+    def get_dirichlet_mask_left(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
         """
         Get the mask for the left Dirichlet boundary condition.
 
@@ -101,7 +105,7 @@ class Basis1D(Basis):
         pass
 
     @abstractmethod
-    def get_dirichlet_mask_right(self, *args, **kwargs) -> TensorTrain:
+    def get_dirichlet_mask_right(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
         """
         Get the mask for the right Dirichlet boundary condition.
 
@@ -111,7 +115,7 @@ class Basis1D(Basis):
         pass
 
     @abstractmethod
-    def get_dirichlet_mask_left_right(self, *args, **kwargs) -> TensorTrain:
+    def get_dirichlet_mask_left_right(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
         """
         Get the mask for the left and right Dirichlet boundary conditions.
 
@@ -139,10 +143,8 @@ class LinearBasis(Basis1D):
 
         if idx == 0:
             return 0.5 * (1 - x)
-        elif idx == 1:
-            return 0.5 * (1 + x)
 
-        return 0.0
+        return 0.5 * (1 + x)
 
     def derivative(self, idx: int, _: Optional[float] = None) -> float:
         """
@@ -269,7 +271,7 @@ class LinearBasis(Basis1D):
 
 class TensorProductBasis(Basis):
     """
-    Tensor product basis functions for arbitrary dimensions.
+    Abstract base class for tensor product basis functions for arbitrary dimensions.
     Combines 1D basis functions to define basis functions in higher dimensions.
     """
 
@@ -288,7 +290,7 @@ class TensorProductBasis(Basis):
         return self._dimension
 
     @abstractmethod
-    def get_element2global_ttmap(self, *args, **kwargs) -> TensorTrain:
+    def get_element2global_ttmap(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
         """
         Get the TT-representation of a corner element index to global basis index map.
 
@@ -298,7 +300,7 @@ class TensorProductBasis(Basis):
         pass
 
     @abstractmethod
-    def get_all_element2global_ttmaps(self, *args, **kwargs) -> np.ndarray:
+    def get_all_element2global_ttmaps(self, *args, **kwargs) -> np.ndarray: # pragma: no cover
         """
         Get the TT-representation for all corner elements in `index_range`
         to global basis index maps.
@@ -310,7 +312,7 @@ class TensorProductBasis(Basis):
         pass
 
     @abstractmethod
-    def get_dirichlet_mask(self, *args, **kwargs) -> TensorTrain:
+    def get_dirichlet_mask(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
         """
         Get the mask for the Dirichlet boundary condition on the specified sides.
 
@@ -389,7 +391,7 @@ class TensorProductBasis(Basis):
         self._validate(idx)
 
         if self.dimension == 2:
-            self._plot2d(idx, num_points)
+            return self._plot2d(idx, num_points)
         else:
             raise NotImplementedError(
                 "Tensor product plotting" " is only supported for 2D basis functions."
@@ -402,7 +404,11 @@ class TensorProductBasis(Basis):
         Args:
             idx (List[int]): Indices of the basis functions in each dimension.
             num_points (int): Number of points to plot.
+
+        Returns:
+            matplotlib.figure.Figure: The figure object containing the plot.
         """
+        fig = plt.figure()
         x_vals = np.linspace(-1, 1, num_points)
         y_vals = np.linspace(-1, 1, num_points)
         X, Y = np.meshgrid(x_vals, y_vals)
@@ -415,7 +421,7 @@ class TensorProductBasis(Basis):
         plt.title("2D Tensor Product Basis Function")
         plt.xlabel("x")
         plt.ylabel("y")
-        plt.show()
+        return fig
 
 
 class BilinearBasis(TensorProductBasis):
@@ -424,9 +430,6 @@ class BilinearBasis(TensorProductBasis):
     def __init__(self):
         super().__init__([LinearBasis(), LinearBasis()])
 
-    @property
-    def dimension(self) -> int:
-        return 2
 
     def get_element2global_ttmap(self, index: List[int], mesh_size_exponent: int) -> TensorTrain:
         """
@@ -520,4 +523,4 @@ class BilinearBasis(TensorProductBasis):
         return zorder_kron(xmask, ymask)
 
     def __repr__(self):
-        return "BilinearBasis"
+        return super().__repr__() + "::" + "BilinearBasis"
