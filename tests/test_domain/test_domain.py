@@ -41,6 +41,18 @@ class TestDomain2D:
     @pytest.fixture
     def sample_boundary_condition(self):
         return DirichletBoundary2D([(0, 0), (1, 1)])
+    
+    @pytest.fixture
+    def sample_test_domain(self):
+        class TestDomain(Domain):
+            def __init__(self, subdomains, connections, boundary_condition = None):
+                super().__init__(subdomains, connections, boundary_condition)
+
+            @property
+            def dimension(self):
+                return 2
+
+        return TestDomain
 
     def test_initialization(self, sample_subdomains, sample_connections, sample_boundary_condition):
         domain = Domain2D(sample_subdomains, sample_connections, sample_boundary_condition)
@@ -101,9 +113,21 @@ class TestDomain2D:
         domain = Domain2D(sample_subdomains, sample_connections)
         assert repr(domain) == "Domain2D(3 subdomains, 2 connections)"
 
+    def test_repr_domain(self, sample_subdomains, sample_connections, sample_test_domain):
+        domain = sample_test_domain(sample_subdomains, sample_connections)
+        assert repr(domain) == "Domain(3 subdomains, 2 connections)"
+
     def test_plot(self, sample_subdomains, sample_connections, sample_boundary_condition):
         domain = Domain2D(sample_subdomains, sample_connections, sample_boundary_condition)
         
+        try:
+            domain.plot()
+            plt.close()
+        except Exception as e:
+            pytest.fail(f"Plotting failed with error: {e}")
+
+    def test_plot_domain(self, sample_subdomains, sample_connections, sample_test_domain):
+        domain = sample_test_domain(sample_subdomains, sample_connections)
         try:
             domain.plot()
             plt.close()
