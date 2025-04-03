@@ -282,6 +282,10 @@ class TestBilinearBasis:
         assert np.array_equal(np.array(ttmaps[0, 1].full()), np.array(W01_expected.full()))
         assert np.array_equal(np.array(ttmaps[1, 1].full()), np.array(W11_expected.full()))
 
+    def test_dirichlet_mask_raises_error(self):
+        with pytest.raises(ValueError):
+            self.basis.get_dirichlet_mask(3)
+
     def test_dirichlet_mask_is_correct(self):
         mesh_size_exponent = 3
         mask_left = self.basis.get_dirichlet_mask(mesh_size_exponent, BoundarySide2D.LEFT)
@@ -289,6 +293,13 @@ class TestBilinearBasis:
         mask_right_top = self.basis.get_dirichlet_mask(
             mesh_size_exponent, BoundarySide2D.RIGHT, BoundarySide2D.TOP
         )
+        mask_left_right = self.basis.get_dirichlet_mask(
+            mesh_size_exponent, BoundarySide2D.LEFT, BoundarySide2D.RIGHT
+        )
+        mask_bottom_top = self.basis.get_dirichlet_mask(
+            mesh_size_exponent, BoundarySide2D.BOTTOM, BoundarySide2D.TOP
+        )
+        
 
         zmap = map2canonical2d(mesh_size_exponent)
 
@@ -304,6 +315,8 @@ class TestBilinearBasis:
         mask_left_full = reshape_ttvec(mask_left)
         mask_bottom_full = reshape_ttvec(mask_bottom)
         mask_right_top_full = reshape_ttvec(mask_right_top)
+        mask_left_right_full = reshape_ttvec(mask_left_right)
+        mask_bottom_top_full = reshape_ttvec(mask_bottom_top)
 
         expected_mask_left = np.ones((2**mesh_size_exponent, 2**mesh_size_exponent), dtype=float)
         expected_mask_left[0, :] = 0.0
@@ -317,12 +330,28 @@ class TestBilinearBasis:
         expected_mask_right_top[-1, :] = 0.0
         expected_mask_right_top[:, -1] = 0.0
 
+        expected_mask_left_right = np.ones(
+            (2**mesh_size_exponent, 2**mesh_size_exponent), dtype=float
+        )
+        expected_mask_left_right[0, :] = 0.0
+        expected_mask_left_right[-1, :] = 0.0
+
+        expected_mask_bottom_top = np.ones(
+            (2**mesh_size_exponent, 2**mesh_size_exponent), dtype=float
+        )
+        expected_mask_bottom_top[:, 0] = 0.0
+        expected_mask_bottom_top[:, -1] = 0.0
+
         assert mask_left.shape == [4] * mesh_size_exponent
         assert mask_bottom.shape == [4] * mesh_size_exponent
         assert mask_right_top.shape == [4] * mesh_size_exponent
+        assert mask_left_right.shape == [4] * mesh_size_exponent
+        assert mask_bottom_top.shape == [4] * mesh_size_exponent
         assert np.array_equal(mask_left_full, expected_mask_left)
         assert np.array_equal(mask_bottom_full, expected_mask_bottom)
         assert np.array_equal(mask_right_top_full, expected_mask_right_top)
+        assert np.array_equal(mask_left_right_full, expected_mask_left_right)
+        assert np.array_equal(mask_bottom_top_full, expected_mask_bottom_top)
 
     def test_repr_returns_correct_string(self):
         assert repr(self.basis) == "TensorProductBasis(dim=2)::BilinearBasis"

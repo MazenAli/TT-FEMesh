@@ -11,14 +11,14 @@ class BoundaryCondition(ABC):
     """
 
     @abstractmethod
-    def validate(self, *args, **kwargs):
+    def validate(self, *args, **kwargs): # pragma: no cover
         """
         Validate the boundary condition with respect to the subdomains.
         """
         pass
 
     @abstractmethod
-    def group_by_subdomain(self) -> Dict[int, List[int]]:
+    def group_by_subdomain(self) -> Dict[int, List[int]]: # pragma: no cover
         """
         Group the boundary conditions by subdomain.
 
