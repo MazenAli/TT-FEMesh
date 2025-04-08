@@ -69,8 +69,8 @@ def qindex2dtuple(index: np.ndarray) -> Tuple[int, int]:
     if not np.all((0 <= index) & (index <= 3)):
         raise ValueError("Index must contain only values in {0, 1, 2, 3}.")
 
-    j = index % 2
-    i = index // 2
+    i = index % 2
+    j = index // 2
 
     binary_index = np.empty(2 * len(index), dtype=int)
     binary_index[::2] = i
