@@ -487,6 +487,12 @@ class BilinearBasis(TensorProductBasis):
         """
         Get the mask for the Dirichlet 2D boundary condition on the specified sides.
 
+        Note that the sides are considered to be ordered as follows:
+        bottom (side 0), right (side 1), top (side 2), left (side 3).
+        This is important for the boundary condition to work correctly.
+        It may lead to confusion if, e.g., your side 0 is visually
+        the right edge of the domain.
+
         Args:
             mesh_size_exponent (int): Exponent of the 1D mesh size.
             *sides (Union[BoundarySide2D, int]): Boundary sides to apply the Dirichlet condition.

@@ -39,9 +39,6 @@ class DomainMesh(ABC):
             cross_config (Optional[TTCrossConfig]):
                 Optional configuration for tensor cross approximation.
                 If None, the default configuration is used.
-
-        Raises:
-            ValueError: If the number of quadrature rules or mesh size exponents is invalid.
         """
 
         self.quadrature_rule = quadrature_rule
@@ -52,7 +49,7 @@ class DomainMesh(ABC):
         self.subdomain_meshes = self._create_subdomain_meshes()
 
     @abstractmethod
-    def _create_subdomain_meshes(self):
+    def _create_subdomain_meshes(self): # pragma: no cover
         num_subdomains = self.domain.num_subdomains
         subdomain_meshes = []
         for i in range(num_subdomains):
@@ -134,7 +131,7 @@ class DomainMesh(ABC):
 
         return boundary_masks
 
-    @abstractmethod  # noqa
+    @abstractmethod  # noqa # pragma: no cover
     def get_concatenation_maps(self) -> Dict[Tuple[int, int], TensorTrain]:
         """
         Get the TT-representations of the concatenation maps for all pairs of connected subdomains.

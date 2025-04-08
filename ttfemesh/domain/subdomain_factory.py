@@ -42,6 +42,11 @@ class RectangleFactory(SubdomainFactory):
 class QuadFactory(SubdomainFactory):
     """
     Factory class for creating quadrilateral subdomains.
+    Note that the lines are considered to be ordered as follows:
+    bottom (line 0), right (line 1), top (line 2), left (line 3).
+    This is important for the boundary condition to work correctly.
+    It may lead to confusion if, e.g., your line 0 is visually
+    the right edge of the domain.
     """
 
     @staticmethod  # noqa

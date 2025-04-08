@@ -30,6 +30,11 @@ class Subdomain2D(Subdomain):
         Initialize a 2D subdomain defined by 4 boundary curves.
         The curves must connect properly to form a closed subdomain.
         The start and end points of the curves must be ordered counter-clockwise.
+        Note that the curves are considered to be ordered as follows:
+        bottom (curve 0), right (curve 1), top (curve 2), left (curve 3).
+        This is important for the boundary condition to work correctly.
+        It may lead to confusion if, e.g., your curve 0 is visually
+        the right edge of the domain.
 
         Args:
             curves (Sequence[Curve]): List of 4 boundary curves.
@@ -102,7 +107,14 @@ class Subdomain2D(Subdomain):
 
 
 class Quad(Subdomain2D):
-    """Quadrilateral subdomain defined by 4 boundary lines."""
+    """
+    Quadrilateral subdomain defined by 4 boundary lines.
+    Note that the lines are considered to be ordered as follows:
+    bottom (line 0), right (line 1), top (line 2), left (line 3).
+    This is important for the boundary condition to work correctly.
+    It may lead to confusion if, e.g., your line 0 is visually
+    the right edge of the domain.
+    """
 
     def __init__(self, curves: Sequence[Line2D]):
         super().__init__(curves)

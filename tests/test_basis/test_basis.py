@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 import matplotlib.pyplot as plt
 from matplotlib.testing.decorators import image_comparison
-import os
 
 # Set the matplotlib backend to Agg for testing
 import matplotlib
