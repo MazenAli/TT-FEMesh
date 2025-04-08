@@ -14,12 +14,12 @@ class Subdomain(ABC):
     """
 
     @abstractmethod
-    def _validate(self):
+    def _validate(self): # pragma: no cover
         """Ensure that the subdomain is valid."""
         pass
 
     @abstractmethod
-    def plot(self):
+    def plot(self): # pragma: no cover
         """Plot the subdomain and its boundaries."""
         pass
 
@@ -77,7 +77,7 @@ class Subdomain2D(Subdomain):
         for i in range(len(points) - 1):
             x1, y1 = points[i]
             x2, y2 = points[i + 1]
-            signed_area += x1 * y2 - x2 * y1  # Determinant contribution
+            signed_area += x1 * y2 - x2 * y1
 
         if signed_area < 0:
             raise ValueError("The start points of curves are not ordered counter-clockwise.")
