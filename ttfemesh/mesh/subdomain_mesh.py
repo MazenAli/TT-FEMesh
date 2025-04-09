@@ -52,7 +52,7 @@ class SubdomainMesh(ABC):
             self._tt_cross_config = TTCrossConfig(info={})
 
     @abstractmethod
-    def ref2domain_map(self, xi) -> np.ndarray:
+    def ref2domain_map(self, xi) -> np.ndarray: # pragma: no cover
         """
         Return the reference to domain map.
 
@@ -65,7 +65,7 @@ class SubdomainMesh(ABC):
         pass
 
     @abstractmethod
-    def ref2element_map(self, index, xi) -> np.ndarray:
+    def ref2element_map(self, index, xi) -> np.ndarray: # pragma: no cover
         """
         Return the element transformation function.
 
@@ -79,7 +79,7 @@ class SubdomainMesh(ABC):
         pass
 
     @abstractmethod
-    def ref2domain_jacobian(self, xi) -> np.ndarray:
+    def ref2domain_jacobian(self, xi) -> np.ndarray: # pragma: no cover
         """
         Return the Jacobian function for the domain transformation.
 
@@ -91,8 +91,8 @@ class SubdomainMesh(ABC):
         """
         pass
 
-    @abstractmethod  # noqa
-    def get_jacobian_tensor_networks(self):
+    @abstractmethod
+    def get_jacobian_tensor_trains(self): # noqa # pragma: no cover
         """
         Compute the tensor network approximating the Jacobian evaluated on all elements.
         The tensor index corresponds to the element index.
@@ -102,23 +102,23 @@ class SubdomainMesh(ABC):
         pass
 
     @abstractmethod
-    def plot(self):
+    def plot(self): # pragma: no cover
         """Plot the subdomain mesh."""
         pass
 
     @abstractmethod
-    def _validate_idxs(self, *indices):  # noqa
+    def _validate_idxs(self, *indices):  # noqa # pragma: no cover
         """Validate indices."""
         pass
 
     @abstractmethod
-    def _validate_ref_coords(self, *coords, **kwargs):  # noqa
+    def _validate_ref_coords(self, *coords, **kwargs):  # noqa # pragma: no cover
         """Validate reference element coordinates."""
         pass
 
     @property
     @abstractmethod
-    def dimension(self):
+    def dimension(self): # pragma: no cover
         """Return the dimension of the mesh."""
         pass
 
@@ -383,21 +383,21 @@ class SubdomainMesh2D(SubdomainMesh):
 
         return jacobian_rescaled
 
-    def get_jacobian_tensor_networks(self) -> np.ndarray:  # noqa
+    def get_jacobian_tensor_trains(self) -> np.ndarray:  # noqa
         """
-        Compute the tensor network approximating the Jacobian evaluated on all elements.
+        Compute the tensor train approximating the Jacobian evaluated on all elements.
         The tensor index corresponds to the element index.
         This is done for each Jacobian component and each quadrature point within the element.
-        The output is thus a total of 4*(num_quadrature_points_per_element) tensor networks.
+        The output is thus a total of 4*(num_quadrature_points_per_element) tensor trains.
 
         Returns:
-            np.ndarray: 3D array of tensor networks for the Jacobian components.
+            np.ndarray: 3D array of tensor trains for the Jacobian components.
                Indexing: [quadrature_point_index, component_index_i, component_index_j].
         """
 
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
 
-        jacobian_tensor_networks: np.ndarray = np.ndarray(
+        jacobian_tensor_trains: np.ndarray = np.ndarray(
             (len(quadrature_points), 2, 2), dtype=object
         )
         for q, quad_point in enumerate(quadrature_points):
@@ -413,12 +413,12 @@ class SubdomainMesh2D(SubdomainMesh):
                         warnings.simplefilter("ignore", UserWarning)
                         jac_ij = self._tca_strategy(cross_func)
 
-                    jacobian_tensor_networks[q, i, j] = jac_ij
-        return jacobian_tensor_networks
+                    jacobian_tensor_trains[q, i, j] = jac_ij
+        return jacobian_tensor_trains
 
-    def get_jacobian_det_tensor_networks(self) -> np.ndarray:  # noqa
+    def get_jacobian_det_tensor_trains(self) -> np.ndarray:  # noqa
         """
-        Compute the tensor network approximating
+        Compute the tensor train approximating
         the Jacobian determinants evaluated on all elements.
 
         Returns:
@@ -427,7 +427,7 @@ class SubdomainMesh2D(SubdomainMesh):
         """
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
 
-        det_tensor_networks: np.ndarray = np.ndarray((len(quadrature_points)), dtype=object)
+        det_tensor_trains: np.ndarray = np.ndarray((len(quadrature_points)), dtype=object)
         for q, quad_point in enumerate(quadrature_points):
             eval_point = np.array([quad_point])
 
@@ -439,13 +439,13 @@ class SubdomainMesh2D(SubdomainMesh):
                 warnings.simplefilter("ignore", UserWarning)
                 jac_det = self._tca_strategy(cross_func)
 
-            det_tensor_networks[q] = jac_det
+            det_tensor_trains[q] = jac_det
 
-        return det_tensor_networks
+        return det_tensor_trains
 
-    def get_jacobian_invdet_tensor_networks(self) -> np.ndarray:  # noqa
+    def get_jacobian_invdet_tensor_trains(self) -> np.ndarray:  # noqa
         """
-        Compute the tensor network approximating
+        Compute the tensor train approximating
         the inverse of Jacobian determinants evaluated on all elements.
 
         Returns:
@@ -454,7 +454,7 @@ class SubdomainMesh2D(SubdomainMesh):
         """
         quadrature_points, _ = self.quadrature_rule.get_points_weights()
 
-        invdet_tensor_networks = []
+        invdet_tensor_trains = []
         for quad_point in quadrature_points:
             eval_point = np.array([quad_point])
 
@@ -466,9 +466,9 @@ class SubdomainMesh2D(SubdomainMesh):
                 warnings.simplefilter("ignore", UserWarning)
                 jac_invdet = self.__tca_default(cross_func)  # linear interpolation never works here
 
-            invdet_tensor_networks.append(jac_invdet)
+            invdet_tensor_trains.append(jac_invdet)
 
-        return np.array(invdet_tensor_networks)
+        return np.array(invdet_tensor_trains)
 
     def get_jacobian_tensors(self) -> np.ndarray:
         """
