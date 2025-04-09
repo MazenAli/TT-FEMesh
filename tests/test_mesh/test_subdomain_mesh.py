@@ -383,6 +383,16 @@ class TestSubdomainMesh2D:
         approx_jacobian = numerical_jacobian(subdomain_mesh.ref2domain_map, center)
         np.testing.assert_allclose(jacobian, approx_jacobian, rtol=1e-8)
 
+    def test_ref2element_jacobian_quad(self, subdomain_mesh):
+        index = (0, 0)
+        center = np.array([[0, 0]])
+        jacobian = subdomain_mesh.ref2element_jacobian(index, center)
+        func = lambda x: subdomain_mesh.ref2element_map(index, x)
+        approx_jacobian = numerical_jacobian(func, center)
+        np.testing.assert_allclose(jacobian, approx_jacobian, rtol=1e-8)
+
+    def test_get_jacobian_tensor_trains_quad(self, subdomain_mesh):
+
 
 class TestQuadMesh:
     def test_initialization(self):
