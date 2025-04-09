@@ -323,7 +323,7 @@ class TestSubdomainMesh2D:
         assert "num_points=16" in repr_str
         assert "num_elements=9" in repr_str
 
-    def test_ref2domain_map_trapezoid(self, subdomain_mesh):
+    def test_ref2domain_map_quad(self, subdomain_mesh):
         corner_points = np.array([
             [-1, -1],
             [1, -1],
@@ -359,7 +359,25 @@ class TestSubdomainMesh2D:
         mapped_center = subdomain_mesh.ref2domain_map(center)
         np.testing.assert_allclose(mapped_center, expected_center, rtol=1e-10)
 
-    def test_ref2domain_jacobian(self, subdomain_mesh):
+    def test_ref2element_map_quad(self, subdomain_mesh):
+        index = (0, 0)
+        corner_points = np.array([
+            [-1, -1],
+            [1, -1],
+            [1, 1],
+            [-1, 1]
+        ])
+        expected_corners = np.array([
+            [0, 0],
+            [2./7., 0],
+            [-0.5/7.+1./7.*(2.+1./7.+0.5/7.), 1./7.*(3.-2./7.)],
+            [-0.5/7., 3./7.]
+        ])
+
+        mapped_corners = subdomain_mesh.ref2element_map(index, corner_points)
+        np.testing.assert_allclose(mapped_corners, expected_corners, rtol=1e-10)
+
+    def test_ref2domain_jacobian_quad(self, subdomain_mesh):
         center = np.array([[0, 0]])
         jacobian = subdomain_mesh.ref2domain_jacobian(center)
         approx_jacobian = numerical_jacobian(subdomain_mesh.ref2domain_map, center)
