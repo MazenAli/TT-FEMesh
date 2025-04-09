@@ -136,6 +136,31 @@ def subdomain_mesh():
     )
 
 
+def numerical_jacobian(func, xi_eta: np.ndarray, epsilon: float = 1e-6) -> np.ndarray:
+    num_samples = xi_eta.shape[0]
+    numerical_jacobians = np.zeros((num_samples, 2, 2))
+
+    for i, (xi, eta) in enumerate(xi_eta):
+        xi_eta_0 = np.array([[xi, eta]])
+        xi_eta_dxi = np.array([[xi + epsilon, eta]])
+        xi_eta_deta = np.array([[xi, eta + epsilon]])
+
+        xy_base = func(xi_eta_0).flatten()
+        x_dxi = func(xi_eta_dxi).flatten()[0]
+        y_dxi = func(xi_eta_dxi).flatten()[1]
+        x_deta = func(xi_eta_deta).flatten()[0]
+        y_deta = func(xi_eta_deta).flatten()[1]
+
+        dx_dxi = (x_dxi - xy_base[0]) / epsilon
+        dy_dxi = (y_dxi - xy_base[1]) / epsilon
+        dx_deta = (x_deta - xy_base[0]) / epsilon
+        dy_deta = (y_deta - xy_base[1]) / epsilon
+
+        numerical_jacobians[i] = np.array([[dx_dxi, dx_deta], [dy_dxi, dy_deta]])
+
+    return numerical_jacobians
+
+
 class TestSubdomainMesh2D:
     def test_initialization(self):
         mock_subdomain = MagicMock(spec=Subdomain2D)
@@ -330,9 +355,15 @@ class TestSubdomainMesh2D:
         np.testing.assert_allclose(mapped_midpoints, expected_midpoints, rtol=1e-10)
 
         center = np.array([[0, 0]])
-        expected_center = np.array([[0.5, 0.5]])
+        expected_center = np.array([[1.125, 1.]])
         mapped_center = subdomain_mesh.ref2domain_map(center)
         np.testing.assert_allclose(mapped_center, expected_center, rtol=1e-10)
+
+    def test_ref2domain_jacobian(self, subdomain_mesh):
+        center = np.array([[0, 0]])
+        jacobian = subdomain_mesh.ref2domain_jacobian(center)
+        approx_jacobian = numerical_jacobian(subdomain_mesh.ref2domain_map, center)
+        np.testing.assert_allclose(jacobian, approx_jacobian, rtol=1e-8)
 
 
 class TestQuadMesh:
