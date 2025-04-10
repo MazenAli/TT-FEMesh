@@ -14,7 +14,6 @@ print(ascii_logo)
 requirements = [
     requirement.strip() for requirement in open('requirements.txt').readlines()
 ]
-requirements += ['torchtt']
 
 setup(
     name="ttfemesh",
@@ -24,7 +23,7 @@ setup(
     long_description_content_type="text/markdown",
     author="Mazen Ali",
     author_email="mazen.ali90@gmail.com",
-    url="https://github.com/MazenAli/tnfemesh",
+    url="https://github.com/MazenAli/tt-femesh",
     packages=find_packages(),
     install_requires=requirements,
     python_requires=">=3.9, <3.13",
@@ -44,8 +43,8 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     project_urls={
-        "Source": "https://github.com/MazenAli/ttfemesh",
-        "Documentation": "https://github.com/MazenAli/ttfemesh",
+        "Source": "https://github.com/MazenAli/tt-femesh",
+        "Documentation": "https://github.com/MazenAli/tt-femesh",
     },
     keywords="tensor train finite elements meshing simulation",
 )
