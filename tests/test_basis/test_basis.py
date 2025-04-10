@@ -1,13 +1,10 @@
 import numpy as np
 import pytest
 import matplotlib.pyplot as plt
-from matplotlib.testing.decorators import image_comparison
 
-# Set the matplotlib backend to Agg for testing
 import matplotlib
 matplotlib.use('Agg')
 
-# Configure matplotlib for consistent test output
 matplotlib.rcParams.update({
     'figure.dpi': 100,
     'figure.figsize': (6, 6),
@@ -25,7 +22,7 @@ matplotlib.rcParams.update({
 })
 
 from ttfemesh.basis.basis import BilinearBasis, LinearBasis
-from ttfemesh.tn_tools.meshgrid import map2canonical2d
+from ttfemesh.tt_tools.meshgrid import map2canonical2d
 from ttfemesh.types import BoundarySide2D
 
 

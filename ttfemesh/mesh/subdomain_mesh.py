@@ -9,8 +9,8 @@ import torch
 from ttfemesh.domain import Quad, Subdomain, Subdomain2D
 from ttfemesh.mesh.mesh_utils import qindex2dtuple as index_map2d
 from ttfemesh.quadrature.quadrature import QuadratureRule, QuadratureRule2D
-from ttfemesh.tn_tools import interpolate_linear2d
-from ttfemesh.tn_tools.tensor_cross import (
+from ttfemesh.tt_tools import interpolate_linear2d
+from ttfemesh.tt_tools.tensor_cross import (
     TTCrossConfig,
     anova_init_tensor_train,
     gen_teneva_indices,

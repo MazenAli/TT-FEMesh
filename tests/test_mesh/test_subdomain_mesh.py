@@ -10,7 +10,7 @@ from ttfemesh.domain import Subdomain, Subdomain2D, Quad
 from ttfemesh.domain.subdomain_factory import QuadFactory
 from ttfemesh.quadrature.quadrature import QuadratureRule, QuadratureRule2D, GaussLegendre2D
 from ttfemesh.mesh import qindex2dtuple
-from ttfemesh.tn_tools.tensor_cross import TTCrossConfig
+from ttfemesh.tt_tools.tensor_cross import TTCrossConfig
 from ttfemesh.types import TensorTrain
 
 

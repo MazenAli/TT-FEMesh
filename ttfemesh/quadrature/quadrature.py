@@ -9,19 +9,19 @@ class QuadratureRule(ABC):
     """Abstract base class for a quadrature rule."""
 
     @abstractmethod
-    def get_points_weights(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_points_weights(self) -> Tuple[np.ndarray, np.ndarray]: # pragma: no cover
         """Retrieve the quadrature points and weights."""
         pass
 
     @staticmethod
     @abstractmethod
-    def compute_points_weights(self) -> Tuple[np.ndarray, np.ndarray]:
+    def compute_points_weights(self) -> Tuple[np.ndarray, np.ndarray]: # pragma: no cover
         """Compute the quadrature points and weights."""
         pass
 
     @property
     @abstractmethod
-    def dimension(self) -> int:
+    def dimension(self) -> int: # pragma: no cover
         """The number of dimensions of the quadrature rule."""
         pass
 

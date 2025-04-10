@@ -1,7 +1,7 @@
 import numpy as np
 import torchtt as tntt
 
-from ttfemesh.tn_tools.operations import zorder_kron
+from ttfemesh.tt_tools.operations import zorder_kron
 from ttfemesh.types import TensorTrain
 
 
@@ -61,7 +61,8 @@ def map2canonical2d(mesh_size_exponent: int) -> np.ndarray:
         .. code-block:: python
             array = tt.full().flatten("F")
             zmap = map2canonical2d(3)
-            canonical_array = array[zmap]
+            canonical_array = np.empty_like(array)
+            canonical_array[zmap] = array
     """
 
     meshgrid = range_meshgrid2d(mesh_size_exponent)

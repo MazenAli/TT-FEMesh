@@ -10,7 +10,7 @@ from ttfemesh.domain.subdomain_factory import QuadFactory
 from ttfemesh.basis.basis import TensorProductBasis, BilinearBasis
 from ttfemesh.quadrature.quadrature import QuadratureRule, GaussLegendre2D
 from ttfemesh.types import TensorTrain
-from ttfemesh.tn_tools.meshgrid import map2canonical2d
+from ttfemesh.tt_tools.meshgrid import map2canonical2d
 
 
 class TestDomainMesh:

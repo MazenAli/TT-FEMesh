@@ -6,8 +6,8 @@ import numpy as np
 import torchtt as tntt
 
 from ttfemesh.basis.basis_utils import left_corner2index_ttmap, right_corner2index_ttmap
-from ttfemesh.tn_tools.numeric import unit_vector_binary_tt
-from ttfemesh.tn_tools.operations import zorder_kron
+from ttfemesh.tt_tools.numeric import unit_vector_binary_tt
+from ttfemesh.tt_tools.operations import zorder_kron
 from ttfemesh.types import BoundarySide2D, TensorTrain
 
 

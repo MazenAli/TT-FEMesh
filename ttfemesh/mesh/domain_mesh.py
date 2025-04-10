@@ -9,7 +9,7 @@ from ttfemesh.domain.subdomain_connection import CurveConnection2D, VertexConnec
 from ttfemesh.mesh.mesh_utils import side_concatenation_tt, vertex_concatenation_tt
 from ttfemesh.mesh.subdomain_mesh import SubdomainMesh, SubdomainMesh2D
 from ttfemesh.quadrature.quadrature import QuadratureRule
-from ttfemesh.tn_tools.tensor_cross import TTCrossConfig
+from ttfemesh.tt_tools.tensor_cross import TTCrossConfig
 from ttfemesh.types import BoundarySide2D, BoundaryVertex2D, TensorTrain
 
 
