@@ -7,8 +7,8 @@ from .tensor_cross import (
     anova_init_tensor_train,
     gen_teneva_indices,
     tensor_train_cross_approximation,
-    test_accuracy,
-    test_accuracy_random,
+    error_on_indices,
+    error_on_random_indices,
 )
 
 __all__ = [
@@ -16,8 +16,8 @@ __all__ = [
     "gen_teneva_indices",
     "TTCrossConfig",
     "tensor_train_cross_approximation",
-    "test_accuracy",
-    "test_accuracy_random",
+    "error_on_indices",
+    "error_on_random_indices",
     "zorder_kron",
     "transpose_kron",
     "levelwise_kron",

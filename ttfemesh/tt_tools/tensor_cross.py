@@ -17,7 +17,7 @@ class TTCrossConfig:
             Defaults to None.
         cache_calls_factor (int, optional): If the number of calls to cache is this factor
             times larger than number of function calls, TTCross stops. Defaults to 20.
-        num_anova_init (int, optional): Number of training indices for ANOVA initializations.
+        num_anova_init (int, optional): Number of training indices for ANOVA initialization.
             Defaults to 1000.
         anova_order (int, optional): Order of the ANOVA decomposition. Defaults to 2.
         verbose (bool, optional): Verbose output. Defaults to False.
@@ -121,7 +121,7 @@ def tensor_train_cross_approximation(
     return teneva.cross(oracle, tt_init, **kwargs)
 
 
-def test_accuracy(
+def error_on_indices(
     oracle: Callable[[np.ndarray], np.ndarray],
     approx_tt: List[np.ndarray],
     test_indices: np.ndarray,
@@ -142,7 +142,7 @@ def test_accuracy(
     return error
 
 
-def test_accuracy_random(
+def error_on_random_indices(
     oracle: Callable[[np.ndarray], np.ndarray],
     approx_tt: List[np.ndarray],
     num_test_indices: int,
@@ -161,4 +161,4 @@ def test_accuracy_random(
         float: Relative error of the approximated tensor train.
     """
     test_indices = gen_teneva_indices(num_test_indices, tensor_shape)
-    return test_accuracy(oracle, approx_tt, test_indices)
+    return error_on_indices(oracle, approx_tt, test_indices)
