@@ -44,6 +44,7 @@ def zorder_linfunc2d(c: float, cx: float, X: TensorTrain, cy: float, Y: TensorTr
     Compute the linear combination of two TT-tensors using the Z-ordering
     (a.k.a. *transposed* or *level-wise* ordering):
     c + cx * X + cy * Y.
+    Note that both X and Y must be of the same TT-length and have at least rank 2.
 
     Args:
         c (float): Scalar constant.
@@ -54,9 +55,22 @@ def zorder_linfunc2d(c: float, cx: float, X: TensorTrain, cy: float, Y: TensorTr
 
     Returns:
         TensorTrain resulting from the linear combination of c, X, and Y.
+
+    Raises:
+        ValueError: If X and Y have different TT-lengths or ranks smaller than 2.
     """
 
     X_cores, Y_cores = X.cores, Y.cores
+    if len(X_cores) != len(Y_cores):
+        raise ValueError("X and Y must have the same TT-length.")
+
+    ranks_X, ranks_Y = X.R, Y.R
+    for i in range(1, len(ranks_X)-1):
+        if ranks_X[i] == 1:
+            raise ValueError("X must have at least rank 2.")
+        if ranks_Y[i] == 1:
+            raise ValueError("Y must have at least rank 2.")
+
 
     result = copy.deepcopy(X_cores)
     result[0][:, :, 0] = cx * X_cores[0][:, :, 0] + cy * Y_cores[0][:, :, 0]

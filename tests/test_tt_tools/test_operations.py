@@ -60,7 +60,7 @@ class TestZorderKron:
 
 
 class TestZorderLinfunc2d:
-    def test_basic_linfunc(self, create_tt_vector):
+    def test_invalid_rank(self, create_tt_vector):
         X = create_tt_vector
         Y = create_tt_vector
         
@@ -68,9 +68,9 @@ class TestZorderLinfunc2d:
         cx = 2.0
         cy = 3.0
         
-        result = zorder_linfunc2d(c, cx, X, cy, Y) # does not work for rank 1?
-        assert isinstance(result, TensorTrain)
-        assert len(result.cores) == 3
+        with pytest.raises(ValueError):
+            zorder_linfunc2d(c, cx, X, cy, Y)
+
 
     def test_multi_core_linfunc(self):
         # Create TT-tensors with multiple cores
