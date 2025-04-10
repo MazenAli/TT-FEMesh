@@ -1,12 +1,15 @@
 import pytest
 import numpy as np
 import warnings
+import matplotlib.pyplot as plt
+from itertools import product
 from unittest.mock import MagicMock, patch
 
 from ttfemesh.mesh.subdomain_mesh import SubdomainMesh, SubdomainMesh2D, QuadMesh
 from ttfemesh.domain import Subdomain, Subdomain2D, Quad
 from ttfemesh.domain.subdomain_factory import QuadFactory
-from ttfemesh.quadrature.quadrature import QuadratureRule, QuadratureRule2D
+from ttfemesh.quadrature.quadrature import QuadratureRule, QuadratureRule2D, GaussLegendre2D
+from ttfemesh.mesh import qindex2dtuple
 from ttfemesh.tn_tools.tensor_cross import TTCrossConfig
 from ttfemesh.types import TensorTrain
 
@@ -128,10 +131,25 @@ def subdomain_mesh():
     p4 = (-0.5, 3)
 
     quad = QuadFactory.create(p1, p2, p3, p4)
-    mock_quadrature_rule = MagicMock(spec=QuadratureRule2D)
+    qrule = GaussLegendre2D(2)
     return SubdomainMesh2D(
         subdomain=quad,
-        quadrature_rule=mock_quadrature_rule,
+        quadrature_rule=qrule,
+        mesh_size_exponent=3
+    )
+
+@pytest.fixture
+def quad_mesh():
+    p1 = (0, 0)
+    p2 = (2, 0)
+    p3 = (3, 1)
+    p4 = (-0.5, 3)
+
+    quad = QuadFactory.create(p1, p2, p3, p4)
+    qrule = GaussLegendre2D(2)
+    return QuadMesh(
+        quad=quad,
+        quadrature_rule=qrule,
         mesh_size_exponent=3
     )
 
@@ -392,6 +410,164 @@ class TestSubdomainMesh2D:
         np.testing.assert_allclose(jacobian, approx_jacobian, rtol=1e-8)
 
     def test_get_jacobian_tensor_trains_quad(self, subdomain_mesh):
+        jacobian_tensor_trains = subdomain_mesh.get_jacobian_tensor_trains()
+        jacs = subdomain_mesh.get_jacobian_tensors()
+        num_quadrature_points = subdomain_mesh.quadrature_rule.get_points_weights()[0].shape[0]
+        assert jacobian_tensor_trains.shape == (num_quadrature_points, 2, 2)
+
+        delta = 0.
+        for qindex in product((0, 3), repeat=subdomain_mesh.mesh_size_exponent):
+            qindex_array = np.array(qindex)
+            index = qindex2dtuple(qindex_array)
+
+            for q in range(num_quadrature_points):
+                for i in range(2):
+                    for j in range(2):
+                        jtt = jacobian_tensor_trains[q, i, j]
+                        jtt = jtt.full()
+
+                        exact = jacs[index][q, i, j]
+                        approx = jtt[qindex].item()
+
+                        delta += np.abs(exact - approx)       
+
+        assert delta < 1e-8
+
+    def test_get_jacobian_det_tensor_trains_quad(self, subdomain_mesh):
+        jacobian_det_tensor_trains = subdomain_mesh.get_jacobian_det_tensor_trains()
+        jacobian_dets = subdomain_mesh.get_jacobian_dets()
+        num_quadrature_points = subdomain_mesh.quadrature_rule.get_points_weights()[0].shape[0]
+        assert jacobian_det_tensor_trains.shape == (num_quadrature_points,)
+
+        delta = 0.
+        for qindex in product((0, 3), repeat=subdomain_mesh.mesh_size_exponent):
+            qindex_array = np.array(qindex)
+            index = qindex2dtuple(qindex_array)
+
+            for q in range(num_quadrature_points):
+                exact = jacobian_dets[index][q]
+                approx = jacobian_det_tensor_trains[q]
+                approx = approx.full()
+                approx = approx[qindex]
+                delta += np.abs(exact - approx)
+
+        assert delta < 1e-8
+
+    def test_get_jacobian_invdet_tensor_trains_quad(self, subdomain_mesh):
+        jacobian_invdet_tensor_trains = subdomain_mesh.get_jacobian_invdet_tensor_trains()
+        jacobian_invdets = subdomain_mesh.get_jacobian_invdets()
+        num_quadrature_points = subdomain_mesh.quadrature_rule.get_points_weights()[0].shape[0]
+        assert jacobian_invdet_tensor_trains.shape == (num_quadrature_points,)
+
+        delta = 0.
+        for qindex in product((0, 3), repeat=subdomain_mesh.mesh_size_exponent):
+            qindex_array = np.array(qindex)
+            index = qindex2dtuple(qindex_array)
+
+            for q in range(num_quadrature_points):
+                exact = jacobian_invdets[index][q]
+                approx = jacobian_invdet_tensor_trains[q]
+                approx = approx.full()
+                approx = approx[qindex]
+                delta += np.abs(exact - approx)
+
+        assert delta < 1e-8
+
+    def test_get_jacobian_tensors_quad(self, subdomain_mesh):
+        jacobian_tensors = subdomain_mesh.get_jacobian_tensors()
+        num_quadrature_points = subdomain_mesh.quadrature_rule.get_points_weights()[0].shape[0]
+        size = 2**subdomain_mesh.mesh_size_exponent
+        assert jacobian_tensors.shape == (size, size, num_quadrature_points, 2, 2)
+
+        delta = 0.
+        for qindex in product((0, 3), repeat=subdomain_mesh.mesh_size_exponent):
+            qindex_array = np.array(qindex)
+            index = qindex2dtuple(qindex_array)
+            
+            for q in range(num_quadrature_points):
+                for i in range(2):
+                    for j in range(2):
+                        exact = jacobian_tensors[index][q, i, j]
+                        with warnings.catch_warnings():
+                            warnings.simplefilter("ignore", UserWarning)
+                            approx = subdomain_mesh.ref2element_jacobian(index,
+                            subdomain_mesh.quadrature_rule.get_points_weights()[0][q:q+1])[0, i, j]
+                        delta += np.abs(exact - approx)
+        
+        assert delta < 1e-8
+
+    def test_get_jacobian_dets_quad(self, subdomain_mesh):
+        jacobian_tensors = subdomain_mesh.get_jacobian_tensors()
+        jacobian_dets = subdomain_mesh.get_jacobian_dets()
+        size = 2**subdomain_mesh.mesh_size_exponent      
+        num_quadrature_points = subdomain_mesh.quadrature_rule.get_points_weights()[0].shape[0]
+        assert jacobian_dets.shape == (size, size, num_quadrature_points)
+
+        delta = 0.
+        for qindex in product((0, 3), repeat=subdomain_mesh.mesh_size_exponent):
+            qindex_array = np.array(qindex)
+            index = qindex2dtuple(qindex_array)
+
+            for q in range(num_quadrature_points):
+                exact = jacobian_dets[index][q]
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    approx = np.linalg.det(jacobian_tensors[index][q])
+                delta += np.abs(exact - approx)
+
+        assert delta < 1e-8
+
+    def test_get_jacobian_invdets_quad(self, subdomain_mesh):
+        jacobian_tensors = subdomain_mesh.get_jacobian_tensors()
+        jacobian_invdets = subdomain_mesh.get_jacobian_invdets()
+        size = 2**subdomain_mesh.mesh_size_exponent      
+        num_quadrature_points = subdomain_mesh.quadrature_rule.get_points_weights()[0].shape[0]
+        assert jacobian_invdets.shape == (size, size, num_quadrature_points)
+
+        delta = 0.
+        for qindex in product((0, 3), repeat=subdomain_mesh.mesh_size_exponent):
+            qindex_array = np.array(qindex)
+            index = qindex2dtuple(qindex_array)
+
+            for q in range(num_quadrature_points):
+                exact = jacobian_invdets[index][q]
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    approx = 1./np.linalg.det(jacobian_tensors[index][q])
+                delta += np.abs(exact - approx)
+
+        assert delta < 1e-8
+
+    def test_tca_default(self, subdomain_mesh):
+        mesh_size_exponent = subdomain_mesh.mesh_size_exponent
+        random_tensor = np.random.randn(*[4]*mesh_size_exponent)
+        print("random_tensor.shape", random_tensor.shape)
+        def oracle(idx):
+            vals = []
+            for i in range(idx.shape[0]):
+                idx_ = idx[i, :]
+                vals_ = random_tensor[tuple(idx_)]
+                vals.append(vals_)
+
+            return np.stack(vals)
+
+
+        tca_default = subdomain_mesh._SubdomainMesh2D__tca_default(oracle)
+        assert tca_default.shape == [4]*mesh_size_exponent
+
+    def test_plot_element(self, subdomain_mesh):
+        try:
+            subdomain_mesh.plot_element((0, 0), num_points=100)
+            plt.close()
+        except Exception as e:
+            pytest.fail(f"Plotting failed with error: {e}")
+
+    def test_plot(self, subdomain_mesh):
+        try:
+            subdomain_mesh.plot(num_points=100)
+            plt.close()
+        except Exception as e:
+            pytest.fail(f"Plotting failed with error: {e}")
 
 
 class TestQuadMesh:
