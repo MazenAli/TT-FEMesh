@@ -535,6 +535,7 @@ class SubdomainMesh2D(SubdomainMesh):
     def __tca_default(self, oracle: Callable[[np.ndarray], np.ndarray]) -> TensorTrain:
         """
         Perform tensor train cross approximation for a given oracle function.
+        The tensor shape is assumed to be [4] * mesh_size_exponent.
 
         Args:
             oracle (Callable[[np.ndarray], np.ndarray]): The oracle function to approximate.

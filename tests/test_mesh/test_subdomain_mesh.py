@@ -555,6 +555,22 @@ class TestSubdomainMesh2D:
         tca_default = subdomain_mesh._SubdomainMesh2D__tca_default(oracle)
         assert tca_default.shape == [4]*mesh_size_exponent
 
+    def test_cross_func(self, subdomain_mesh):
+        qindex = np.array([[0, 0, 0], [3, 0, 1], [0, 1, 0], [0, 1, 1]])
+        xi_eta = np.array([[0.5, -0.5]])
+        cross_func = subdomain_mesh._cross_func
+
+        jacobians = cross_func(qindex, xi_eta)
+        num_indices = qindex.shape[0]
+        assert jacobians.shape == (num_indices, 2, 2)
+
+        for idx in range(qindex.shape[0]):
+            single_bindex = np.array(qindex[idx, :])
+            index = subdomain_mesh.index_map(single_bindex)
+            jacobians_ist = jacobians[idx]
+            jacobians_soll = subdomain_mesh.ref2element_jacobian(index, xi_eta)
+            assert np.allclose(jacobians_ist, jacobians_soll)
+
     def test_plot_element(self, subdomain_mesh):
         try:
             subdomain_mesh.plot_element((0, 0), num_points=100)
