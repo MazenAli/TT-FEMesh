@@ -44,6 +44,13 @@ class TestQuadratureRule2D:
 
 
 class TestGaussLegendre:
+    def test_default_initialization(self):
+        quadrature = GaussLegendre()
+        assert quadrature.order == 1
+        assert quadrature.dimension == 1
+        assert quadrature.points is None
+        assert quadrature.weights is None
+
     def test_initialization(self):
         quadrature = GaussLegendre(order=2)
         assert quadrature.order == 2
@@ -105,6 +112,13 @@ class TestGaussLegendre:
 
 
 class TestGaussLegendre2D:
+    def test_default_initialization(self):
+        quadrature = GaussLegendre2D()
+        assert quadrature.order == 1
+        assert quadrature.dimension == 2
+        assert quadrature.points is None
+        assert quadrature.weights is None
+
     def test_initialization(self):
         quadrature = GaussLegendre2D(order=2)
         assert quadrature.order == 2

@@ -38,12 +38,12 @@ class QuadratureRule2D(QuadratureRule):
 class GaussLegendre(QuadratureRule):
     """Implements Gauss-Legendre quadrature on [-1, 1]^(dimension)."""
 
-    def __init__(self, order: int, dimension: int = 1):
+    def __init__(self, order: int = 1, dimension: int = 1):
         """
         Initialize the Gauss-Legendre quadrature rule.
 
         Args:
-            order (int): The order of the quadrature rule. Must be greater than 0.
+            order (int): The order of the quadrature rule. Must be greater than 0 (default is 1).
             dimension (int): The number of dimensions (default is 1).
         """
         self.order = order
@@ -99,12 +99,12 @@ class GaussLegendre(QuadratureRule):
 class GaussLegendre2D(GaussLegendre):
     """Implements Gauss-Legendre quadrature on [-1, 1]^2."""
 
-    def __init__(self, order: int):
+    def __init__(self, order: int = 1):
         """
         Initialize the 2D Gauss-Legendre quadrature rule.
 
         Args:
-            order (int): The order of the quadrature rule. Must be greater than 0.
+            order (int): The order of the quadrature rule. Must be greater than 0 (default is 1).
         """
         super().__init__(order, dimension=2)
 
