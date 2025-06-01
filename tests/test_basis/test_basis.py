@@ -1,29 +1,31 @@
+import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-import matplotlib.pyplot as plt
-
-import matplotlib
-matplotlib.use('Agg')
-
-matplotlib.rcParams.update({
-    'figure.dpi': 100,
-    'figure.figsize': (6, 6),
-    'font.family': 'sans-serif',
-    'font.size': 10,
-    'text.kerning_factor': 0,
-    'image.cmap': 'viridis',
-    'lines.linestyle': '-',
-    'lines.linewidth': 1.0,
-    'axes.grid': False,
-    'axes.labelsize': 10,
-    'axes.titlesize': 12,
-    'xtick.labelsize': 8,
-    'ytick.labelsize': 8,
-})
 
 from ttfemesh.basis.basis import BilinearBasis, LinearBasis
 from ttfemesh.tt_tools.meshgrid import map2canonical2d
 from ttfemesh.types import BoundarySide2D
+
+matplotlib.use("Agg")
+
+matplotlib.rcParams.update(
+    {
+        "figure.dpi": 100,
+        "figure.figsize": (6, 6),
+        "font.family": "sans-serif",
+        "font.size": 10,
+        "text.kerning_factor": 0,
+        "image.cmap": "viridis",
+        "lines.linestyle": "-",
+        "lines.linewidth": 1.0,
+        "axes.grid": False,
+        "axes.labelsize": 10,
+        "axes.titlesize": 12,
+        "xtick.labelsize": 8,
+        "ytick.labelsize": 8,
+    }
+)
 
 
 class TestLinearBasis:
@@ -116,12 +118,12 @@ class TestLinearBasis:
         assert np.all(vector[1:-1] == 1.0)
 
     def test_linear_plot_creates_correct_figure(self):
-        plt.clf() 
-        fig = self.basis.plot(0) 
+        plt.clf()
+        fig = self.basis.plot(0)
         plt.title("Linear Basis Function")
         plt.xlabel("x")
         plt.ylabel("y")
-        
+
         assert fig is not None
         assert len(fig.axes) == 1
         ax = fig.axes[0]
@@ -129,7 +131,7 @@ class TestLinearBasis:
         assert ax.get_xlabel() == "x"
         assert ax.get_ylabel() == "y"
         assert len(ax.lines) == 1
-        
+
         plt.close(fig)
 
     def test_plot_raises_error_for_invalid_index(self):
@@ -295,7 +297,6 @@ class TestBilinearBasis:
         mask_bottom_top = self.basis.get_dirichlet_mask(
             mesh_size_exponent, BoundarySide2D.BOTTOM, BoundarySide2D.TOP
         )
-        
 
         zmap = map2canonical2d(mesh_size_exponent)
 
@@ -355,7 +356,7 @@ class TestBilinearBasis:
     def test_bilinear_plot_creates_correct_figure(self):
         plt.clf()
         fig = self.basis.plot((0, 0))
-        
+
         assert fig is not None
         assert len(fig.axes) == 2
         ax = fig.axes[0]
@@ -364,7 +365,7 @@ class TestBilinearBasis:
         assert ax.get_ylabel() == "y"
         assert len(ax.collections) > 0
         assert ax._colorbars is not None
-        
+
         plt.close(fig)
 
     def test_plot_raises_error_for_invalid_dimension(self):

@@ -14,12 +14,12 @@ class Subdomain(ABC):
     """
 
     @abstractmethod
-    def _validate(self): # pragma: no cover
+    def _validate(self):  # pragma: no cover
         """Ensure that the subdomain is valid."""
         pass
 
     @abstractmethod
-    def plot(self): # pragma: no cover
+    def plot(self):  # pragma: no cover
         """Plot the subdomain and its boundaries."""
         pass
 

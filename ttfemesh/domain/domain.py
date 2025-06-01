@@ -87,7 +87,7 @@ class Domain(ABC):
 
     @property
     @abstractmethod
-    def dimension(self): # pragma: no cover
+    def dimension(self):  # pragma: no cover
         """The dimension of the domain."""
         pass
 

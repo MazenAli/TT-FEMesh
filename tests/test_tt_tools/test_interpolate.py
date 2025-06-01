@@ -1,21 +1,22 @@
-import pytest
 import numpy as np
-from ttfemesh.tt_tools.interpolate import interpolate_linear2d
+from torchtt import TT
+
 from ttfemesh.mesh.mesh_utils import qindex2dtuple
-from ttfemesh.tt_tools.meshgrid import map2canonical2d, range_meshgrid2d
-from ttfemesh.types import TensorTrain
+from ttfemesh.tt_tools.interpolate import interpolate_linear2d
+from ttfemesh.tt_tools.meshgrid import map2canonical2d
 
 
 class TestInterpolateLinear2D:
     def test_constant_function(self):
         """Test interpolation of a constant function."""
+
         def constant_func(index):
             return 5.0
 
         d = 3
         result = interpolate_linear2d(constant_func, d)
-        
-        assert isinstance(result, TensorTrain)
+
+        assert isinstance(result, TT)
         assert np.allclose(result.full(), 5.0)
 
     def test_linear_function_x(self):
@@ -26,7 +27,7 @@ class TestInterpolateLinear2D:
         d = 3
         result = interpolate_linear2d(linear_x_func, d)
 
-        assert isinstance(result, TensorTrain)
+        assert isinstance(result, TT)
         zmap = map2canonical2d(d)
         full_tensor = np.array(result.full()).flatten("F")
         reordered = np.empty_like(full_tensor)
@@ -45,7 +46,7 @@ class TestInterpolateLinear2D:
         d = 3
         result = interpolate_linear2d(linear_y_func, d)
 
-        assert isinstance(result, TensorTrain)
+        assert isinstance(result, TT)
         zmap = map2canonical2d(d)
         full_tensor = np.array(result.full()).flatten("F")
         reordered = np.empty_like(full_tensor)
@@ -63,8 +64,8 @@ class TestInterpolateLinear2D:
 
         d = 3
         result = interpolate_linear2d(linear_xy_func, d)
-        
-        assert isinstance(result, TensorTrain)
+
+        assert isinstance(result, TT)
         zmap = map2canonical2d(d)
         full_tensor = np.array(result.full()).flatten("F")
         reordered = np.empty_like(full_tensor)

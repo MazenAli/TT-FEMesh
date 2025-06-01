@@ -1,20 +1,22 @@
+import numpy as np
 import pytest
 import torch
-import numpy as np
+import torchtt as tt
+from torchtt import TT
+
 from ttfemesh.tt_tools.meshgrid import map2canonical2d, range_meshgrid2d
 from ttfemesh.tt_tools.operations import zorder_kron, zorder_linfunc2d
 from ttfemesh.types import TensorTrain
-import torchtt as tt
 
 
 class TestZorderKron:
     def test_basic_kron(self):
-        core = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 2, 2, 1)
-        cores = [core]*3
+        core = torch.tensor([[1.0, 0.0], [0.0, 1.0]]).reshape(1, 2, 2, 1)
+        cores = [core] * 3
         left = TensorTrain(cores)
         right = TensorTrain(cores)
         result = zorder_kron(left, right)
-        assert isinstance(result, TensorTrain)
+        assert isinstance(result, TT)
         assert len(result.cores) == 3
 
     def test_invalid_length(self):
@@ -22,7 +24,7 @@ class TestZorderKron:
         right_cores = [torch.tensor([[[2.0]]]), torch.tensor([[[3.0]]])]
         left = TensorTrain(left_cores)
         right = TensorTrain(right_cores)
-        
+
         with pytest.raises(ValueError):
             zorder_kron(left, right)
 
@@ -31,7 +33,7 @@ class TestZorderKron:
         right_tt = tt.randn([2, 2, 2], [1, 2, 2, 1])
 
         result = zorder_kron(left_tt, right_tt)
-        assert isinstance(result, tt.TT)
+        assert isinstance(result, TT)
         assert result.R == [1, 4, 4, 1]
         assert result.shape == [4, 4, 4]
 
@@ -48,48 +50,46 @@ class TestZorderKron:
 
 class TestZorderLinfunc2d:
     def test_invalid_rank_X(self):
-        core = torch.tensor([[1., 2.]]).reshape(1, 2, 1)
-        cores = [core]*3
+        core = torch.tensor([[1.0, 2.0]]).reshape(1, 2, 1)
+        cores = [core] * 3
         X = TensorTrain(cores)
         Y = TensorTrain(cores)
-        
+
         c = 1.0
         cx = 2.0
         cy = 3.0
-        
+
         with pytest.raises(ValueError):
             zorder_linfunc2d(c, cx, X, cy, Y)
 
     def test_invalid_rank_Y(self):
-        core = torch.tensor([[1., 2.]]).reshape(1, 2, 1)
-        cores = [core]*3
+        core = torch.tensor([[1.0, 2.0]]).reshape(1, 2, 1)
+        cores = [core] * 3
         X, _ = range_meshgrid2d(3)
         Y = TensorTrain(cores)
-        
+
         c = 1.0
         cx = 2.0
         cy = 3.0
-        
+
         with pytest.raises(ValueError):
             zorder_linfunc2d(c, cx, X, cy, Y)
-        
 
     def test_invalid_length(self):
-        core = torch.tensor([[1., 2.]]).reshape(1, 2, 1)
-        cores = [core]*3
+        core = torch.tensor([[1.0, 2.0]]).reshape(1, 2, 1)
+        cores = [core] * 3
         X = TensorTrain(cores)
 
-        cores = [core]*2
+        cores = [core] * 2
         Y = TensorTrain(cores)
-        
+
         with pytest.raises(ValueError):
             zorder_linfunc2d(1.0, 0.0, X, 0.0, Y)
-
 
     def test_meshgrid_example(self):
         XX, YY = range_meshgrid2d(3)
         result = zorder_linfunc2d(1.0, 1.0, XX, 1.0, YY)
-        assert isinstance(result, TensorTrain)
+        assert isinstance(result, TT)
         assert len(result.cores) == 3
         assert result.cores[0].shape == (1, 4, 2)
         assert result.cores[1].shape == (2, 4, 2)

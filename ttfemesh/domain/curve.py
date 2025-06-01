@@ -46,7 +46,7 @@ class Curve(ABC):
             )
 
     @abstractmethod
-    def evaluate(self, t: Union[np.ndarray, float]) -> np.ndarray: # pragma: no cover
+    def evaluate(self, t: Union[np.ndarray, float]) -> np.ndarray:  # pragma: no cover
         """
         Evaluate the curve at parameter values t.
 
@@ -59,7 +59,7 @@ class Curve(ABC):
         pass
 
     @abstractmethod
-    def tangent(self, t: Union[np.ndarray, float]) -> np.ndarray: # pragma: no cover
+    def tangent(self, t: Union[np.ndarray, float]) -> np.ndarray:  # pragma: no cover
         """
         Compute the tangent vector (not normalized) to the curve at parameter values t.
 

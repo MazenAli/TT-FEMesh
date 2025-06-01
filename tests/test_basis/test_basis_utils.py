@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from ttfemesh.basis.basis_utils import (
     left_corner2index_map_ttcores,

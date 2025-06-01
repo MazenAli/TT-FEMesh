@@ -1,8 +1,9 @@
-import pytest
-import numpy as np
-from ttfemesh.domain.subdomain import Subdomain, Subdomain2D, Quad
-from ttfemesh.domain.curve import Curve, Line2D
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
+
+from ttfemesh.domain.curve import Curve, Line2D
+from ttfemesh.domain.subdomain import Quad, Subdomain, Subdomain2D
 
 
 class TestSubdomain:
@@ -24,14 +25,9 @@ class TestSubdomain2D:
         p2 = np.array([1.0, 0.0])
         p3 = np.array([1.0, 1.0])
         p4 = np.array([0.0, 1.0])
-        
-        curves = [
-            Line2D(p1, p2),
-            Line2D(p2, p3),
-            Line2D(p3, p4),
-            Line2D(p4, p1)
-        ]
-        
+
+        curves = [Line2D(p1, p2), Line2D(p2, p3), Line2D(p3, p4), Line2D(p4, p1)]
+
         subdomain = Subdomain2D(curves)
         assert len(subdomain.curves) == 4
         assert all(isinstance(curve, Curve) for curve in subdomain.curves)
@@ -40,13 +36,9 @@ class TestSubdomain2D:
         p1 = np.array([0.0, 0.0])
         p2 = np.array([1.0, 0.0])
         p3 = np.array([1.0, 1.0])
-        
-        curves = [
-            Line2D(p1, p2),
-            Line2D(p2, p3),
-            Line2D(p3, p1)
-        ]
-        
+
+        curves = [Line2D(p1, p2), Line2D(p2, p3), Line2D(p3, p1)]
+
         with pytest.raises(ValueError, match="A 2D subdomain must be defined by exactly 4 curves."):
             Subdomain2D(curves)
 
@@ -55,14 +47,9 @@ class TestSubdomain2D:
         p2 = np.array([1.0, 0.0])
         p3 = np.array([1.0, 1.0])
         p4 = np.array([0.0, 1.0])
-        
-        curves = [
-            Line2D(p1, p2),
-            Line2D(p2, p3),
-            Line2D(p3, p4),
-            Line2D(p4, p1)
-        ]
-        
+
+        curves = [Line2D(p1, p2), Line2D(p2, p3), Line2D(p3, p4), Line2D(p4, p1)]
+
         subdomain = Subdomain2D(curves)
         curve = subdomain.get_curve(0)
         assert isinstance(curve, Curve)
@@ -74,18 +61,13 @@ class TestSubdomain2D:
         p2 = np.array([1.0, 0.0])
         p3 = np.array([1.0, 1.0])
         p4 = np.array([0.0, 1.0])
-        
-        curves = [
-            Line2D(p1, p2),
-            Line2D(p2, p3),
-            Line2D(p3, p4),
-            Line2D(p4, p1)
-        ]
-        
+
+        curves = [Line2D(p1, p2), Line2D(p2, p3), Line2D(p3, p4), Line2D(p4, p1)]
+
         subdomain = Subdomain2D(curves)
         with pytest.raises(ValueError, match="Curve index must be in the range \\[0, 3\\]."):
             subdomain.get_curve(4)
-        
+
         with pytest.raises(ValueError, match="Curve index must be in the range \\[0, 3\\]."):
             subdomain.get_curve(-1)
 
@@ -94,15 +76,10 @@ class TestSubdomain2D:
         p2 = np.array([1.0, 0.0])
         p3 = np.array([1.0, 1.0])
         p4 = np.array([0.0, 1.0])
-        p5 = np.array([0.1, 0.1]) 
-        
-        curves = [
-            Line2D(p1, p2),
-            Line2D(p2, p3),
-            Line2D(p3, p4),
-            Line2D(p5, p1)
-        ]
-        
+        p5 = np.array([0.1, 0.1])
+
+        curves = [Line2D(p1, p2), Line2D(p2, p3), Line2D(p3, p4), Line2D(p5, p1)]
+
         with pytest.raises(ValueError, match="Curves 2 and 3 do not connect properly."):
             Subdomain2D(curves)
 
@@ -111,31 +88,22 @@ class TestSubdomain2D:
         p2 = np.array([0.0, 1.0])
         p3 = np.array([1.0, 1.0])
         p4 = np.array([1.0, 0.0])
-        
-        curves = [
-            Line2D(p1, p2),
-            Line2D(p2, p3),
-            Line2D(p3, p4),
-            Line2D(p4, p1)
-        ]
-        
-        with pytest.raises(ValueError,
-                           match="The start points of curves are not ordered counter-clockwise."):
+
+        curves = [Line2D(p1, p2), Line2D(p2, p3), Line2D(p3, p4), Line2D(p4, p1)]
+
+        with pytest.raises(
+            ValueError, match="The start points of curves are not ordered counter-clockwise."
+        ):
             Subdomain2D(curves)
 
     def test_repr(self):
-        p1 = np.array([0., 0.])
-        p2 = np.array([1., 0.])
-        p3 = np.array([1., 1.])
-        p4 = np.array([0., 1.])
-        
-        curves = [
-            Line2D(p1, p2),
-            Line2D(p2, p3),
-            Line2D(p3, p4),
-            Line2D(p4, p1)
-        ]
-        
+        p1 = np.array([0.0, 0.0])
+        p2 = np.array([1.0, 0.0])
+        p3 = np.array([1.0, 1.0])
+        p4 = np.array([0.0, 1.0])
+
+        curves = [Line2D(p1, p2), Line2D(p2, p3), Line2D(p3, p4), Line2D(p4, p1)]
+
         subdomain = Subdomain2D(curves)
         repr_str = repr(subdomain)
         assert "Subdomain2D(points=" in repr_str
@@ -145,13 +113,8 @@ class TestSubdomain2D:
         p2 = np.array([1.0, 0.0])
         p3 = np.array([1.0, 1.0])
         p4 = np.array([0.0, 1.0])
-        
-        curves = [
-            Line2D(p1, p2),
-            Line2D(p2, p3),
-            Line2D(p3, p4),
-            Line2D(p4, p1)
-        ]
+
+        curves = [Line2D(p1, p2), Line2D(p2, p3), Line2D(p3, p4), Line2D(p4, p1)]
 
         subdomain = Subdomain2D(curves)
         try:
@@ -159,7 +122,6 @@ class TestSubdomain2D:
             plt.close()
         except Exception as e:
             pytest.fail(f"Plotting failed with error: {e}")
-        
 
 
 class TestQuad:
@@ -168,14 +130,9 @@ class TestQuad:
         p2 = np.array([1.0, 0.0])
         p3 = np.array([1.0, 1.0])
         p4 = np.array([0.0, 1.0])
-        
-        lines = [
-            Line2D(p1, p2),
-            Line2D(p2, p3),
-            Line2D(p3, p4),
-            Line2D(p4, p1)
-        ]
-        
+
+        lines = [Line2D(p1, p2), Line2D(p2, p3), Line2D(p3, p4), Line2D(p4, p1)]
+
         quad = Quad(lines)
         assert len(quad.curves) == 4
         assert all(isinstance(curve, Line2D) for curve in quad.curves)
@@ -185,14 +142,9 @@ class TestQuad:
         p2 = np.array([1.0, 0.0])
         p3 = np.array([1.0, 1.0])
         p4 = np.array([0.0, 1.0])
-        
-        lines = [
-            Line2D(p1, p2),
-            Line2D(p2, p3),
-            Line2D(p3, p4),
-            Line2D(p4, p1)
-        ]
-        
+
+        lines = [Line2D(p1, p2), Line2D(p2, p3), Line2D(p3, p4), Line2D(p4, p1)]
+
         quad = Quad(lines)
         repr_str = repr(quad)
         assert "Quad(points=" in repr_str

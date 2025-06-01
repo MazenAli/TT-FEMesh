@@ -38,7 +38,7 @@ security:
 	bandit --configfile bandit.yml --recursive $(DIRS)
 
 imports:
-	vulture $(DIRS)
+	vulture --ignore-names=side_effect $(DIRS)
 	pip-missing-reqs $(DIRS) --ignore-module=pytest
 	pip-extra-reqs $(DIRS)
 

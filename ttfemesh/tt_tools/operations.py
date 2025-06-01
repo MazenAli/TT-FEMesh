@@ -65,12 +65,11 @@ def zorder_linfunc2d(c: float, cx: float, X: TensorTrain, cy: float, Y: TensorTr
         raise ValueError("X and Y must have the same TT-length.")
 
     ranks_X, ranks_Y = X.R, Y.R
-    for i in range(1, len(ranks_X)-1):
+    for i in range(1, len(ranks_X) - 1):
         if ranks_X[i] == 1:
             raise ValueError("X must have at least rank 2.")
         if ranks_Y[i] == 1:
             raise ValueError("Y must have at least rank 2.")
-
 
     result = copy.deepcopy(X_cores)
     result[0][:, :, 0] = cx * X_cores[0][:, :, 0] + cy * Y_cores[0][:, :, 0]

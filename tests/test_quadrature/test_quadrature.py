@@ -1,12 +1,14 @@
-import pytest
+from itertools import product
+
 import numpy as np
 import numpy.polynomial.legendre as leg
-from itertools import product
+import pytest
+
 from ttfemesh.quadrature.quadrature import (
+    GaussLegendre,
+    GaussLegendre2D,
     QuadratureRule,
     QuadratureRule2D,
-    GaussLegendre,
-    GaussLegendre2D
 )
 
 
@@ -59,7 +61,7 @@ class TestGaussLegendre:
     def test_get_points_weights_1d(self):
         quadrature = GaussLegendre(order=2)
         points, weights = quadrature.get_points_weights()
-        
+
         expected_points, expected_weights = leg.leggauss(2)
         assert np.allclose(points.flatten(), expected_points)
         assert np.allclose(weights, expected_weights)
@@ -67,11 +69,11 @@ class TestGaussLegendre:
     def test_get_points_weights_2d(self):
         quadrature = GaussLegendre(order=2, dimension=2)
         points, weights = quadrature.get_points_weights()
-        
+
         points_1d, weights_1d = leg.leggauss(2)
         expected_points = np.array(list(product(points_1d, points_1d)))
         expected_weights = np.array([w1 * w2 for w1 in weights_1d for w2 in weights_1d])
-        
+
         assert points.shape == (4, 2)
         assert weights.shape == (4,)
         assert np.allclose(points, expected_points)
@@ -88,7 +90,7 @@ class TestGaussLegendre:
         points_1d, weights_1d = leg.leggauss(2)
         expected_points = np.array(list(product(points_1d, points_1d)))
         expected_weights = np.array([w1 * w2 for w1 in weights_1d for w2 in weights_1d])
-        
+
         assert points.shape == (4, 2)
         assert weights.shape == (4,)
         assert np.allclose(points, expected_points)
@@ -113,11 +115,11 @@ class TestGaussLegendre2D:
     def test_get_points_weights(self):
         quadrature = GaussLegendre2D(order=2)
         points, weights = quadrature.get_points_weights()
-        
+
         points_1d, weights_1d = leg.leggauss(2)
         expected_points = np.array(list(product(points_1d, points_1d)))
         expected_weights = np.array([w1 * w2 for w1 in weights_1d for w2 in weights_1d])
-        
+
         assert points.shape == (4, 2)
         assert weights.shape == (4,)
         assert np.allclose(points, expected_points)
@@ -127,4 +129,4 @@ class TestGaussLegendre2D:
         quadrature = GaussLegendre2D(order=2)
         repr_str = repr(quadrature)
         assert "2D Gauss-Legendre Quadrature Rule" in repr_str
-        assert "order=2" in repr_str 
+        assert "order=2" in repr_str

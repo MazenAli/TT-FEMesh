@@ -16,28 +16,28 @@ class Basis(ABC):
 
     @property
     @abstractmethod
-    def index_range(self): # pragma: no cover
+    def index_range(self):  # pragma: no cover
         """Range of valid indices for the basis functions."""
         pass
 
     @abstractmethod
-    def evaluate(self, *args, **kwargs) -> Any: # pragma: no cover
+    def evaluate(self, *args, **kwargs) -> Any:  # pragma: no cover
         """Evaluate the basis function indexed with idx at a given point."""
         pass
 
     @abstractmethod
-    def derivative(self, *args, **kwargs) -> Any: # pragma: no cover
+    def derivative(self, *args, **kwargs) -> Any:  # pragma: no cover
         """Evaluate the derivative of the basis function indexed with idx at a given point."""
         pass
 
     @abstractmethod
-    def _validate(self, *args, **kwargs): # pragma: no cover
+    def _validate(self, *args, **kwargs):  # pragma: no cover
         """Validate the basis function index."""
         pass
 
     @property
     @abstractmethod
-    def dimension(self) -> int: # pragma: no cover
+    def dimension(self) -> int:  # pragma: no cover
         """The number of dimensions of the basis functions."""
         pass
 
@@ -73,7 +73,7 @@ class Basis1D(Basis):
         return 1
 
     @abstractmethod
-    def get_element2global_ttmap(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
+    def get_element2global_ttmap(self, *args, **kwargs) -> TensorTrain:  # pragma: no cover
         """
         Get the TT-representation of a corner element index to global basis index map.
 
@@ -83,7 +83,9 @@ class Basis1D(Basis):
         pass
 
     @abstractmethod
-    def get_all_element2global_ttmaps(self, *args, **kwargs) -> Tuple[TensorTrain, ...]: # pragma: no cover
+    def get_all_element2global_ttmaps(
+        self, *args, **kwargs
+    ) -> Tuple[TensorTrain, ...]:  # pragma: no cover
         """
         Get the TT-representation for all corner elements in `index_range`
         to global basis index maps.
@@ -95,7 +97,7 @@ class Basis1D(Basis):
         pass
 
     @abstractmethod
-    def get_dirichlet_mask_left(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
+    def get_dirichlet_mask_left(self, *args, **kwargs) -> TensorTrain:  # pragma: no cover
         """
         Get the mask for the left Dirichlet boundary condition.
 
@@ -105,7 +107,7 @@ class Basis1D(Basis):
         pass
 
     @abstractmethod
-    def get_dirichlet_mask_right(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
+    def get_dirichlet_mask_right(self, *args, **kwargs) -> TensorTrain:  # pragma: no cover
         """
         Get the mask for the right Dirichlet boundary condition.
 
@@ -115,7 +117,7 @@ class Basis1D(Basis):
         pass
 
     @abstractmethod
-    def get_dirichlet_mask_left_right(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
+    def get_dirichlet_mask_left_right(self, *args, **kwargs) -> TensorTrain:  # pragma: no cover
         """
         Get the mask for the left and right Dirichlet boundary conditions.
 
@@ -290,7 +292,7 @@ class TensorProductBasis(Basis):
         return self._dimension
 
     @abstractmethod
-    def get_element2global_ttmap(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
+    def get_element2global_ttmap(self, *args, **kwargs) -> TensorTrain:  # pragma: no cover
         """
         Get the TT-representation of a corner element index to global basis index map.
 
@@ -300,7 +302,7 @@ class TensorProductBasis(Basis):
         pass
 
     @abstractmethod
-    def get_all_element2global_ttmaps(self, *args, **kwargs) -> np.ndarray: # pragma: no cover
+    def get_all_element2global_ttmaps(self, *args, **kwargs) -> np.ndarray:  # pragma: no cover
         """
         Get the TT-representation for all corner elements in `index_range`
         to global basis index maps.
@@ -312,7 +314,7 @@ class TensorProductBasis(Basis):
         pass
 
     @abstractmethod
-    def get_dirichlet_mask(self, *args, **kwargs) -> TensorTrain: # pragma: no cover
+    def get_dirichlet_mask(self, *args, **kwargs) -> TensorTrain:  # pragma: no cover
         """
         Get the mask for the Dirichlet boundary condition on the specified sides.
 
@@ -429,7 +431,6 @@ class BilinearBasis(TensorProductBasis):
 
     def __init__(self):
         super().__init__([LinearBasis(), LinearBasis()])
-
 
     def get_element2global_ttmap(self, index: List[int], mesh_size_exponent: int) -> TensorTrain:
         """

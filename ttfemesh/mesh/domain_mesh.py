@@ -49,7 +49,7 @@ class DomainMesh(ABC):
         self.subdomain_meshes = self._create_subdomain_meshes()
 
     @abstractmethod
-    def _create_subdomain_meshes(self): # pragma: no cover
+    def _create_subdomain_meshes(self):  # pragma: no cover
         num_subdomains = self.domain.num_subdomains
         subdomain_meshes = []
         for i in range(num_subdomains):

@@ -1,5 +1,6 @@
-import pytest
 import numpy as np
+import pytest
+
 from ttfemesh.utils.array import ensure_1d, ensure_2d
 
 
@@ -66,4 +67,4 @@ class TestEnsure2D:
             ensure_2d(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
 
         with pytest.raises(ValueError, match="Input array must have 1 or 2 dimensions"):
-            ensure_2d(5) 
+            ensure_2d(5)

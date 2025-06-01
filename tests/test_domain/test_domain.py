@@ -1,12 +1,9 @@
-import pytest
-import numpy as np
 import matplotlib.pyplot as plt
-from ttfemesh.domain.domain import Domain, Domain2D
+import pytest
+
 from ttfemesh.domain.boundary_condition import DirichletBoundary2D
-from ttfemesh.domain.subdomain_connection import (
-    VertexConnection2D,
-    CurveConnection2D,
-)
+from ttfemesh.domain.domain import Domain, Domain2D
+from ttfemesh.domain.subdomain_connection import CurveConnection2D, VertexConnection2D
 from ttfemesh.domain.subdomain_factory import RectangleFactory
 
 
@@ -27,9 +24,9 @@ class TestDomain:
 class TestDomain2D:
     @pytest.fixture
     def sample_subdomains(self):
-        subdomain1 = RectangleFactory.create((0., 0.), (3., 1.))
-        subdomain2 = RectangleFactory.create((3., 0.), (4., 1.))
-        subdomain3 = RectangleFactory.create((-1., -1.), (0., 0.))
+        subdomain1 = RectangleFactory.create((0.0, 0.0), (3.0, 1.0))
+        subdomain2 = RectangleFactory.create((3.0, 0.0), (4.0, 1.0))
+        subdomain3 = RectangleFactory.create((-1.0, -1.0), (0.0, 0.0))
         return [subdomain1, subdomain2, subdomain3]
 
     @pytest.fixture
@@ -41,11 +38,11 @@ class TestDomain2D:
     @pytest.fixture
     def sample_boundary_condition(self):
         return DirichletBoundary2D([(0, 0), (1, 1)])
-    
+
     @pytest.fixture
     def sample_test_domain(self):
         class TestDomain(Domain):
-            def __init__(self, subdomains, connections, boundary_condition = None):
+            def __init__(self, subdomains, connections, boundary_condition=None):
                 super().__init__(subdomains, connections, boundary_condition)
 
             @property
@@ -119,7 +116,7 @@ class TestDomain2D:
 
     def test_plot(self, sample_subdomains, sample_connections, sample_boundary_condition):
         domain = Domain2D(sample_subdomains, sample_connections, sample_boundary_condition)
-        
+
         try:
             domain.plot()
             plt.close()
@@ -136,9 +133,9 @@ class TestDomain2D:
 
     def test_plot_with_num_points(self, sample_subdomains, sample_connections):
         domain = Domain2D(sample_subdomains, sample_connections)
-        
+
         try:
             domain.plot(num_points=50)
             plt.close()
         except Exception as e:
-            pytest.fail(f"Plotting failed with error: {e}") 
+            pytest.fail(f"Plotting failed with error: {e}")

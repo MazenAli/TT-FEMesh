@@ -7,7 +7,9 @@ from ttfemesh.tt_tools.operations import zorder_linfunc2d
 from ttfemesh.types import TensorTrain
 
 
-def interpolate_linear2d(func: Callable[[np.ndarray], float], mesh_size_exponent: int) -> TensorTrain:
+def interpolate_linear2d(
+    func: Callable[[np.ndarray], float], mesh_size_exponent: int
+) -> TensorTrain:
     """
     Interpolate a function on a 2D grid using linear interpolation.
     The function takes a quaternary argument index, corresponding to an index on the grid,

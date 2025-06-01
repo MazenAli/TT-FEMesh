@@ -5,10 +5,10 @@ from .operations import levelwise_kron, transpose_kron, zorder_kron
 from .tensor_cross import (
     TTCrossConfig,
     anova_init_tensor_train,
-    gen_teneva_indices,
-    tensor_train_cross_approximation,
     error_on_indices,
     error_on_random_indices,
+    gen_teneva_indices,
+    tensor_train_cross_approximation,
 )
 
 __all__ = [

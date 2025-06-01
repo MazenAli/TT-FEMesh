@@ -12,7 +12,7 @@ class SubdomainFactory(ABC):
 
     @staticmethod  # noqa
     @abstractmethod
-    def create(*args, **kwargs) -> Subdomain2D: # pragma: no cover
+    def create(*args, **kwargs) -> Subdomain2D:  # pragma: no cover
         pass
 
 

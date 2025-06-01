@@ -1,8 +1,9 @@
-import pytest
 import numpy as np
-from ttfemesh.domain.subdomain_factory import SubdomainFactory, RectangleFactory, QuadFactory
-from ttfemesh.domain.subdomain import Quad
+import pytest
+
 from ttfemesh.domain.curve import Line2D
+from ttfemesh.domain.subdomain import Quad
+from ttfemesh.domain.subdomain_factory import QuadFactory, RectangleFactory, SubdomainFactory
 
 
 class TestSubdomainFactory:
@@ -164,4 +165,4 @@ class TestQuadFactory:
         assert np.allclose(curves[2].start, np.array([1.0, 1.0]))
         assert np.allclose(curves[2].end, np.array([1.0, -1.0]))
         assert np.allclose(curves[3].start, np.array([1.0, -1.0]))
-        assert np.allclose(curves[3].end, np.array([0.0, 0.0])) 
+        assert np.allclose(curves[3].end, np.array([0.0, 0.0]))

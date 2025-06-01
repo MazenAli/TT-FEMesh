@@ -1,6 +1,7 @@
-import pytest
 import numpy as np
-from ttfemesh.domain.curve import Curve, Line2D, CircularArc2D, ParametricCurve2D
+import pytest
+
+from ttfemesh.domain.curve import CircularArc2D, Curve, Line2D, ParametricCurve2D
 
 
 class TestCurve:
@@ -25,17 +26,17 @@ class TestCurve:
                 return np.array([0, 0])
 
         curve = TestCurveImpl()
-        
+
         # Test valid parameter
         curve._validate(0.0)
-        
+
         # Test parameter with warning
         with pytest.warns(UserWarning):
             curve._validate(1.1)
-        
+
         # Test array of parameters
         curve._validate(np.array([-0.5, 0.0, 0.5]))
-        
+
         # Test array with warning
         with pytest.warns(UserWarning):
             curve._validate(np.array([-1.1, 0.0, 1.1]))
@@ -46,7 +47,7 @@ class TestCurve:
                 return np.array([[t, t**2]])
 
             def tangent(self, t):
-                return np.array([[1, 2*t]])
+                return np.array([[1, 2 * t]])
 
         curve = TestCurveImpl()
         assert np.allclose(curve.get_start(), np.array([-1, 1]))
@@ -58,8 +59,8 @@ class TestCurve:
                 return np.array([[t, t**2]])
 
             def tangent(self, t):
-                return np.array([[1, 2*t]])
-            
+                return np.array([[1, 2 * t]])
+
         curve = TestCurveImpl()
         assert np.allclose(curve(0.0), np.array([0, 0]))
         assert np.allclose(curve(1.0), np.array([1, 1]))
@@ -73,7 +74,7 @@ class TestCurve:
                 return np.array([t + self.offset, t**2])
 
             def tangent(self, t):
-                return np.array([1, 2*t])
+                return np.array([1, 2 * t])
 
         curve1 = TestCurveImpl()
         curve2 = TestCurveImpl()
@@ -93,8 +94,8 @@ class TestCurve:
 
             def tangent(self, t):
                 t_ = t if not self.reverse else -t
-                return np.array([[1, 2*t_]]) if not self.reverse else np.array([[1, -2*t_]])
-            
+                return np.array([[1, 2 * t_]]) if not self.reverse else np.array([[1, -2 * t_]])
+
         curve1 = TestCurveImpl()
         curve2 = TestCurveImpl(reverse=True)
         curve3 = Line2D((-1, 1), (1, 1))
@@ -164,17 +165,20 @@ class TestCircularArc2D:
 
     def test_tangent(self, sample_arc):
         # Test scalar input
-        assert np.allclose(sample_arc.tangent(-1.0), np.array([0.0, np.pi/2]))
-        assert np.allclose(sample_arc.tangent(0.0), np.array([-np.pi/2, 0.0]))
-        assert np.allclose(sample_arc.tangent(1.0), np.array([0.0, -np.pi/2]))
+        assert np.allclose(sample_arc.tangent(-1.0), np.array([0.0, np.pi / 2]))
+        assert np.allclose(sample_arc.tangent(0.0), np.array([-np.pi / 2, 0.0]))
+        assert np.allclose(sample_arc.tangent(1.0), np.array([0.0, -np.pi / 2]))
 
         # Test array input
         t = np.array([-1.0, 0.0, 1.0])
-        expected = np.array([[0.0, np.pi/2], [-np.pi/2, 0.0], [0.0, -np.pi/2]])
+        expected = np.array([[0.0, np.pi / 2], [-np.pi / 2, 0.0], [0.0, -np.pi / 2]])
         assert np.allclose(sample_arc.tangent(t), expected)
 
     def test_repr(self, sample_arc):
-        assert repr(sample_arc) == "CircularArc2D(center=(0.0, 0.0), radius=1.0, start_angle=0.0, angle_sweep=3.141592653589793)"
+        assert (
+            repr(sample_arc) == "CircularArc2D(center=(0.0, 0.0), "
+            "radius=1.0, start_angle=0.0, angle_sweep=3.141592653589793)"  # noqa
+        )
 
 
 class TestParametricCurve2D:
@@ -226,4 +230,4 @@ class TestParametricCurve2D:
         assert np.allclose(tangent[:, 1], np.array([-2.0, 0.0, 2.0]), atol=1e-4)
 
     def test_repr(self, sample_parametric):
-        assert repr(sample_parametric).startswith("ParametricCurve2D") 
+        assert repr(sample_parametric).startswith("ParametricCurve2D")

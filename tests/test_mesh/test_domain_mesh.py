@@ -1,16 +1,17 @@
-import pytest
-import numpy as np
 from unittest.mock import MagicMock, patch
 
-from ttfemesh.mesh.domain_mesh import DomainMesh, DomainMesh2D, DomainBilinearMesh2D
+import numpy as np
+import pytest
+
+from ttfemesh.basis.basis import BilinearBasis, TensorProductBasis
 from ttfemesh.domain.domain import Domain, Domain2D
 from ttfemesh.domain.subdomain import Subdomain2D
 from ttfemesh.domain.subdomain_connection import CurveConnection2D, VertexConnection2D
 from ttfemesh.domain.subdomain_factory import QuadFactory
-from ttfemesh.basis.basis import TensorProductBasis, BilinearBasis
-from ttfemesh.quadrature.quadrature import QuadratureRule, GaussLegendre2D
-from ttfemesh.types import TensorTrain
+from ttfemesh.mesh.domain_mesh import DomainBilinearMesh2D, DomainMesh, DomainMesh2D
+from ttfemesh.quadrature.quadrature import GaussLegendre2D, QuadratureRule
 from ttfemesh.tt_tools.meshgrid import map2canonical2d
+from ttfemesh.types import TensorTrain
 
 
 class TestDomainMesh:
@@ -18,50 +19,50 @@ class TestDomainMesh:
         mock_domain = MagicMock(spec=Domain)
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         with pytest.raises(TypeError):
             DomainMesh(
                 domain=mock_domain,
                 quadrature_rule=mock_quadrature_rule,
                 mesh_size_exponent=2,
-                basis=mock_basis
+                basis=mock_basis,
             )
 
     def test_abstract_methods_must_be_implemented(self):
         class IncompleteDomainMesh(DomainMesh):
             pass
-        
+
         mock_domain = MagicMock(spec=Domain)
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         with pytest.raises(TypeError):
             IncompleteDomainMesh(
                 domain=mock_domain,
                 quadrature_rule=mock_quadrature_rule,
                 mesh_size_exponent=2,
-                basis=mock_basis
+                basis=mock_basis,
             )
 
     def test_initialization_with_valid_parameters(self):
         class TestDomainMesh(DomainMesh):
             def _create_subdomain_meshes(self):
                 return []
-                
+
             def get_concatenation_maps(self):
                 return {}
-        
+
         mock_domain = MagicMock(spec=Domain)
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         domain_mesh = TestDomainMesh(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         assert domain_mesh.domain == mock_domain
         assert domain_mesh.quadrature_rule == mock_quadrature_rule
         assert domain_mesh.mesh_size_exponent == 2
@@ -73,77 +74,81 @@ class TestDomainMesh:
         class TestDomainMesh(DomainMesh):
             def _create_subdomain_meshes(self):
                 return [MagicMock(), MagicMock()]
-                
+
             def get_concatenation_maps(self):
                 return {}
-        
+
         mock_domain = MagicMock(spec=Domain)
         mock_domain.num_subdomains = 2
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         domain_mesh = TestDomainMesh(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         subdomain_mesh = domain_mesh.get_subdomain_mesh(0)
-        
+
         assert subdomain_mesh == domain_mesh.subdomain_meshes[0]
 
     def test_get_subdomain_mesh_with_invalid_index(self):
         class TestDomainMesh(DomainMesh):
             def _create_subdomain_meshes(self):
                 return [MagicMock(), MagicMock()]
-                
+
             def get_concatenation_maps(self):
                 return {}
-        
+
         mock_domain = MagicMock(spec=Domain)
         mock_domain.num_subdomains = 2
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         domain_mesh = TestDomainMesh(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
-        with pytest.raises(ValueError,
-                    match="Invalid subdomain index: 2. Valid indices are in the range \\[0, 2\\)"):
+
+        with pytest.raises(
+            ValueError,
+            match="Invalid subdomain index: 2. Valid indices are in the range \\[0, 2\\)",
+        ):
             domain_mesh.get_subdomain_mesh(2)
-        
-        with pytest.raises(ValueError,
-                    match="Invalid subdomain index: -1. Valid indices are in the range \\[0, 2\\)"):
+
+        with pytest.raises(
+            ValueError,
+            match="Invalid subdomain index: -1. Valid indices are in the range \\[0, 2\\)",
+        ):
             domain_mesh.get_subdomain_mesh(-1)
 
     def test_get_element2global_index_map(self):
         class TestDomainMesh(DomainMesh):
             def _create_subdomain_meshes(self):
                 return []
-                
+
             def get_concatenation_maps(self):
                 return {}
-        
+
         mock_domain = MagicMock(spec=Domain)
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
         mock_ttmaps = np.array([[MagicMock(), MagicMock()], [MagicMock(), MagicMock()]])
         mock_basis.get_all_element2global_ttmaps.return_value = mock_ttmaps
-        
+
         domain_mesh = TestDomainMesh(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         ttmaps = domain_mesh.get_element2global_index_map()
-        
+
         mock_basis.get_all_element2global_ttmaps.assert_called_once_with(2)
         assert ttmaps is mock_ttmaps
 
@@ -151,31 +156,31 @@ class TestDomainMesh:
         class TestDomainMesh(DomainMesh):
             def _create_subdomain_meshes(self):
                 return []
-                
+
             def get_concatenation_maps(self):
                 return {}
-        
+
         mock_domain = MagicMock(spec=Domain)
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         mock_tt = MagicMock(spec=TensorTrain)
         mock_tt.shape = [(2, 2), (2, 2)]
-        
+
         mock_ttmaps = np.array([[mock_tt, mock_tt], [mock_tt, mock_tt]])
         mock_basis.get_all_element2global_ttmaps.return_value = mock_ttmaps
-        
+
         domain_mesh = TestDomainMesh(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         ttmaps = domain_mesh.get_element2global_index_map()
-        
+
         assert ttmaps.shape == (2, 2)
-        
+
         for i in range(2):
             for j in range(2):
                 assert ttmaps[i, j].shape == [(2, 2), (2, 2)]
@@ -184,25 +189,25 @@ class TestDomainMesh:
         class TestDomainMesh(DomainMesh):
             def _create_subdomain_meshes(self):
                 return []
-                
+
             def get_concatenation_maps(self):
                 return {}
-        
+
         mock_domain = MagicMock(spec=Domain)
         mock_domain.boundary_condition = None
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         domain_mesh = TestDomainMesh(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
-        with patch('builtins.print') as mock_print:
+
+        with patch("builtins.print") as mock_print:
             masks = domain_mesh.get_dirichlet_masks()
-        
+
         mock_print.assert_called_once_with("No boundary condition specified.")
         assert masks is None
 
@@ -210,30 +215,30 @@ class TestDomainMesh:
         class TestDomainMesh(DomainMesh):
             def _create_subdomain_meshes(self):
                 return []
-                
+
             def get_concatenation_maps(self):
                 return {}
-        
+
         mock_domain = MagicMock(spec=Domain)
         mock_boundary_condition = MagicMock()
         mock_domain.boundary_condition = mock_boundary_condition
         mock_grouped = {0: [0, 1], 1: [2, 3]}
         mock_boundary_condition.group_by_subdomain.return_value = mock_grouped
-        
+
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
         mock_boundary_mask = MagicMock(spec=TensorTrain)
         mock_basis.get_dirichlet_mask.return_value = mock_boundary_mask
-        
+
         domain_mesh = TestDomainMesh(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         masks = domain_mesh.get_dirichlet_masks()
-        
+
         mock_boundary_condition.group_by_subdomain.assert_called_once()
         assert mock_basis.get_dirichlet_mask.call_count == 2
         assert masks == {0: mock_boundary_mask, 1: mock_boundary_mask}
@@ -242,34 +247,34 @@ class TestDomainMesh:
         class TestDomainMesh(DomainMesh):
             def _create_subdomain_meshes(self):
                 return []
-                
+
             def get_concatenation_maps(self):
                 return {}
-        
+
         mock_domain = MagicMock(spec=Domain)
         mock_boundary_condition = MagicMock()
         mock_domain.boundary_condition = mock_boundary_condition
         mock_grouped = {0: [0, 1], 1: [2, 3]}
         mock_boundary_condition.group_by_subdomain.return_value = mock_grouped
-        
+
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         mock_boundary_mask = MagicMock(spec=TensorTrain)
         mock_boundary_mask.shape = [2, 2, 2]
         mock_basis.get_dirichlet_mask.return_value = mock_boundary_mask
-        
+
         domain_mesh = TestDomainMesh(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         masks = domain_mesh.get_dirichlet_masks()
-        
+
         assert set(masks.keys()) == {0, 1}
-        
+
         for subdomain_index in masks:
             assert masks[subdomain_index].shape == [2, 2, 2]
 
@@ -277,23 +282,23 @@ class TestDomainMesh:
         class TestDomainMesh(DomainMesh):
             def _create_subdomain_meshes(self):
                 return []
-                
+
             def get_concatenation_maps(self):
                 return {}
-        
+
         mock_domain = MagicMock(spec=Domain)
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         domain_mesh = TestDomainMesh(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         repr_str = repr(domain_mesh)
-        
+
         assert "DomainMesh(domain=" in repr_str
         assert "mesh_size_exponent=2" in repr_str
         assert "quadrature_rule=" in repr_str
@@ -303,35 +308,40 @@ class TestDomainMesh:
 class DomainMesh2DTest(DomainMesh2D):
     def _create_subdomain_meshes(self):
         return [MagicMock(), MagicMock()]
-        
+
     def get_concatenation_maps(self):
         return {}
+
 
 class TestDomainMesh2D:
     def test_abstract_base_class_cannot_be_instantiated(self):
         mock_domain = MagicMock(spec=Domain)
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         with pytest.raises(TypeError):
-            DomainMesh2D(domain=mock_domain, quadrature_rule=mock_quadrature_rule,
-                         mesh_size_exponent=2, basis=mock_basis)
+            DomainMesh2D(
+                domain=mock_domain,
+                quadrature_rule=mock_quadrature_rule,
+                mesh_size_exponent=2,
+                basis=mock_basis,
+            )
 
     def test_initialization(self):
         mock_domain = MagicMock(spec=Domain)
         mock_domain.num_subdomains = 2
         mock_domain.get_subdomain.return_value = MagicMock(spec=Subdomain2D)
-        
+
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         domain_mesh = DomainMesh2DTest(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         assert domain_mesh.domain == mock_domain
         assert domain_mesh.quadrature_rule == mock_quadrature_rule
         assert domain_mesh.mesh_size_exponent == 2
@@ -343,16 +353,16 @@ class TestDomainMesh2D:
         mock_domain = MagicMock(spec=Domain)
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         domain_mesh = DomainMesh2DTest(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         repr_str = repr(domain_mesh)
-        
+
         assert "DomainMesh2D(domain=" in repr_str
         assert "mesh_size_exponent=2" in repr_str
         assert "quadrature_rule=" in repr_str
@@ -364,17 +374,17 @@ class TestDomainBilinearMesh2D:
         mock_domain = MagicMock(spec=Domain)
         mock_domain.num_subdomains = 2
         mock_domain.get_subdomain.return_value = MagicMock(spec=Subdomain2D)
-        
+
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         domain_mesh = DomainBilinearMesh2D(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         assert domain_mesh.domain == mock_domain
         assert domain_mesh.quadrature_rule == mock_quadrature_rule
         assert domain_mesh.mesh_size_exponent == 2
@@ -387,27 +397,26 @@ class TestDomainBilinearMesh2D:
         mock_domain = MagicMock(spec=Domain)
         mock_connection = MagicMock(spec=VertexConnection2D)
         mock_domain.get_connections.return_value = [mock_connection]
-        
-        mock_connection.get_connection_pairs.return_value = [
-            ((0, 1), (0, 1), ("start", "end"))
-        ]
-        
+
+        mock_connection.get_connection_pairs.return_value = [((0, 1), (0, 1), ("start", "end"))]
+
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         mock_tt_connectivity = MagicMock(spec=TensorTrain)
-        
+
         domain_mesh = DomainBilinearMesh2D(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
-        with patch('ttfemesh.mesh.domain_mesh.vertex_concatenation_tt',
-                   return_value=mock_tt_connectivity):
+
+        with patch(
+            "ttfemesh.mesh.domain_mesh.vertex_concatenation_tt", return_value=mock_tt_connectivity
+        ):
             concatenation_maps = domain_mesh.get_concatenation_maps()
-        
+
         mock_domain.get_connections.assert_called_once()
         mock_connection.get_connection_pairs.assert_called_once()
         assert concatenation_maps == {(0, 1): mock_tt_connectivity}
@@ -418,23 +427,24 @@ class TestDomainBilinearMesh2D:
         mock_connection.subdomains_indices = (0, 1)
         mock_connection.curve_indices = (0, 1)
         mock_domain.get_connections.return_value = [mock_connection]
-        
+
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         mock_tt_connectivity = MagicMock(spec=TensorTrain)
-        
+
         domain_mesh = DomainBilinearMesh2D(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
-        with patch('ttfemesh.mesh.domain_mesh.side_concatenation_tt',
-                   return_value=mock_tt_connectivity):
+
+        with patch(
+            "ttfemesh.mesh.domain_mesh.side_concatenation_tt", return_value=mock_tt_connectivity
+        ):
             concatenation_maps = domain_mesh.get_concatenation_maps()
-        
+
         mock_domain.get_connections.assert_called_once()
         assert concatenation_maps == {(0, 1): mock_tt_connectivity}
 
@@ -442,19 +452,20 @@ class TestDomainBilinearMesh2D:
         mock_domain = MagicMock(spec=Domain)
         mock_connection = MagicMock()
         mock_domain.get_connections.return_value = [mock_connection]
-        
+
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         domain_mesh = DomainBilinearMesh2D(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
-        with pytest.raises(ValueError,
-                           match="Unsupported connection type: <class 'unittest.mock.MagicMock'>"):
+
+        with pytest.raises(
+            ValueError, match="Unsupported connection type: <class 'unittest.mock.MagicMock'>"
+        ):
             domain_mesh.get_concatenation_maps()
 
     def test_get_concatenation_maps_with_multiple_connections(self):
@@ -472,25 +483,25 @@ class TestDomainBilinearMesh2D:
                 (new_size, new_size, new_size, new_size), order="F"
             )
             return ttmap_reordered_reshaped
-        
+
         p1 = (0, 0)
         p2 = (3, 0)
         p3 = (4, 1)
         p4 = (0.8, 1.5)
         quad1 = QuadFactory.create(p1, p2, p3, p4)
-        
+
         p1 = (3, 0)
         p2 = (5, 0)
         p3 = (6, 1)
         p4 = (4, 1)
         quad2 = QuadFactory.create(p1, p2, p3, p4)
-        
+
         p1 = (3, 0)
         p2 = (1, -3)
         p3 = (7, -4)
         p4 = (5, -1)
         quad3 = QuadFactory.create(p1, p2, p3, p4)
-        
+
         domain_idxs = [0, 1]
         curve_idxs = [1, 3]
         edge = CurveConnection2D(domain_idxs, curve_idxs)
@@ -506,19 +517,23 @@ class TestDomainBilinearMesh2D:
 
         domain_mesh = DomainBilinearMesh2D(domain, qrule, mesh_size_exponent, basis2d)
         concatenation_maps = domain_mesh.get_concatenation_maps()
-        
+
         assert (0, 1) in concatenation_maps
         assert (0, 2) in concatenation_maps
 
-        side_exact = np.array([[7, 0, 0, 0],
-                               [7, 1, 0, 1],
-                               [7, 2, 0, 2],
-                               [7, 3, 0, 3],
-                               [7, 4, 0, 4],
-                               [7, 5, 0, 5],
-                               [7, 6, 0, 6],
-                               [7, 7, 0, 7]])
-        
+        side_exact = np.array(
+            [
+                [7, 0, 0, 0],
+                [7, 1, 0, 1],
+                [7, 2, 0, 2],
+                [7, 3, 0, 3],
+                [7, 4, 0, 4],
+                [7, 5, 0, 5],
+                [7, 6, 0, 6],
+                [7, 7, 0, 7],
+            ]
+        )
+
         vertex_exact = np.array([[7, 0, 0, 0]])
 
         side_tt = concatenation_maps[(0, 1)][0]
@@ -580,17 +595,17 @@ class TestDomainBilinearMesh2D:
         mock_domain = MagicMock(spec=Domain)
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
         mock_basis = MagicMock(spec=TensorProductBasis)
-        
+
         domain_mesh = DomainBilinearMesh2D(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis
+            basis=mock_basis,
         )
-        
+
         repr_str = repr(domain_mesh)
-        
+
         assert "DomainBilinearMesh2D(domain=" in repr_str
         assert "mesh_size_exponent=2" in repr_str
         assert "quadrature_rule=" in repr_str
-        assert "basis=" in repr_str 
+        assert "basis=" in repr_str

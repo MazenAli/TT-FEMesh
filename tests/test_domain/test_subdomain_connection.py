@@ -1,13 +1,13 @@
-import pytest
 import numpy as np
+import pytest
+
+from ttfemesh.domain.curve import Line2D
 from ttfemesh.domain.subdomain_connection import (
+    CurveConnection2D,
     SubdomainConnection,
     SubdomainConnection2D,
     VertexConnection2D,
-    CurveConnection2D,
 )
-from ttfemesh.domain.subdomain import Subdomain2D
-from ttfemesh.domain.curve import Line2D
 from ttfemesh.domain.subdomain_factory import RectangleFactory
 
 
@@ -42,12 +42,14 @@ class TestSubdomainConnection2D:
         connection = TestConnection2D()
         assert connection.dimension == 2
 
+
 @pytest.fixture
 def sample_subdomains():
-    subdomain1 = RectangleFactory.create((0., 0.), (3., 1.))
-    subdomain2 = RectangleFactory.create((3., 0.), (4., 1.))
-    subdomain3 = RectangleFactory.create((-1., -1.), (0., 0.))
+    subdomain1 = RectangleFactory.create((0.0, 0.0), (3.0, 1.0))
+    subdomain2 = RectangleFactory.create((3.0, 0.0), (4.0, 1.0))
+    subdomain3 = RectangleFactory.create((-1.0, -1.0), (0.0, 0.0))
     return [subdomain1, subdomain2, subdomain3]
+
 
 class TestVertexConnection2D:
     def test_initialization(self):
@@ -68,7 +70,9 @@ class TestVertexConnection2D:
     def test_validate_with_one_connected_subdomain(self, sample_subdomains):
         connection = [(0, 0, "start")]
         vertex_conn = VertexConnection2D(connection)
-        with pytest.raises(ValueError, match="Vertex connection must have at least two connected subdomains."):
+        with pytest.raises(
+            ValueError, match="Vertex connection must have at least two connected subdomains."
+        ):
             vertex_conn.validate([sample_subdomains[0]])
 
     def test_validate_with_invalid_subdomain_index(self, sample_subdomains):
@@ -99,7 +103,7 @@ class TestVertexConnection2D:
         connection = [(0, 0, "start"), (1, 2, "end"), (2, 1, "start")]
         vertex_conn = VertexConnection2D(connection)
         pairs = vertex_conn.get_connection_pairs()
-        
+
         assert len(pairs) == 3
         assert ((0, 1), (0, 2), ("start", "end")) in pairs
         assert ((0, 2), (0, 1), ("start", "start")) in pairs
@@ -109,7 +113,7 @@ class TestVertexConnection2D:
         connection = [(0, 0, "start"), (2, 1, "end")]
         vertex_conn = VertexConnection2D(connection)
         vertex = vertex_conn.get_shared_vertex(sample_subdomains)
-        
+
         assert np.allclose(vertex, np.array([0.0, 0.0]))
 
     def test_repr(self):
@@ -162,11 +166,11 @@ class TestCurveConnection2D:
     def test_get_shared_curve(self, sample_subdomains):
         curve_conn = CurveConnection2D((0, 1), (1, 3))
         shared_curve = curve_conn.get_shared_curve(sample_subdomains)
-        
+
         assert isinstance(shared_curve, Line2D)
-        assert np.allclose(shared_curve.start, np.array([3., 0.]))
-        assert np.allclose(shared_curve.end, np.array([3., 1.0]))
+        assert np.allclose(shared_curve.start, np.array([3.0, 0.0]))
+        assert np.allclose(shared_curve.end, np.array([3.0, 1.0]))
 
     def test_repr(self):
         curve_conn = CurveConnection2D((0, 1), (1, 3))
-        assert repr(curve_conn) == "CurveConnection((0, 1), (1, 3))" 
+        assert repr(curve_conn) == "CurveConnection((0, 1), (1, 3))"

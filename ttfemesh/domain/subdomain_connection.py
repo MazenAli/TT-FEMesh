@@ -13,7 +13,7 @@ class SubdomainConnection(ABC):
     """Generic subdomain connection class."""
 
     @abstractmethod
-    def validate(self, *args, **kwargs): # pragma: no cover
+    def validate(self, *args, **kwargs):  # pragma: no cover
         """
         Validates that the connection is consistent with the provided subdomains.
         """
@@ -21,13 +21,13 @@ class SubdomainConnection(ABC):
 
     @property
     @abstractmethod
-    def dimension(self) -> int: # pragma: no cover
+    def dimension(self) -> int:  # pragma: no cover
         """Dimension of the subdomain connection."""
         pass
 
     @property
     @abstractmethod
-    def num_connected_subdomains(self) -> int: # pragma: no cover
+    def num_connected_subdomains(self) -> int:  # pragma: no cover
         """Number of connected subdomains."""
         pass
 

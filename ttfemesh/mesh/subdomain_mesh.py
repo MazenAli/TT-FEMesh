@@ -52,7 +52,7 @@ class SubdomainMesh(ABC):
             self._tt_cross_config = TTCrossConfig(info={})
 
     @abstractmethod
-    def ref2domain_map(self, xi) -> np.ndarray: # pragma: no cover
+    def ref2domain_map(self, xi) -> np.ndarray:  # pragma: no cover
         """
         Return the reference to domain map.
 
@@ -65,7 +65,7 @@ class SubdomainMesh(ABC):
         pass
 
     @abstractmethod
-    def ref2element_map(self, index, xi) -> np.ndarray: # pragma: no cover
+    def ref2element_map(self, index, xi) -> np.ndarray:  # pragma: no cover
         """
         Return the element transformation function.
 
@@ -79,7 +79,7 @@ class SubdomainMesh(ABC):
         pass
 
     @abstractmethod
-    def ref2domain_jacobian(self, xi) -> np.ndarray: # pragma: no cover
+    def ref2domain_jacobian(self, xi) -> np.ndarray:  # pragma: no cover
         """
         Return the Jacobian function for the domain transformation.
 
@@ -92,7 +92,7 @@ class SubdomainMesh(ABC):
         pass
 
     @abstractmethod
-    def get_jacobian_tensor_trains(self): # noqa # pragma: no cover
+    def get_jacobian_tensor_trains(self):  # noqa # pragma: no cover
         """
         Compute the tensor network approximating the Jacobian evaluated on all elements.
         The tensor index corresponds to the element index.
@@ -102,7 +102,7 @@ class SubdomainMesh(ABC):
         pass
 
     @abstractmethod
-    def plot(self): # pragma: no cover
+    def plot(self):  # pragma: no cover
         """Plot the subdomain mesh."""
         pass
 
@@ -118,7 +118,7 @@ class SubdomainMesh(ABC):
 
     @property
     @abstractmethod
-    def dimension(self): # pragma: no cover
+    def dimension(self):  # pragma: no cover
         """Return the dimension of the mesh."""
         pass
 

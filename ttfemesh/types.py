@@ -15,6 +15,7 @@ class BoundarySide2D(Enum):
     It may lead to confusion if, e.g., your side 0 is visually
     the right edge of the domain.
     """
+
     BOTTOM = 0
     RIGHT = auto()
     TOP = auto()
@@ -30,6 +31,7 @@ class BoundaryVertex2D(Enum):
     It may lead to confusion if, e.g., your vertex 0 is visually
     the bottom left corner of the domain.
     """
+
     BOTTOM_LEFT = 0
     BOTTOM_RIGHT = auto()
     TOP_RIGHT = auto()
