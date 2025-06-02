@@ -1,11 +1,15 @@
 """
-TTFEMesh is a Python package for finite element methods using tensor train decompositions.
+TTFEMesh is a Python package for finite element methods using tensor train
+decompositions.
 
-The package implements a framework for creating and manipulating finite element meshes in the tensor train format.
-This provides the backbone for solving partial differential equations using tensor train decompositions.
-The package is designed to be flexible and extensible, allowing users to create their own finite element meshes and build their own solvers.
+The package implements a framework for creating and manipulating finite element
+meshes in the tensor train format. This provides the backbone for solving partial
+differential equations using TT decompositions. The package is designed
+to be flexible and extensible, allowing users to create their own finite element
+meshes and build their own solvers.
 
-The package is built on top of the `torchtt` package, which provides a framework for handling tensor train decompositions, but this might change in the future.
+The package is built on top of the `torchtt` package, which provides a framework
+for handling TT decompositions, but this might change in the future.
 This package is currently in a prototype stage, and the API is subject to change.
 
 See the documentation for more details.

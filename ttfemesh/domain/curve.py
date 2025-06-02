@@ -102,6 +102,17 @@ class Curve(ABC):
 
 
 class Line2D(Curve):
+    """
+    A line segment in 2D space.
+
+    Example:
+        >>> from ttfemesh.domain import Line2D
+        >>> from ttfemesh.utils import plot_curve_with_tangents
+        >>> line = Line2D((0, 0), (1, 1))
+        >>> print(line)
+        >>> plot_curve_with_tangents(line, "Line")
+    """
+
     def __init__(self, start: tuple[float, float], end: tuple[float, float]):
         """
         Initialize a line segment from `start` to `end`.
@@ -130,6 +141,18 @@ class Line2D(Curve):
 
 
 class CircularArc2D(Curve):
+    """
+    A circular arc in 2D space.
+
+    Example:
+        >>> import numpy as np
+        >>> from ttfemesh.domain import CircularArc2D
+        >>> from ttfemesh.utils import plot_curve_with_tangents
+        >>> circular_arc = CircularArc2D((0, 0), 1, np.pi/2., 0.5*np.pi)
+        >>> print(circular_arc)
+        >>> plot_curve_with_tangents(circular_arc, "Circular Arc")
+    """
+
     def __init__(
         self,
         center: tuple[float, float],
@@ -180,6 +203,20 @@ class CircularArc2D(Curve):
 
 
 class ParametricCurve2D(Curve):
+    """
+    A parametric curve in 2D space.
+
+    Example:
+        >>> from ttfemesh.domain import ParametricCurve2D
+        >>> from ttfemesh.utils import plot_curve_with_tangents
+        >>> parametric_curve = ParametricCurve2D(
+        ...     lambda t: np.sin(t * np.pi),
+        ...     lambda t: np.cos(t * np.pi)
+        ... )
+        >>> print(parametric_curve)
+        >>> plot_curve_with_tangents(parametric_curve, "Parametric Curve")
+    """
+
     def __init__(
         self, x_func: Callable[[np.ndarray], np.ndarray], y_func: Callable[[np.ndarray], np.ndarray]
     ):

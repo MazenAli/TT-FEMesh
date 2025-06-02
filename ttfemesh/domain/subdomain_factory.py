@@ -19,6 +19,13 @@ class SubdomainFactory(ABC):
 class RectangleFactory(SubdomainFactory):
     """
     Factory class for creating rectangle subdomains.
+
+    Example:
+        >>> from ttfemesh.domain import RectangleFactory
+        >>> lower_left = (0, 0)
+        >>> upper_right = (2, 1)
+        >>> rectangle = RectangleFactory.create(lower_left, upper_right)
+        >>> rectangle.plot()
     """
 
     @staticmethod  # noqa
@@ -47,6 +54,15 @@ class QuadFactory(SubdomainFactory):
     This is important for the boundary condition to work correctly.
     It may lead to confusion if, e.g., your line 0 is visually
     the right edge of the domain.
+
+    Example:
+        >>> from ttfemesh.domain import QuadFactory
+        >>> p1 = (3, 0)
+        >>> p2 = (1, -3)
+        >>> p3 = (7, -4)
+        >>> p4 = (5, -1)
+        >>> quad3 = QuadFactory.create(p1, p2, p3, p4)
+        >>> quad3.plot()
     """
 
     @staticmethod  # noqa
