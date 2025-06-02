@@ -128,7 +128,20 @@ class Basis1D(Basis):
 
 
 class LinearBasis(Basis1D):
-    """Linear basis functions on the reference element [-1, 1]."""
+    """
+    Linear basis functions on the reference element [-1, 1].
+    The basis functions are defined as:
+    - 0.5 * (1 - x) for idx = 0 (left basis function)
+    - 0.5 * (1 + x) for idx = 1 (right basis function)
+
+    Example:
+        >>> from ttfemesh.basis import LinearBasis
+        >>> basis1d = LinearBasis()
+        >>> fig = basis1d.plot(0)
+        >>> fig.show()
+        >>> fig = basis1d.plot(1)
+        >>> fig.show()
+    """
 
     def evaluate(self, idx: int, x: float) -> float:
         """
@@ -427,7 +440,26 @@ class TensorProductBasis(Basis):
 
 
 class BilinearBasis(TensorProductBasis):
-    """Linear basis functions on the reference element [-1, 1]^2."""
+    """
+    Bilinear basis functions on the reference element [-1, 1]^2.
+    The basis functions are defined as:
+    - 0.25 * (1 - x) * (1 - y) for idx = (0, 0)
+    - 0.25 * (1 + x) * (1 - y) for idx = (1, 0)
+    - 0.25 * (1 - x) * (1 + y) for idx = (0, 1)
+    - 0.25 * (1 + x) * (1 + y) for idx = (1, 1)
+
+    Example:
+        >>> from ttfemesh.basis import BilinearBasis
+        >>> basis2d = BilinearBasis()
+        >>> fig = basis2d.plot([0, 0])
+        >>> fig.show()
+        >>> fig = basis2d.plot([0, 1])
+        >>> fig.show()
+        >>> fig = basis2d.plot([1, 0])
+        >>> fig.show()
+        >>> fig = basis2d.plot([1, 1])
+        >>> fig.show()
+    """
 
     def __init__(self):
         super().__init__([LinearBasis(), LinearBasis()])
