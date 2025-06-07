@@ -3,7 +3,7 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from ttfemesh.basis.basis import TensorProductBasis
+from ttfemesh.basis import BilinearBasis, TensorProductBasis
 from ttfemesh.domain.domain import Domain
 from ttfemesh.domain.subdomain_connection import CurveConnection2D, VertexConnection2D
 from ttfemesh.mesh.mesh_utils import side_concatenation_tt, vertex_concatenation_tt
@@ -190,7 +190,51 @@ class DomainBilinearMesh2D(DomainMesh2D):
     """
     Mesh for 2D domains with bilinear basis functions.
     This implementation of the concatenation maps works only for bilinear basis functions.
+
+    Example:
+    >>> from ttfemesh.domain import RectangleFactory, CurveConnection2D, VertexConnection2D 
+    >>> from ttfemesh.domain import DirichletBoundary2D, Domain2D
+    >>> from ttfemesh.quadrature import GaussLegendre2D
+    >>> from ttfemesh.mesh import DomainBilinearMesh2D
+
+    >>> lower_left = (0, 0)
+    >>> upper_right = (2, 1)
+    >>> rectangle1 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> lower_left = (2, 0)
+    >>> upper_right = (3, 1)
+    >>> rectangle2 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> lower_left = (-2, 1)
+    >>> upper_right = (0, 2)
+    >>> rectangle3 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> domain_idxs = [0, 1]
+    >>> curve_idxs = [1, 3]
+    >>> edge = CurveConnection2D(domain_idxs, curve_idxs)
+
+    >>> vertex_idxs = [(0, 3, "start"), (2, 0, "end")]
+    >>> vertex = VertexConnection2D(vertex_idxs)
+
+    >>> bc = DirichletBoundary2D([(1, 1), (2, 3)])
+
+    >>> domain = Domain2D([rectangle1, rectangle2, rectangle3], [edge, vertex], bc)
+
+    >>> quadrature_rule = GaussLegendre2D()
+    >>> mesh_size_exponent = 3
+    >>> domain_mesh = DomainBilinearMesh2D(domain, quadrature_rule, mesh_size_exponent)
+    >>> print(domain_mesh)
     """
+
+    def __init__(
+        self,
+        domain: Domain,
+        quadrature_rule: QuadratureRule,
+        mesh_size_exponent: int,
+        tt_cross_config: Optional[TTCrossConfig] = None,
+    ):
+        basis = BilinearBasis()
+        super().__init__(domain, quadrature_rule, mesh_size_exponent, basis, tt_cross_config)
 
     def get_concatenation_maps(  # noqa
         self,

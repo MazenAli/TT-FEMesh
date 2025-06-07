@@ -78,6 +78,7 @@ class VertexConnection2D(SubdomainConnection2D):
     >>> domain = Domain2D([rectangle1, rectangle2, rectangle3], [edge, vertex])
     >>> domain.plot()
     """
+
     def __init__(self, connection: List[Tuple[int, int, CurvePosition]]):
         self.connection = connection
 

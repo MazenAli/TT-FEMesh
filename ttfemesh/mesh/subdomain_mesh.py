@@ -124,7 +124,21 @@ class SubdomainMesh(ABC):
 
 
 class SubdomainMesh2D(SubdomainMesh):
-    """Subdomain mesh for a 2D finite element problem."""
+    """Subdomain mesh for a 2D finite element problem.
+
+    Example:
+    >>> from ttfemesh.domain import RectangleFactory
+    >>> from ttfemesh.quadrature import GaussLegendre2D
+    >>> from ttfemesh.mesh import SubdomainMesh2D
+
+    >>> lower_left = (0, 0)
+    >>> upper_right = (2, 1)
+    >>> rectangle = RectangleFactory.create(lower_left, upper_right)
+    >>> quadrature_rule = GaussLegendre2D()
+    >>> mesh_size_exponent = 3
+    >>> mesh = SubdomainMesh2D(rectangle, quadrature_rule, mesh_size_exponent)
+    >>> mesh.plot()
+    """
 
     def __init__(
         self,
@@ -730,8 +744,21 @@ class QuadMesh(SubdomainMesh2D):
     Mesh for a quadrilateral subdomain.
     The Jacobians of quadrilateral meshes depend linearly on the element index.
     Hence, instead of using the tensor train cross approximation for a generic subdomain,
-    we can represent the Jacobians for all elements and all quadrature points exactly with a
-    low-rank Tensor Train.
+    we can represent the Jacobians for all elements and all quadrature points numerically
+    exactly with a low-rank Tensor Train.
+
+    Example:
+    >>> from ttfemesh.domain import RectangleFactory
+    >>> from ttfemesh.quadrature import GaussLegendre2D
+    >>> from ttfemesh.mesh import QuadMesh
+
+    >>> lower_left = (0, 0)
+    >>> upper_right = (2, 1)
+    >>> rectangle = RectangleFactory.create(lower_left, upper_right)
+    >>> quadrature_rule = GaussLegendre2D()
+    >>> mesh_size_exponent = 3
+    >>> mesh = QuadMesh(rectangle, quadrature_rule, mesh_size_exponent)
+    >>> mesh.plot()
     """
 
     def __init__(

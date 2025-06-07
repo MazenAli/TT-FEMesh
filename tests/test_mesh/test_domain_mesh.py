@@ -376,19 +376,17 @@ class TestDomainBilinearMesh2D:
         mock_domain.get_subdomain.return_value = MagicMock(spec=Subdomain2D)
 
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
-        mock_basis = MagicMock(spec=TensorProductBasis)
 
         domain_mesh = DomainBilinearMesh2D(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis,
         )
 
         assert domain_mesh.domain == mock_domain
         assert domain_mesh.quadrature_rule == mock_quadrature_rule
         assert domain_mesh.mesh_size_exponent == 2
-        assert domain_mesh.basis == mock_basis
+        assert isinstance(domain_mesh.basis, BilinearBasis)
         assert domain_mesh._tt_cross_config is None
         assert len(domain_mesh.subdomain_meshes) == 2
         assert mock_domain.get_subdomain.call_count == 2
@@ -401,7 +399,6 @@ class TestDomainBilinearMesh2D:
         mock_connection.get_connection_pairs.return_value = [((0, 1), (0, 1), ("start", "end"))]
 
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
-        mock_basis = MagicMock(spec=TensorProductBasis)
 
         mock_tt_connectivity = MagicMock(spec=TensorTrain)
 
@@ -409,7 +406,6 @@ class TestDomainBilinearMesh2D:
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis,
         )
 
         with patch(
@@ -429,7 +425,6 @@ class TestDomainBilinearMesh2D:
         mock_domain.get_connections.return_value = [mock_connection]
 
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
-        mock_basis = MagicMock(spec=TensorProductBasis)
 
         mock_tt_connectivity = MagicMock(spec=TensorTrain)
 
@@ -437,7 +432,6 @@ class TestDomainBilinearMesh2D:
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis,
         )
 
         with patch(
@@ -454,13 +448,11 @@ class TestDomainBilinearMesh2D:
         mock_domain.get_connections.return_value = [mock_connection]
 
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
-        mock_basis = MagicMock(spec=TensorProductBasis)
 
         domain_mesh = DomainBilinearMesh2D(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis,
         )
 
         with pytest.raises(
@@ -594,13 +586,11 @@ class TestDomainBilinearMesh2D:
     def test_repr(self):
         mock_domain = MagicMock(spec=Domain)
         mock_quadrature_rule = MagicMock(spec=QuadratureRule)
-        mock_basis = MagicMock(spec=TensorProductBasis)
 
         domain_mesh = DomainBilinearMesh2D(
             domain=mock_domain,
             quadrature_rule=mock_quadrature_rule,
             mesh_size_exponent=2,
-            basis=mock_basis,
         )
 
         repr_str = repr(domain_mesh)
