@@ -29,6 +29,20 @@ services:
       - base
     command: bash
 
+  docs:
+    build:
+      context: .
+      dockerfile: docker/docs.dockerfile
+    image: ttfemesh-docs
+    container_name: ttfemesh-docs
+    volumes:
+      - .:/app
+    depends_on:
+      - dev
+    ports:
+      - "8000:8000"
+    command: bash /app/docs/serve_docs.sh
+
   notebook:
     build:
       context: .

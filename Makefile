@@ -1,19 +1,9 @@
-SPHINXOPTS    ?=
-SPHINXBUILD   ?= sphinx-build
-SOURCEDIR     = docs
-BUILDDIR      = build
 DIRS		  = ttfemesh tests
 LIBS		  = ttfemesh
 
 default: all
 
 all: format_check static test test_coverage security imports
-
-help:
-	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-
-docs-%:
-	@$(SPHINXBUILD) -M $* "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 format:
 	black --line-length 100 $(DIRS)
