@@ -34,6 +34,33 @@ class DirichletBoundary2D(BoundaryCondition):
     """
     Implements a Dirichlet boundary condition for a 2D curve.
     Boundary values are implicitly assumed to be zero.
+
+    Example:
+    >>> from ttfemesh.domain import RectangleFactory, CurveConnection2D, VertexConnection2D
+    >>> from ttfemesh.domain import DirichletBoundary2D, Domain2D
+    >>> lower_left = (0, 0)
+    >>> upper_right = (2, 1)
+    >>> rectangle1 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> lower_left = (2, 0)
+    >>> upper_right = (3, 1)
+    >>> rectangle2 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> lower_left = (-2, 1)
+    >>> upper_right = (0, 2)
+    >>> rectangle3 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> domain_idxs = [0, 1]
+    >>> curve_idxs = [1, 3]
+    >>> edge = CurveConnection2D(domain_idxs, curve_idxs)
+
+    >>> vertex_idxs = [(0, 3, "start"), (2, 0, "end")]
+    >>> vertex = VertexConnection2D(vertex_idxs)
+
+    >>> bc = DirichletBoundary2D([(1, 1), (2, 3)])
+
+    >>> domain = Domain2D([rectangle1, rectangle2, rectangle3], [edge, vertex], bc)
+    >>> domain.plot()
     """
 
     def __init__(self, boundary: List[Tuple[int, int]]):
