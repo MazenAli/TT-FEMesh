@@ -36,7 +36,21 @@ class QuadratureRule2D(QuadratureRule):
 
 
 class GaussLegendre(QuadratureRule):
-    """Implements Gauss-Legendre quadrature on [-1, 1]^(dimension)."""
+    """
+    Implements Gauss-Legendre quadrature on [-1, 1]^(dimension).
+    
+    Example:
+    >>> from ttfemesh.quadrature import GaussLegendre
+
+    >>> order = 3
+    >>> dim = 3
+    >>> qrule = GaussLegendre(order, dim)
+
+    >>> points, weights = qrule.get_points_weights()
+
+    >>> print(points)
+    >>> print(weights)
+    """
 
     def __init__(self, order: int = 1, dimension: int = 1):
         """
@@ -97,7 +111,20 @@ class GaussLegendre(QuadratureRule):
 
 
 class GaussLegendre2D(GaussLegendre):
-    """Implements Gauss-Legendre quadrature on [-1, 1]^2."""
+    """
+    Implements Gauss-Legendre quadrature on [-1, 1]^2.
+
+    Example:
+    >>> from ttfemesh.quadrature import GaussLegendre2D
+
+    >>> order = 3
+    >>> qrule2D = GaussLegendre2D(order)
+
+    >>> points2D, weights2D = qrule2D.get_points_weights()
+
+    >>> print(points2D)
+    >>> print(weights2D)
+    """
 
     def __init__(self, order: int = 1):
         """
