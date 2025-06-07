@@ -4,11 +4,11 @@ import numpy as np
 import pytest
 
 from ttfemesh.basis.basis import BilinearBasis, TensorProductBasis
-from ttfemesh.domain.domain import Domain, Domain2D
+from ttfemesh.domain import Domain, Domain2D, Quad
 from ttfemesh.domain.subdomain import Subdomain2D
 from ttfemesh.domain.subdomain_connection import CurveConnection2D, VertexConnection2D
 from ttfemesh.domain.subdomain_factory import QuadFactory
-from ttfemesh.mesh.domain_mesh import DomainBilinearMesh2D, DomainMesh, DomainMesh2D
+from ttfemesh.mesh import DomainBilinearMesh2D, DomainMesh, DomainMesh2D, QuadMesh, SubdomainMesh2D
 from ttfemesh.quadrature.quadrature import GaussLegendre2D, QuadratureRule
 from ttfemesh.tt_tools.meshgrid import map2canonical2d
 from ttfemesh.types import TensorTrain
@@ -582,6 +582,75 @@ class TestDomainBilinearMesh2D:
         assert np.all(rows2 == vertex_exact[:, 3])
         assert np.all(cols1 == vertex_exact[:, 2])
         assert np.all(cols2 == vertex_exact[:, 3])
+
+    def test_create_subdomain_meshes_with_quad(self):
+        mock_quad = MagicMock(spec=Quad)
+        mock_domain = MagicMock(spec=Domain)
+        mock_domain.num_subdomains = 1
+        mock_domain.get_subdomain.return_value = mock_quad
+
+        mock_quadrature_rule = MagicMock(spec=QuadratureRule)
+
+        domain_mesh = DomainBilinearMesh2D(
+            domain=mock_domain,
+            quadrature_rule=mock_quadrature_rule,
+            mesh_size_exponent=2,
+        )
+
+        assert len(domain_mesh.subdomain_meshes) == 1
+        assert isinstance(domain_mesh.subdomain_meshes[0], QuadMesh)
+        assert domain_mesh.subdomain_meshes[0].subdomain == mock_quad
+        assert domain_mesh.subdomain_meshes[0].quadrature_rule == mock_quadrature_rule
+        assert domain_mesh.subdomain_meshes[0].mesh_size_exponent == 2
+
+    def test_create_subdomain_meshes_with_subdomain2d(self):
+        mock_subdomain = MagicMock(spec=Subdomain2D)
+        mock_domain = MagicMock(spec=Domain)
+        mock_domain.num_subdomains = 1
+        mock_domain.get_subdomain.return_value = mock_subdomain
+
+        mock_quadrature_rule = MagicMock(spec=QuadratureRule)
+
+        domain_mesh = DomainBilinearMesh2D(
+            domain=mock_domain,
+            quadrature_rule=mock_quadrature_rule,
+            mesh_size_exponent=2,
+        )
+
+        assert len(domain_mesh.subdomain_meshes) == 1
+        assert isinstance(domain_mesh.subdomain_meshes[0], SubdomainMesh2D)
+        assert not isinstance(domain_mesh.subdomain_meshes[0], QuadMesh)
+        assert domain_mesh.subdomain_meshes[0].subdomain == mock_subdomain
+        assert domain_mesh.subdomain_meshes[0].quadrature_rule == mock_quadrature_rule
+        assert domain_mesh.subdomain_meshes[0].mesh_size_exponent == 2
+
+    def test_create_subdomain_meshes_with_mixed_subdomains(self):
+        mock_quad = MagicMock(spec=Quad)
+        mock_subdomain = MagicMock(spec=Subdomain2D)
+        mock_domain = MagicMock(spec=Domain)
+        mock_domain.num_subdomains = 2
+        mock_domain.get_subdomain.side_effect = [mock_quad, mock_subdomain]
+
+        mock_quadrature_rule = MagicMock(spec=QuadratureRule)
+
+        domain_mesh = DomainBilinearMesh2D(
+            domain=mock_domain,
+            quadrature_rule=mock_quadrature_rule,
+            mesh_size_exponent=2,
+        )
+
+        assert len(domain_mesh.subdomain_meshes) == 2
+        assert isinstance(domain_mesh.subdomain_meshes[0], QuadMesh)
+        assert isinstance(domain_mesh.subdomain_meshes[1], SubdomainMesh2D)
+        assert not isinstance(domain_mesh.subdomain_meshes[1], QuadMesh)
+
+        assert domain_mesh.subdomain_meshes[0].subdomain == mock_quad
+        assert domain_mesh.subdomain_meshes[0].quadrature_rule == mock_quadrature_rule
+        assert domain_mesh.subdomain_meshes[0].mesh_size_exponent == 2
+
+        assert domain_mesh.subdomain_meshes[1].subdomain == mock_subdomain
+        assert domain_mesh.subdomain_meshes[1].quadrature_rule == mock_quadrature_rule
+        assert domain_mesh.subdomain_meshes[1].mesh_size_exponent == 2
 
     def test_repr(self):
         mock_domain = MagicMock(spec=Domain)

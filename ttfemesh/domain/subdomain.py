@@ -36,6 +36,7 @@ class Subdomain2D(Subdomain):
     the right edge of the domain.
 
     Example:
+    >>> import numpy as np
     >>> from ttfemesh.domain import CircularArc2D, Line2D
     >>> from ttfemesh.domain import Subdomain2D
 

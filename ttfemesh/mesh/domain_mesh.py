@@ -4,10 +4,10 @@ from typing import Dict, Optional, Tuple
 import numpy as np
 
 from ttfemesh.basis import BilinearBasis, TensorProductBasis
-from ttfemesh.domain.domain import Domain
+from ttfemesh.domain import Domain, Quad
 from ttfemesh.domain.subdomain_connection import CurveConnection2D, VertexConnection2D
 from ttfemesh.mesh.mesh_utils import side_concatenation_tt, vertex_concatenation_tt
-from ttfemesh.mesh.subdomain_mesh import SubdomainMesh, SubdomainMesh2D
+from ttfemesh.mesh.subdomain_mesh import QuadMesh, SubdomainMesh, SubdomainMesh2D
 from ttfemesh.quadrature.quadrature import QuadratureRule
 from ttfemesh.tt_tools.tensor_cross import TTCrossConfig
 from ttfemesh.types import BoundarySide2D, BoundaryVertex2D, TensorTrain
@@ -170,9 +170,20 @@ class DomainMesh2D(DomainMesh):
             mesh_size_exponent = self.mesh_size_exponent
             quadrature_rule = self.quadrature_rule
             tt_cross_config = self._tt_cross_config
-            subdomain_mesh = SubdomainMesh2D(
-                subdomain, quadrature_rule, mesh_size_exponent, tt_cross_config
-            )
+            if isinstance(subdomain, Quad):
+                subdomain_mesh = QuadMesh(
+                    quad=subdomain,
+                    quadrature_rule=quadrature_rule,
+                    mesh_size_exponent=mesh_size_exponent,
+                    tt_cross_config=tt_cross_config,
+                )
+            else:
+                subdomain_mesh = SubdomainMesh2D(
+                    subdomain=subdomain,
+                    quadrature_rule=quadrature_rule,
+                    mesh_size_exponent=mesh_size_exponent,
+                    tt_cross_config=tt_cross_config,
+                )
             subdomain_meshes.append(subdomain_mesh)
 
         return subdomain_meshes
@@ -192,7 +203,7 @@ class DomainBilinearMesh2D(DomainMesh2D):
     This implementation of the concatenation maps works only for bilinear basis functions.
 
     Example:
-    >>> from ttfemesh.domain import RectangleFactory, CurveConnection2D, VertexConnection2D 
+    >>> from ttfemesh.domain import RectangleFactory, CurveConnection2D, VertexConnection2D
     >>> from ttfemesh.domain import DirichletBoundary2D, Domain2D
     >>> from ttfemesh.quadrature import GaussLegendre2D
     >>> from ttfemesh.mesh import DomainBilinearMesh2D

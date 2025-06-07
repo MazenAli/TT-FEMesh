@@ -17,7 +17,7 @@ def plot_curve_with_tangents(curve, title, num_points=50):
 
     plt.plot(points[:, 0], points[:, 1], label="Curve", color="blue")
 
-    for i in range(0, num_points, max(1, num_points // 10)):  # Fewer vectors for clarity
+    for i in range(0, num_points, max(1, num_points // 10)):
         p = points[i]
         t = tangents[i]
         plt.quiver(
@@ -33,7 +33,6 @@ def plot_curve_with_tangents(curve, title, num_points=50):
             label="Tangent" if i == 0 else "",
         )
 
-    # Plot setup
     plt.title(title)
     plt.xlabel("x")
     plt.ylabel("y")

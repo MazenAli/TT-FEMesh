@@ -38,7 +38,7 @@ class QuadratureRule2D(QuadratureRule):
 class GaussLegendre(QuadratureRule):
     """
     Implements Gauss-Legendre quadrature on [-1, 1]^(dimension).
-    
+
     Example:
     >>> from ttfemesh.quadrature import GaussLegendre
 
