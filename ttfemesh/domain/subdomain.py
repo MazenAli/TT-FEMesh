@@ -36,7 +36,16 @@ class Subdomain2D(Subdomain):
     the right edge of the domain.
 
     Example:
-        >>> from ttfemesh.domain import Subdomain2D
+    >>> from ttfemesh.domain import CircularArc2D, Line2D
+    >>> from ttfemesh.domain import Subdomain2D
+
+    >>> arc0 = CircularArc2D((0, 0), 1, np.pi/2., 0.5*np.pi)
+    >>> line1 = Line2D((-1, 0), (1, -1))
+    >>> line2 = Line2D((1, -1), (2, 1))
+    >>> line3 = Line2D((2, 1), (0, 1))
+
+    >>> subdomain = Subdomain2D([arc0, line1, line2, line3])
+    >>> subdomain.plot()
     """
 
     def __init__(self, curves: Sequence[Curve]):
@@ -121,6 +130,20 @@ class Quad(Subdomain2D):
     This is important for the boundary condition to work correctly.
     It may lead to confusion if, e.g., your line 0 is visually
     the right edge of the domain.
+
+    Recommend using the QuadFactory or the RectangleFactory to create a quadrilateral subdomain.
+
+    Example:
+    >>> from ttfemesh.domain import Line2D
+    >>> from ttfemesh.domain import Quad
+
+    >>> line0 = Line2D((0, 1), (-1, 0))
+    >>> line1 = Line2D((-1, 0), (1, -1))
+    >>> line2 = Line2D((1, -1), (2, 1))
+    >>> line3 = Line2D((2, 1), (0, 1))
+
+    >>> subdomain = Quad([line0, line1, line2, line3])
+    >>> subdomain.plot()
     """
 
     def __init__(self, curves: Sequence[Line2D]):

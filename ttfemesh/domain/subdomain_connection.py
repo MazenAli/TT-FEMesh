@@ -42,18 +42,43 @@ class SubdomainConnection2D(SubdomainConnection):
 
 
 class VertexConnection2D(SubdomainConnection2D):
-    def __init__(self, connection: List[Tuple[int, int, CurvePosition]]):
-        """
-        Initialize a 2D vertex connection.
-        The subdomain indexes reference into the list of subdomains
-        passed to the Domain constructor.
+    """
+    Initialize a 2D vertex connection.
+    The subdomain indexes reference into the list of subdomains
+    passed to the Domain constructor.
 
-        Args:
-            connection (List[Tuple[int, int, CurvePosition]]):
-                List of subdomains sharing this vertex.
-                Each connection is a tuple of (subdomain index, curve index, position).
-                Curve position is either "start" or "end".
-        """
+    Args:
+        connection (List[Tuple[int, int, CurvePosition]]):
+            List of subdomains sharing this vertex.
+            Each connection is a tuple of (subdomain index, curve index, position).
+            Curve position is either "start" or "end".
+
+    Example:
+    >>> from ttfemesh.domain import RectangleFactory, CurveConnection2D, VertexConnection2D
+    >>> from ttfemesh.domain import Domain2D
+    >>> lower_left = (0, 0)
+    >>> upper_right = (2, 1)
+    >>> rectangle1 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> lower_left = (2, 0)
+    >>> upper_right = (3, 1)
+    >>> rectangle2 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> lower_left = (-2, 1)
+    >>> upper_right = (0, 2)
+    >>> rectangle3 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> domain_idxs = [0, 1]
+    >>> curve_idxs = [1, 3]
+    >>> edge = CurveConnection2D(domain_idxs, curve_idxs)
+
+    >>> vertex_idxs = [(0, 3, "start"), (2, 0, "end")]
+    >>> vertex = VertexConnection2D(vertex_idxs)
+
+    >>> domain = Domain2D([rectangle1, rectangle2, rectangle3], [edge, vertex])
+    >>> domain.plot()
+    """
+    def __init__(self, connection: List[Tuple[int, int, CurvePosition]]):
         self.connection = connection
 
     @property
@@ -138,18 +163,43 @@ class VertexConnection2D(SubdomainConnection2D):
 
 
 class CurveConnection2D(SubdomainConnection2D):
+    """
+    Initialize a curve connection between two subdomains.
+    Only two subdomains can be connected by a curve.
+
+    Args:
+        subdomains_indices (Tuple[int, int]):
+            A tuple of two subdomain indices that share a curve.
+        curve_indices (Tuple[int, int]):
+            A tuple of two curve indices in the respective subdomains.
+
+    Example:
+    >>> from ttfemesh.domain import RectangleFactory, CurveConnection2D, VertexConnection2D
+    >>> from ttfemesh.domain import Domain2D
+    >>> lower_left = (0, 0)
+    >>> upper_right = (2, 1)
+    >>> rectangle1 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> lower_left = (2, 0)
+    >>> upper_right = (3, 1)
+    >>> rectangle2 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> lower_left = (-2, 1)
+    >>> upper_right = (0, 2)
+    >>> rectangle3 = RectangleFactory.create(lower_left, upper_right)
+
+    >>> domain_idxs = [0, 1]
+    >>> curve_idxs = [1, 3]
+    >>> edge = CurveConnection2D(domain_idxs, curve_idxs)
+
+    >>> vertex_idxs = [(0, 3, "start"), (2, 0, "end")]
+    >>> vertex = VertexConnection2D(vertex_idxs)
+
+    >>> domain = Domain2D([rectangle1, rectangle2, rectangle3], [edge, vertex])
+    >>> domain.plot()
+    """
+
     def __init__(self, subdomains_indices: Tuple[int, int], curve_indices: Tuple[int, int]):
-        """
-        Initialize a curve connection between two subdomains.
-        Only two subdomains can be connected by a curve.
-
-        Args:
-            subdomains_indices (Tuple[int, int]):
-                A tuple of two subdomain indices that share a curve.
-            curve_indices (Tuple[int, int]):
-                A tuple of two curve indices in the respective subdomains.
-        """
-
         self.subdomains_indices = subdomains_indices
         self.curve_indices = curve_indices
 
