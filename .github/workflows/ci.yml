@@ -1,0 +1,162 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to PyPI'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libblas-dev liblapack-dev
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Install package in development mode
+      run: |
+        pip install -e .
+    
+    - name: Run tests with coverage
+      run: |
+        coverage run --source=ttfemesh --module pytest -v tests/ && coverage report -m
+        coverage xml
+    
+    - name: Run linting and security checks
+      run: |
+        # Format check
+        black --line-length 100 --check ttfemesh tests
+        isort --multi-line 3 --trailing-comma --force-grid-wrap 0 --use-parentheses --line-width 100 ttfemesh tests --check-only
+        
+        # Static analysis
+        flake8 --max-line-length=100 ttfemesh tests
+        mypy ttfemesh tests --ignore-missing-imports --no-strict-optional
+        
+        # Security check
+        bandit --configfile bandit.yml --recursive ttfemesh
+        
+        # Import checks
+        vulture --ignore-names=side_effect ttfemesh tests
+        pip-missing-reqs ttfemesh tests --ignore-module=pytest
+        pip-extra-reqs ttfemesh tests
+    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: MazenAli/TT-FEMesh
+        fail_ci_if_error: true
+        files: ./coverage.xml
+        flags: pytest
+        name: codecov-umbrella
+        verbose: true
+
+  python-compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libblas-dev liblapack-dev
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Install package in development mode
+      run: |
+        pip install -e .
+    
+    - name: Run tests
+      run: |
+        pytest tests/
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libblas-dev liblapack-dev
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Install only the package and its core dependencies
+        pip install -r requirements.txt
+        # Install documentation dependencies
+        pip install -r requirements-docs.txt
+        # Install the package in development mode
+        pip install -e .
+    
+    - name: Build documentation
+      run: |
+        cd docs
+        make html
+
+  publish:
+    needs: [test, python-compatibility, docs]
+    if: github.event.inputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build and publish
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        python -m build
+        twine upload dist/* 

@@ -1,7 +1,14 @@
 # TTFEMesh
 
+[![PyPI version](https://badge.fury.io/py/ttfemesh.svg)](https://badge.fury.io/py/ttfemesh)
+[![Documentation Status](https://readthedocs.org/projects/ttfemesh/badge/?version=latest)](https://ttfemesh.readthedocs.io/en/latest/?badge=latest)
+[![Tests](https://github.com/MazenAli/TT-FEMesh/actions/workflows/ci.yml/badge.svg)](https://github.com/MazenAli/TT-FEMesh/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/MazenAli/TT-FEMesh/branch/main/graph/badge.svg)](https://codecov.io/gh/MazenAli/TT-FEMesh)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue)](https://www.python.org/downloads/)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/downloads/)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
 
 TTFEMesh is a Python library for generating tensor train representations of finite element meshes. It provides a comprehensive toolkit for creating domains, generating meshes, and computing tensorized Jacobians, Dirichlet masks, and concatenation maps, all of which are essential for solving partial differential equations using tensor train decompositions.
 
@@ -24,6 +31,24 @@ You can install TTFEMesh using pip:
 ```bash
 pip install ttfemesh
 ```
+
+### System Dependencies
+
+TTFEMesh requires BLAS and LAPACK libraries to be installed on your system:
+
+- **Ubuntu/Debian**:
+  ```bash
+  sudo apt-get update
+  sudo apt-get install libblas-dev liblapack-dev
+  ```
+
+- **macOS** (using Homebrew):
+  ```bash
+  brew install openblas lapack
+  ```
+
+- **Windows**:
+  These libraries are typically included with scientific Python distributions like Anaconda.
 
 ## Quick Start
 
@@ -73,9 +98,10 @@ For detailed documentation, including API reference and examples, visit our [doc
 
 ## Requirements
 
-- Python >= 3.9, < 3.13
+- Python >= 3.10, < 3.13
+- BLAS and LAPACK libraries (system dependencies)
 - torchtt (for tensor train operations)
-- Other dependencies listed in `requirements.txt`
+- Other dependencies listed in [`requirements.txt`](requirements.txt)
 
 ## Contributing
 
