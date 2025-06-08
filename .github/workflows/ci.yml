@@ -41,7 +41,8 @@ jobs:
     
     - name: Run tests with coverage
       run: |
-        pytest --cov=ttfemesh --cov-report=xml tests/
+        coverage run --source=ttfemesh --module pytest -v tests/ && coverage report -m
+        coverage xml
     
     - name: Run linting and security checks
       run: |
@@ -115,14 +116,19 @@ jobs:
       with:
         python-version: '3.12'
     
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libblas-dev liblapack-dev
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        # Install only the package and its core dependencies
         pip install -r requirements.txt
+        # Install documentation dependencies
         pip install -r requirements-docs.txt
-    
-    - name: Install package in development mode
-      run: |
+        # Install the package in development mode
         pip install -e .
     
     - name: Build documentation
