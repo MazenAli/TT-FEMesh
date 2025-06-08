@@ -24,11 +24,11 @@ jobs:
     
     - name: Build base image
       run: |
-        docker build -t ttfemesh-base:latest -f docker/base.Dockerfile .
+        docker build -t ttfemesh-base:latest -f docker/base.dockerfile .
     
     - name: Build dev image
       run: |
-        docker build -t ttfemesh-dev:latest -f docker/dev.Dockerfile .
+        docker build -t ttfemesh-dev:latest -f docker/dev.dockerfile .
     
     - name: Run tests and linting
       run: |
