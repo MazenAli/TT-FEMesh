@@ -28,6 +28,13 @@ jobs:
         docker compose build base
         docker compose build dev
         docker compose run --rm dev make all
+    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: MazenAli/TT-FEMesh
+        fail_ci_if_error: true
 
   python-compatibility:
     runs-on: ubuntu-latest
