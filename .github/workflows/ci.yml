@@ -24,6 +24,8 @@ jobs:
     
     - name: Build and run tests with Docker Compose
       run: |
+        export COMPOSE_BAKE=true
+        docker compose build base
         docker compose build dev
         docker compose run --rm dev make all
 
