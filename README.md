@@ -1,7 +1,7 @@
 # TTFEMesh
 
 [![PyPI version](https://badge.fury.io/py/ttfemesh.svg)](https://badge.fury.io/py/ttfemesh)
-[![Documentation Status](https://readthedocs.org/projects/ttfemesh/badge/?version=latest)](https://ttfemesh.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/tt-femesh/badge/?version=latest)](https://tt-femesh.readthedocs.io/en/latest/?badge=latest)
 [![Tests](https://github.com/MazenAli/TT-FEMesh/actions/workflows/ci.yml/badge.svg)](https://github.com/MazenAli/TT-FEMesh/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/MazenAli/TT-FEMesh/branch/main/graph/badge.svg)](https://codecov.io/gh/MazenAli/TT-FEMesh)
 

@@ -2,6 +2,9 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-TT--FEMesh-black?style=flat&logo=github)](https://github.com/MazenAli/TT-FEMesh)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://badge.fury.io/py/ttfemesh.svg)](https://badge.fury.io/py/ttfemesh)
+[![Tests](https://github.com/MazenAli/TT-FEMesh/actions/workflows/ci.yml/badge.svg)](https://github.com/MazenAli/TT-FEMesh/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/MazenAli/TT-FEMesh/branch/main/graph/badge.svg)](https://codecov.io/gh/MazenAli/TT-FEMesh)
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue)](https://www.python.org/downloads/)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/downloads/)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
