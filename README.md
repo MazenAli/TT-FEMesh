@@ -26,29 +26,22 @@ TTFEMesh is a Python library for generating tensor train representations of fini
 
 ## Installation
 
-You can install TTFEMesh using pip:
+### Platform Support
 
+TTFEMesh is currently only supported on Linux systems due to dependencies on the `torchtt` package. For other platforms (macOS, Windows), we recommend using Docker.
+
+### Linux Installation
+
+1. Install system dependencies:
+```bash
+sudo apt-get update
+sudo apt-get install -y libblas-dev liblapack-dev
+```
+
+2. Install the package:
 ```bash
 pip install ttfemesh
 ```
-
-### System Dependencies
-
-TTFEMesh requires BLAS and LAPACK libraries to be installed on your system:
-
-- **Ubuntu/Debian**:
-  ```bash
-  sudo apt-get update
-  sudo apt-get install libblas-dev liblapack-dev
-  ```
-
-- **macOS** (using Homebrew):
-  ```bash
-  brew install openblas lapack
-  ```
-
-- **Windows**:
-  These libraries are typically included with scientific Python distributions like Anaconda.
 
 ## Quick Start
 
@@ -94,11 +87,12 @@ concat_maps = mesh.get_concatenation_maps()
 
 ## Documentation
 
-For detailed documentation, including API reference and examples, visit our [documentation](https://github.com/MazenAli/TT-FEMesh).
+For detailed documentation, including API reference and examples, visit our [documentation](https://tt-femesh.readthedocs.io/en/latest/).
 
 ## Requirements
 
 - Python >= 3.10, < 3.13
+- Linux operating system (or Docker)
 - BLAS and LAPACK libraries (system dependencies)
 - torchtt (for tensor train operations)
 - Other dependencies listed in [`requirements.txt`](requirements.txt)

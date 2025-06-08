@@ -24,28 +24,19 @@ extensions in [this work](https://www.mdpi.com/2227-7390/12/20/3277).
 
 ## Installation
 
-### System Dependencies
+### Platform Support
 
-TTFEMesh requires BLAS and LAPACK libraries to be installed on your system:
+TTFEMesh is currently only supported on Linux systems due to dependencies on the `torchtt` package. For other platforms (macOS, Windows), we recommend using Docker.
 
-- **Ubuntu/Debian**:
-  ```bash
-  sudo apt-get update
-  sudo apt-get install libblas-dev liblapack-dev
-  ```
+### Linux Installation
 
-- **macOS** (using Homebrew):
-  ```bash
-  brew install openblas lapack
-  ```
+1. Install system dependencies:
+```bash
+sudo apt-get update
+sudo apt-get install -y libblas-dev liblapack-dev
+```
 
-- **Windows**:
-  These libraries are typically included with scientific Python distributions like Anaconda.
-
-### Python Package
-
-You can install TTFEMesh using pip:
-
+2. Install the package:
 ```bash
 pip install ttfemesh
 ```
@@ -53,6 +44,7 @@ pip install ttfemesh
 ### Requirements
 
 - Python >= 3.10, < 3.13
+- Linux operating system (or Docker)
 - BLAS and LAPACK libraries (system dependencies)
 - torchtt (for tensor train operations)
 - Other dependencies listed in [`requirements.txt`](https://github.com/MazenAli/TT-FEMesh/blob/main/requirements.txt)
