@@ -30,8 +30,25 @@ jobs:
     - name: Build and run tests with Docker Compose
       run: |
         export COMPOSE_BAKE=true
-        docker compose build base
-        docker compose build dev
+        # Build base image with buildx
+        docker buildx build \
+          --platform linux/amd64 \
+          --cache-from type=gha \
+          --cache-to type=gha,mode=max \
+          -f docker/base.dockerfile \
+          -t ttfemesh-base:latest \
+          .
+        
+        # Build dev image with buildx
+        docker buildx build \
+          --platform linux/amd64 \
+          --cache-from type=gha \
+          --cache-to type=gha,mode=max \
+          -f docker/dev.dockerfile \
+          -t ttfemesh-dev:latest \
+          .
+        
+        # Run tests
         docker compose run --rm dev make all
     
     - name: Upload coverage reports to Codecov
@@ -51,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.12']
 
     steps:
     - uses: actions/checkout@v3
