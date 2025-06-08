@@ -6,7 +6,9 @@
 [![codecov](https://codecov.io/gh/MazenAli/TT-FEMesh/branch/main/graph/badge.svg)](https://codecov.io/gh/MazenAli/TT-FEMesh)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue)](https://www.python.org/downloads/)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/downloads/)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
 
 TTFEMesh is a Python library for generating tensor train representations of finite element meshes. It provides a comprehensive toolkit for creating domains, generating meshes, and computing tensorized Jacobians, Dirichlet masks, and concatenation maps, all of which are essential for solving partial differential equations using tensor train decompositions.
 
@@ -96,7 +98,7 @@ For detailed documentation, including API reference and examples, visit our [doc
 
 ## Requirements
 
-- Python >= 3.9, < 3.13
+- Python >= 3.10, < 3.13
 - BLAS and LAPACK libraries (system dependencies)
 - torchtt (for tensor train operations)
 - Other dependencies listed in [`requirements.txt`](requirements.txt)
