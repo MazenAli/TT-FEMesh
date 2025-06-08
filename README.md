@@ -80,7 +80,7 @@ For detailed documentation, including API reference and examples, visit our [doc
 
 - Python >= 3.9, < 3.13
 - torchtt (for tensor train operations)
-- Other dependencies listed in `requirements.txt`
+- Other dependencies listed in [`requirements.txt`](requirements.txt)
 
 ## Contributing
 

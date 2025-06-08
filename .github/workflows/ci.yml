@@ -21,21 +21,37 @@ jobs:
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+      with:
+        driver-opts: |
+          image=moby/buildkit:latest
+          network=host
     
-    - name: Clean up Docker resources
+    - name: Free disk space
       run: |
-        docker system prune -af
-        docker builder prune -af
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf "/usr/local/share/boost"
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/*
+        df -h
     
     - name: Build and run tests with Docker Compose
       run: |
         export COMPOSE_BAKE=true
+        export DOCKER_BUILDKIT=1
+        export BUILDKIT_INLINE_CACHE=1
+        
         # Build base image with buildx
         docker buildx build \
           --platform linux/amd64 \
           --cache-from type=gha \
           --cache-to type=gha,mode=max \
           --load \
+          --memory=4g \
+          --memory-swap=4g \
+          --build-arg PIP_NO_CACHE_DIR=1 \
           -f docker/base.dockerfile \
           -t ttfemesh-base:latest \
           .
@@ -46,6 +62,9 @@ jobs:
           --cache-from type=gha \
           --cache-to type=gha,mode=max \
           --load \
+          --memory=4g \
+          --memory-swap=4g \
+          --build-arg PIP_NO_CACHE_DIR=1 \
           -f docker/dev.dockerfile \
           -t ttfemesh-dev:latest \
           .
@@ -68,12 +87,6 @@ jobs:
         slug: MazenAli/TT-FEMesh
         fail_ci_if_error: true
     
-    - name: Clean up Docker resources after build
-      if: always()
-      run: |
-        docker system prune -af
-        docker builder prune -af
-
   python-compatibility:
     runs-on: ubuntu-latest
     strategy:
@@ -98,6 +111,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
+    
+    - name: Install package in development mode
+      run: |
+        pip install -e .
     
     - name: Run tests
       run: |
