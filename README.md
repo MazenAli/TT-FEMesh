@@ -1,5 +1,10 @@
 # TTFEMesh
 
+[![PyPI version](https://badge.fury.io/py/ttfemesh.svg)](https://badge.fury.io/py/ttfemesh)
+[![Documentation Status](https://readthedocs.org/projects/ttfemesh/badge/?version=latest)](https://ttfemesh.readthedocs.io/en/latest/?badge=latest)
+[![Tests](https://github.com/MazenAli/TT-FEMesh/actions/workflows/ci.yml/badge.svg)](https://github.com/MazenAli/TT-FEMesh/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/MazenAli/TT-FEMesh/branch/main/graph/badge.svg)](https://codecov.io/gh/MazenAli/TT-FEMesh)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
 
