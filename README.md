@@ -1,11 +1,10 @@
 # TTFEMesh
 
-[![PyPI version](https://badge.fury.io/py/ttfemesh.svg)](https://badge.fury.io/py/ttfemesh)
+[![PyPI](https://img.shields.io/pypi/v/ttfemesh.svg)](https://pypi.org/project/ttfemesh/)
 [![Documentation Status](https://readthedocs.org/projects/tt-femesh/badge/?version=latest)](https://tt-femesh.readthedocs.io/en/latest/?badge=latest)
 [![Tests](https://github.com/MazenAli/TT-FEMesh/actions/workflows/ci.yml/badge.svg)](https://github.com/MazenAli/TT-FEMesh/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/MazenAli/TT-FEMesh/branch/main/graph/badge.svg)](https://codecov.io/gh/MazenAli/TT-FEMesh)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue)](https://www.python.org/downloads/)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/downloads/)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
@@ -87,7 +86,7 @@ concat_maps = mesh.get_concatenation_maps()
 
 ## Documentation
 
-For detailed documentation, including API reference and examples, visit our [documentation](https://tt-femesh.readthedocs.io/en/latest/).
+For detailed documentation, including API reference and examples, visit our [documentation](https://ttfemesh.readthedocs.io/en/latest/).
 
 ## Requirements
 
