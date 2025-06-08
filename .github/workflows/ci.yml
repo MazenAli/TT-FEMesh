@@ -14,71 +14,52 @@ on:
         type: boolean
 
 jobs:
-  docker-test:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libblas-dev liblapack-dev
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        driver-opts: |
-          image=moby/buildkit:latest
-          network=host
+        python-version: '3.12'
     
-    - name: Free disk space
+    - name: Install dependencies
       run: |
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /usr/local/lib/android
-        sudo rm -rf /opt/ghc
-        sudo rm -rf "/usr/local/share/boost"
-        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-        sudo apt-get clean
-        sudo rm -rf /var/lib/apt/lists/*
-        df -h
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
     
-    - name: Build and run tests with Docker Compose
+    - name: Install package in development mode
       run: |
-        export COMPOSE_BAKE=true
-        export DOCKER_BUILDKIT=1
-        export BUILDKIT_INLINE_CACHE=1
+        pip install -e .
+    
+    - name: Run tests
+      run: |
+        pytest tests/
+    
+    - name: Run linting and security checks
+      run: |
+        # Format check
+        black --line-length 100 --check ttfemesh tests
+        isort --multi-line 3 --trailing-comma --force-grid-wrap 0 --use-parentheses --line-width 100 ttfemesh tests --check-only
         
-        # Build base image with buildx
-        docker buildx build \
-          --platform linux/amd64 \
-          --cache-from type=gha \
-          --cache-to type=gha,mode=max \
-          --load \
-          --memory=4g \
-          --memory-swap=4g \
-          --build-arg PIP_NO_CACHE_DIR=1 \
-          -f docker/base.dockerfile \
-          -t ttfemesh-base:latest \
-          .
+        # Static analysis
+        flake8 --max-line-length=100 ttfemesh tests
+        mypy ttfemesh tests --ignore-missing-imports --no-strict-optional
         
-        # Build dev image with buildx
-        docker buildx build \
-          --platform linux/amd64 \
-          --cache-from type=gha \
-          --cache-to type=gha,mode=max \
-          --load \
-          --memory=4g \
-          --memory-swap=4g \
-          --build-arg PIP_NO_CACHE_DIR=1 \
-          -f docker/dev.dockerfile \
-          -t ttfemesh-dev:latest \
-          .
+        # Security check
+        bandit --configfile bandit.yml --recursive ttfemesh
         
-        # Create a temporary directory for the repository
-        mkdir -p /tmp/ttfemesh
-        cp -r . /tmp/ttfemesh/
-        
-        # Run tests with the repository mounted
-        docker run --rm \
-          -v /tmp/ttfemesh:/app \
-          -w /app \
-          ttfemesh-dev:latest \
-          make all
+        # Import checks
+        vulture --ignore-names=side_effect ttfemesh tests
+        pip-missing-reqs ttfemesh tests --ignore-module=pytest
+        pip-extra-reqs ttfemesh tests
     
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
@@ -86,12 +67,12 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: MazenAli/TT-FEMesh
         fail_ci_if_error: true
-    
+
   python-compatibility:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12']
+        python-version: ['3.9', '3.10', '3.11', '3.12']
 
     steps:
     - uses: actions/checkout@v3
@@ -121,7 +102,7 @@ jobs:
         pytest tests/
 
   publish:
-    needs: [docker-test, python-compatibility]
+    needs: [test, python-compatibility]
     if: github.event.inputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:

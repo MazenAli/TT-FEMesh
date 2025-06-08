@@ -30,6 +30,24 @@ You can install TTFEMesh using pip:
 pip install ttfemesh
 ```
 
+### System Dependencies
+
+TTFEMesh requires BLAS and LAPACK libraries to be installed on your system:
+
+- **Ubuntu/Debian**:
+  ```bash
+  sudo apt-get update
+  sudo apt-get install libblas-dev liblapack-dev
+  ```
+
+- **macOS** (using Homebrew):
+  ```bash
+  brew install openblas lapack
+  ```
+
+- **Windows**:
+  These libraries are typically included with scientific Python distributions like Anaconda.
+
 ## Quick Start
 
 Here's a simple example to get you started:
@@ -79,6 +97,7 @@ For detailed documentation, including API reference and examples, visit our [doc
 ## Requirements
 
 - Python >= 3.9, < 3.13
+- BLAS and LAPACK libraries (system dependencies)
 - torchtt (for tensor train operations)
 - Other dependencies listed in [`requirements.txt`](requirements.txt)
 

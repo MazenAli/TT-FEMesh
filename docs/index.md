@@ -22,6 +22,26 @@ extensions in [this work](https://www.mdpi.com/2227-7390/12/20/3277).
 
 ## Installation
 
+### System Dependencies
+
+TTFEMesh requires BLAS and LAPACK libraries to be installed on your system:
+
+- **Ubuntu/Debian**:
+  ```bash
+  sudo apt-get update
+  sudo apt-get install libblas-dev liblapack-dev
+  ```
+
+- **macOS** (using Homebrew):
+  ```bash
+  brew install openblas lapack
+  ```
+
+- **Windows**:
+  These libraries are typically included with scientific Python distributions like Anaconda.
+
+### Python Package
+
 You can install TTFEMesh using pip:
 
 ```bash
