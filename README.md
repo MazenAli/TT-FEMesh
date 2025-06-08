@@ -1,6 +1,5 @@
 # TTFEMesh
 
-[![GitHub](https://img.shields.io/badge/GitHub-TT--FEMesh-black?style=flat&logo=github)](https://github.com/MazenAli/TT-FEMesh)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
 
@@ -80,10 +79,7 @@ For detailed documentation, including API reference and examples, visit our [doc
 
 ## Contributing
 
-We welcome contributions! Please visit our [GitHub repository](https://github.com/MazenAli/TT-FEMesh) to:
-- Report bugs
-- Suggest features
-- Submit pull requests
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
