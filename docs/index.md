@@ -24,6 +24,28 @@ You can install TTFEMesh using pip:
 pip install ttfemesh
 ```
 
+## Documentation
+
+```{toctree}
+:maxdepth: 1
+:caption: User Guide
+
+examples/quickstart
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: API Reference
+
+api/domain
+api/mesh
+api/quadrature
+api/basis
+api/tt_tools
+api/types
+api/utils
+```
+
 ## Quick Start
 
 Here's a quick example of how to use TTFEMesh:
@@ -75,17 +97,7 @@ masks = mesh.get_dirichlet_masks()
 concat_maps = mesh.get_concatenation_maps()
 ```
 
-For more detailed examples, check out our [Quickstart Guide](examples/quickstart.md).
-
-## Documentation
-
-```{toctree}
-:maxdepth: 2
-:caption: Contents:
-
-examples/index
-api/index
-```
+For more detailed examples and tutorials, check out our [Quickstart Guide](examples/quickstart.md).
 
 ## Contributing
 

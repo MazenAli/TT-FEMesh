@@ -2,7 +2,6 @@
 
 This guide provides a quick introduction to using TTFEMesh. For detailed information about the meaning of the tensorized Jacobians, Dirichlet masks, and concatenation maps, we refer to the original paper [arXiv:1802.02839](https://arxiv.org/abs/1802.02839).
 
-
 ## Installation
 
 ```bash
@@ -107,5 +106,5 @@ print(concat_maps)
 
 ## Next Steps
 
-- Check out the [API Reference](../api/index.md) for detailed documentation of all available classes and functions
-- Visit our [GitHub repository](https://github.com/MazenAli/TT-FEMesh) to contribute or report issues 
+- Check out the API Reference for detailed documentation of all available classes and functions.
+- Visit our [GitHub repository](https://github.com/MazenAli/TT-FEMesh) to contribute or report issues. 

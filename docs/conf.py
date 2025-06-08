@@ -6,6 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath(".."))
+
 project = 'TTFEMesh'
 copyright = '2025, Mazen Ali'
 author = 'Mazen Ali'
@@ -15,11 +19,15 @@ release = '0.1.0'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.intersphinx',
-    'myst_parser',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.linkcode",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.intersphinx",
+    "myst_parser",
+    "nbsphinx",
+    "sphinx_copybutton",
 ]
 
 templates_path = ['_templates']
@@ -33,10 +41,13 @@ html_static_path = ['_static']
 
 # Theme options
 html_theme_options = {
-    'navigation_depth': 4,
-    'titles_only': False,
+    'navigation_depth': 2,
+    'titles_only': True,
     'logo_only': False,
     'style_nav_header_background': '#2980B9',
+    'collapse_navigation': False,
+    'sticky_navigation': True,
+    'includehidden': False,
 }
 
 # GitHub configuration
@@ -51,6 +62,13 @@ html_context = {
     'github_url': 'https://github.com/MazenAli/TT-FEMesh',
     'github_version': 'main',  # or your default branch name
     'conf_py_path': '/docs/',  # path in the checkout to the docs root
+}
+
+autodoc_member_order = "bysource"
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "show-inheritance": True,
 }
 
 # Enable source code links
@@ -97,3 +115,12 @@ myst_enable_extensions = [
     'substitution',
     'tasklist',
 ] 
+
+
+def linkcode_resolve(domain, info):
+    if domain != "py":
+        return None
+    if not info["module"]:
+        return None
+    filename = info["module"].replace(".", "/")
+    return f"https://github.com/MazenAli/TT-FEMesh/blob/main/{filename}.py"
