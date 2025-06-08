@@ -492,7 +492,7 @@ class SubdomainMesh2D(SubdomainMesh):
             np.ndarray: Jacobians.
                 Of shape (num_elements_x+1, num_elements_y+1, num_quadrature_points, 2, 2).
 
-        Note:
+        Warning:
             This method is not efficient for large meshes.
             Intended only for small meshes for testing.
         """

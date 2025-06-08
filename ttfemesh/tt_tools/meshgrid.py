@@ -58,11 +58,10 @@ def map2canonical2d(mesh_size_exponent: int) -> np.ndarray:
         np.ndarray: Vector of indices mapping z-ordering to canonical ordering.
 
     Example:
-        .. code-block:: python
-            array = tt.full().flatten("F")
-            zmap = map2canonical2d(3)
-            canonical_array = np.empty_like(array)
-            canonical_array[zmap] = array
+        >>> array = tt.full().flatten("F")
+        >>> zmap = map2canonical2d(3)
+        >>> canonical_array = np.empty_like(array)
+        >>> canonical_array[zmap] = array
     """
 
     meshgrid = range_meshgrid2d(mesh_size_exponent)

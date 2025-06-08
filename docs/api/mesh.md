@@ -102,10 +102,3 @@ print(f"Jacobian determinant tensor trains shape: {jac_dets.shape}")
 jac_invdets = subdmesh.get_jacobian_invdet_tensor_trains()
 print(f"Inverse Jacobian determinant tensor trains shape: {jac_invdets.shape}")
 ```
-
-## Related Modules
-
-- [Domain](domain.md) - For creating and managing domains
-- [Basis](basis.md) - For basis functions used in the mesh
-- [Quadrature](quadrature.md) - For numerical integration rules
-- [Tensor Train Tools](tt_tools.md) - For working with tensor train representations 

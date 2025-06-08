@@ -22,16 +22,16 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
-    "sphinx.ext.linkcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.intersphinx",
     "myst_parser",
     "nbsphinx",
     "sphinx_copybutton",
+    "sphinx.ext.autosummary",
 ]
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**/index.md']
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -42,34 +42,36 @@ html_static_path = ['_static']
 # Theme options
 html_theme_options = {
     'navigation_depth': 2,
-    'titles_only': True,
+    'titles_only': False,
     'logo_only': False,
     'style_nav_header_background': '#2980B9',
     'collapse_navigation': False,
     'sticky_navigation': True,
     'includehidden': False,
+    'navigation_with_keys': False,
+    'prev_next_buttons_location': None,
 }
 
-# GitHub configuration
-html_context = {
-    'display_github': True,
-    'github_user': 'MazenAli',
-    'github_repo': 'TT-FEMesh',
-    'github_banner': True,
-    'github_button': True,
-    'github_type': 'star',
-    'github_count': True,
-    'github_url': 'https://github.com/MazenAli/TT-FEMesh',
-    'github_version': 'main',  # or your default branch name
-    'conf_py_path': '/docs/',  # path in the checkout to the docs root
+# Enable section numbering
+numfig = True
+numfig_format = {
+    'section': 'Section %s',
+    'figure': 'Figure %s',
+    'table': 'Table %s',
+    'code-block': 'Listing %s',
 }
 
-autodoc_member_order = "bysource"
+# Autodoc settings
 autodoc_default_options = {
-    "members": True,
-    "undoc-members": True,
-    "show-inheritance": True,
+    'members': True,
+    'member-order': 'bysource',
+    'special-members': '__init__',
+    'undoc-members': True,
+    'exclude-members': '__weakref__'
 }
+
+autodoc_member_order = 'bysource'
+add_module_names = False
 
 # Enable source code links
 viewcode_follow_imported_members = True
@@ -115,12 +117,3 @@ myst_enable_extensions = [
     'substitution',
     'tasklist',
 ] 
-
-
-def linkcode_resolve(domain, info):
-    if domain != "py":
-        return None
-    if not info["module"]:
-        return None
-    filename = info["module"].replace(".", "/")
-    return f"https://github.com/MazenAli/TT-FEMesh/blob/main/{filename}.py"

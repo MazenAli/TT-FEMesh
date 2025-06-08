@@ -1,5 +1,9 @@
 # TTFEMesh
 
+[![GitHub](https://img.shields.io/badge/GitHub-TT--FEMesh-black?style=flat&logo=github)](https://github.com/MazenAli/TT-FEMesh)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
+
 TTFEMesh is a Python library for generating tensor train representations of finite element meshes.
 It provides tools for creating domains, generating meshes, and computing tensorized Jacobians, Dirichlet masks, and concatenation maps.
 
@@ -35,7 +39,7 @@ examples/quickstart
 
 ```{toctree}
 :maxdepth: 1
-:caption: API Reference
+:caption: Core Modules
 
 api/domain
 api/mesh
@@ -44,6 +48,13 @@ api/basis
 api/tt_tools
 api/types
 api/utils
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: API Reference
+
+api/reference
 ```
 
 ## Quick Start
