@@ -14,7 +14,27 @@ on:
         type: boolean
 
 jobs:
-  test:
+  docker-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build base image
+      run: |
+        docker build -t ttfemesh-base:latest -f docker/base.Dockerfile .
+    
+    - name: Build dev image
+      run: |
+        docker build -t ttfemesh-dev:latest -f docker/dev.Dockerfile .
+    
+    - name: Run tests and linting
+      run: |
+        docker run --rm ttfemesh-dev:latest make all
+
+  python-compatibility:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -34,39 +54,12 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
     
-    - name: Run tests with coverage
+    - name: Run tests
       run: |
-        pytest --cov=ttfemesh tests/
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: true
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
-    
-    - name: Run linting
-      run: |
-        flake8 ttfemesh tests
-        mypy ttfemesh tests
-        bandit -r ttfemesh
+        pytest tests/
 
   publish:
-    needs: [test, lint]
+    needs: [docker-test, python-compatibility]
     if: github.event.inputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:
