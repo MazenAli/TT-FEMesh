@@ -86,7 +86,7 @@ concat_maps = mesh.get_concatenation_maps()
 
 ## Documentation
 
-For detailed documentation, including API reference and examples, visit our [documentation](https://ttfemesh.readthedocs.io/en/latest/).
+For detailed documentation, including API reference and examples, visit our [documentation](https://tt-femesh.readthedocs.io/en/latest/).
 
 ## Requirements
 
@@ -98,8 +98,8 @@ For detailed documentation, including API reference and examples, visit our [doc
 
 ## Contributing
 
-We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+We welcome contributions! Please read our [Contributing Guide](https://github.com/MazenAli/TT-FEMesh/blob/main/CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
-TTFEMesh is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+TTFEMesh is licensed under the MIT License - see the [LICENSE](https://github.com/MazenAli/TT-FEMesh/blob/main/LICENSE) file for details.
