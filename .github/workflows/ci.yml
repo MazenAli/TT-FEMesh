@@ -39,9 +39,9 @@ jobs:
       run: |
         pip install -e .
     
-    - name: Run tests
+    - name: Run tests with coverage
       run: |
-        pytest tests/
+        pytest --cov=ttfemesh --cov-report=xml tests/
     
     - name: Run linting and security checks
       run: |
@@ -67,6 +67,10 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: MazenAli/TT-FEMesh
         fail_ci_if_error: true
+        files: ./coverage.xml
+        flags: pytest
+        name: codecov-umbrella
+        verbose: true
 
   python-compatibility:
     runs-on: ubuntu-latest
@@ -101,8 +105,33 @@ jobs:
       run: |
         pytest tests/
 
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-docs.txt
+    
+    - name: Install package in development mode
+      run: |
+        pip install -e .
+    
+    - name: Build documentation
+      run: |
+        cd docs
+        make html
+
   publish:
-    needs: [test, python-compatibility]
+    needs: [test, python-compatibility, docs]
     if: github.event.inputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:
